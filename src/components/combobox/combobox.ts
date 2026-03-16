@@ -1,0 +1,459 @@
+import { LitElement, css, html, nothing, type PropertyValues } from 'lit';
+import { customElement, property, query, state } from 'lit/decorators.js';
+import { live } from 'lit/directives/live.js';
+import { computePosition, flip, shift, offset, size as sizeMiddleware } from '@floating-ui/dom';
+import { resetStyles } from '../../styles/reset.css.js';
+
+export type ComboboxSize = 'sm' | 'md' | 'lg';
+
+/**
+ * Combobox — a text input with a filterable dropdown list.
+ * Typing filters the available options; selecting an option sets the value.
+ *
+ * @csspart input - The native input element
+ * @csspart listbox - The dropdown panel
+ * @csspart label - The floating label element
+ *
+ * @fires qz-input - Fires on input with { value } detail
+ * @fires qz-change - Fires on selection with { value } detail
+ *
+ * @example
+ * ```html
+ * <qz-combobox label="Country" .options=${['Canada', 'Chile', 'China']}></qz-combobox>
+ * ```
+ */
+@customElement('qz-combobox')
+export class QzCombobox extends LitElement {
+  static formAssociated = true;
+
+  /** Floating label text. When set, uses the floating label pattern. */
+  @property() label = '';
+
+  @property() value = '';
+  @property() placeholder = '';
+  @property() name = '';
+  @property({ reflect: true }) size: ComboboxSize = 'md';
+  @property({ type: Boolean, reflect: true }) disabled = false;
+  @property({ type: Boolean, reflect: true }) readonly = false;
+  @property({ type: Boolean, reflect: true }) invalid = false;
+  @property({ type: Boolean, reflect: true }) required = false;
+
+  /** List of available options. Set via property, not attribute. */
+  @property({ type: Array }) options: string[] = [];
+
+  @state() private _open = false;
+  @state() private _focused = false;
+  @state() private _highlightedIndex = -1;
+
+  @query('input') private inputEl!: HTMLInputElement;
+  @query('.listbox') private listboxEl!: HTMLElement;
+
+  private internals: ElementInternals;
+
+  constructor() {
+    super();
+    this.internals = this.attachInternals();
+  }
+
+  static styles = [
+    resetStyles,
+    css`
+      :host {
+        display: block;
+      }
+
+      .wrapper {
+        display: flex;
+        align-items: center;
+        gap: var(--qz-space-2);
+        border: var(--qz-border-1) solid var(--qz-border-strong);
+        border-radius: var(--qz-radius-xl);
+        corner-shape: squircle;
+        background: var(--qz-surface);
+        transition:
+          border-color var(--qz-duration-fast) var(--qz-ease-default),
+          box-shadow var(--qz-duration-fast) var(--qz-ease-default);
+        color: var(--qz-text);
+        position: relative;
+        cursor: text;
+      }
+
+      .wrapper:hover:not(.disabled) {
+        border-color: var(--qz-text-tertiary);
+      }
+
+      .wrapper.focused {
+        border-color: var(--qz-primary);
+        box-shadow: 0 0 0 var(--qz-focus-ring-width) color-mix(in srgb, var(--qz-focus-ring) 25%, transparent);
+      }
+
+      .wrapper.invalid {
+        border-color: var(--qz-danger);
+      }
+
+      .wrapper.invalid.focused {
+        box-shadow: 0 0 0 var(--qz-focus-ring-width) color-mix(in srgb, var(--qz-danger) 25%, transparent);
+      }
+
+      .wrapper.disabled {
+        opacity: var(--qz-disabled-opacity);
+        cursor: not-allowed;
+      }
+
+      /* ---- Sizes without floating label ---- */
+      :host([size='sm']) .wrapper:not(.has-label) { height: var(--qz-size-sm); padding-inline: var(--qz-space-2-5); font-size: var(--qz-text-sm); }
+      :host([size='md']) .wrapper:not(.has-label), :host(:not([size])) .wrapper:not(.has-label) { height: var(--qz-size-md); padding-inline: var(--qz-space-3); font-size: var(--qz-text-sm); }
+      :host([size='lg']) .wrapper:not(.has-label) { height: var(--qz-size-lg); padding-inline: var(--qz-space-4); font-size: var(--qz-text-base); }
+
+      /* ---- Sizes with floating label (taller to fit label + value) ---- */
+      :host([size='sm']) .wrapper.has-label { height: 2.75rem; padding-inline: var(--qz-space-2-5); font-size: var(--qz-text-sm); }
+      :host([size='md']) .wrapper.has-label, :host(:not([size])) .wrapper.has-label { height: 3.25rem; padding-inline: var(--qz-space-3); font-size: var(--qz-text-sm); }
+      :host([size='lg']) .wrapper.has-label { height: 3.5rem; padding-inline: var(--qz-space-4); font-size: var(--qz-text-base); }
+
+      /* ---- Input field ---- */
+
+      .input-group {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        height: 100%;
+        position: relative;
+      }
+
+      /* When label is floating, shift input down */
+      .has-label .input-group {
+        justify-content: flex-end;
+        padding-bottom: 0.5rem;
+      }
+
+      input {
+        all: unset;
+        width: 100%;
+        font: inherit;
+        color: inherit;
+        line-height: 1.25;
+      }
+
+      input::placeholder {
+        color: var(--qz-text-tertiary);
+      }
+
+      input:disabled {
+        cursor: not-allowed;
+      }
+
+      /* Hide native placeholder when floating label is not floated */
+      .has-label:not(.floated) input::placeholder {
+        color: transparent;
+      }
+
+      /* ---- Floating label ---- */
+
+      .floating-label {
+        position: absolute;
+        top: 50%;
+        left: 0;
+        transform: translateY(-50%);
+        font-family: var(--qz-font-sans);
+        font-size: inherit;
+        color: var(--qz-text-tertiary);
+        pointer-events: none;
+        transform-origin: left center;
+        transition:
+          top var(--qz-duration-normal) var(--qz-ease-spring),
+          transform var(--qz-duration-normal) var(--qz-ease-spring),
+          font-size var(--qz-duration-normal) var(--qz-ease-spring),
+          color var(--qz-duration-fast) var(--qz-ease-default);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+      }
+
+      .floated .floating-label {
+        top: 0.35rem;
+        transform: none;
+        font-size: 0.625rem;
+        color: var(--qz-text-secondary);
+      }
+
+      .focused .floating-label {
+        color: var(--qz-primary);
+      }
+
+      .invalid .floating-label {
+        color: var(--qz-danger);
+      }
+
+      /* ---- Chevron ---- */
+
+      .chevron {
+        width: 1rem;
+        height: 1rem;
+        color: var(--qz-text-tertiary);
+        flex-shrink: 0;
+        transition: transform var(--qz-duration-fast) var(--qz-ease-default);
+        pointer-events: none;
+      }
+
+      .chevron.open {
+        transform: rotate(180deg);
+      }
+
+      /* ---- Dropdown panel ---- */
+
+      .listbox {
+        position: fixed;
+        z-index: var(--qz-z-dropdown);
+        background: var(--qz-surface-raised);
+        border: var(--qz-border-1) solid var(--qz-border);
+        border-radius: var(--qz-radius-xl);
+        corner-shape: squircle;
+        box-shadow: var(--qz-shadow-lg);
+        padding: var(--qz-space-1);
+        max-height: 16rem;
+        overflow-y: auto;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity var(--qz-duration-fast) var(--qz-ease-default);
+      }
+
+      .listbox.open {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .option {
+        padding: var(--qz-space-2) var(--qz-space-3);
+        font-size: var(--qz-text-sm);
+        border-radius: var(--qz-radius-md);
+        corner-shape: squircle;
+        cursor: pointer;
+        transition: background var(--qz-duration-fast) var(--qz-ease-default);
+      }
+
+      .option:hover,
+      .option.highlighted {
+        background: var(--qz-hover-overlay);
+      }
+
+      .empty {
+        padding: var(--qz-space-2) var(--qz-space-3);
+        font-size: var(--qz-text-sm);
+        color: var(--qz-text-tertiary);
+        text-align: center;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .wrapper, .floating-label, .chevron, .listbox, .option { transition: none; }
+      }
+    `,
+  ];
+
+  private get _floated(): boolean {
+    return this._focused || this.value.length > 0;
+  }
+
+  connectedCallback() {
+    super.connectedCallback();
+    document.addEventListener('click', this._handleDocumentClick);
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    document.removeEventListener('click', this._handleDocumentClick);
+  }
+
+  protected updated(changed: PropertyValues) {
+    if (changed.has('value')) {
+      this.internals.setFormValue(this.value);
+    }
+    if (this._open) {
+      this._updatePosition();
+    }
+  }
+
+  private _handleDocumentClick = (e: MouseEvent) => {
+    if (!this._open) return;
+    const path = e.composedPath();
+    if (!path.includes(this)) {
+      this._open = false;
+    }
+  };
+
+  private _handleInput(e: Event) {
+    const input = e.target as HTMLInputElement;
+    this.value = input.value;
+    this._highlightedIndex = -1;
+
+    if (!this._open && this.value.length > 0) {
+      this._open = true;
+    }
+
+    this.dispatchEvent(new CustomEvent('qz-input', { detail: { value: this.value }, bubbles: true, composed: true }));
+  }
+
+  private _handleFocus() {
+    this._focused = true;
+    if (this.options.length > 0) {
+      this._open = true;
+    }
+  }
+
+  private _handleBlur() {
+    this._focused = false;
+  }
+
+  private _handleKeydown(e: KeyboardEvent) {
+    const filtered = this.options.filter(o => o.toLowerCase().includes(this.value.toLowerCase()));
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        if (!this._open) {
+          this._open = true;
+        }
+        this._highlightedIndex = Math.min(this._highlightedIndex + 1, filtered.length - 1);
+        break;
+
+      case 'ArrowUp':
+        e.preventDefault();
+        this._highlightedIndex = Math.max(this._highlightedIndex - 1, 0);
+        break;
+
+      case 'Enter':
+        if (this._open && this._highlightedIndex >= 0 && this._highlightedIndex < filtered.length) {
+          e.preventDefault();
+          this._selectOption(filtered[this._highlightedIndex]);
+        }
+        break;
+
+      case 'Escape':
+        if (this._open) {
+          e.preventDefault();
+          this._open = false;
+          this._highlightedIndex = -1;
+        }
+        break;
+
+      case 'Tab':
+        this._open = false;
+        this._highlightedIndex = -1;
+        break;
+    }
+  }
+
+  private _selectOption(option: string) {
+    this.value = option;
+    this._open = false;
+    this._highlightedIndex = -1;
+    this.inputEl?.focus();
+    this.dispatchEvent(new CustomEvent('qz-change', { detail: { value: this.value }, bubbles: true, composed: true }));
+  }
+
+  private _handleWrapperClick() {
+    if (!this.disabled && !this.readonly) {
+      this.inputEl?.focus();
+    }
+  }
+
+  private async _updatePosition() {
+    const wrapper = this.shadowRoot?.querySelector('.wrapper') as HTMLElement;
+    if (!wrapper || !this.listboxEl) return;
+
+    const { x, y } = await computePosition(
+      wrapper,
+      this.listboxEl,
+      {
+        placement: 'bottom-start',
+        strategy: 'fixed',
+        middleware: [
+          offset(4),
+          flip(),
+          shift({ padding: 8 }),
+          sizeMiddleware({
+            apply({ rects, elements }) {
+              Object.assign(elements.floating.style, {
+                width: `${rects.reference.width}px`,
+              });
+            },
+          }),
+        ],
+      }
+    );
+
+    Object.assign(this.listboxEl.style, { left: `${x}px`, top: `${y}px` });
+  }
+
+  /** Programmatically focus the input. */
+  focus(options?: FocusOptions) { this.inputEl?.focus(options); }
+
+  render() {
+    const hasLabel = !!this.label;
+    const floated = hasLabel && this._floated;
+    const filteredOptions = this.options.filter(o => o.toLowerCase().includes(this.value.toLowerCase()));
+
+    const wrapperClasses = [
+      'wrapper',
+      hasLabel ? 'has-label' : '',
+      floated ? 'floated' : '',
+      this._focused ? 'focused' : '',
+      this.invalid ? 'invalid' : '',
+      this.disabled ? 'disabled' : '',
+    ].filter(Boolean).join(' ');
+
+    return html`
+      <div class=${wrapperClasses} @click=${this._handleWrapperClick}>
+        <div class="input-group">
+          ${hasLabel
+            ? html`<span class="floating-label" part="label">${this.label}</span>`
+            : nothing}
+          <input
+            part="input"
+            type="text"
+            .value=${live(this.value)}
+            placeholder=${this.placeholder || (hasLabel ? ' ' : nothing)}
+            ?disabled=${this.disabled}
+            ?readonly=${this.readonly}
+            ?required=${this.required}
+            aria-label=${this.label || nothing}
+            aria-invalid=${this.invalid ? 'true' : nothing}
+            aria-expanded=${this._open ? 'true' : 'false'}
+            aria-autocomplete="list"
+            aria-haspopup="listbox"
+            role="combobox"
+            @input=${this._handleInput}
+            @focus=${this._handleFocus}
+            @blur=${this._handleBlur}
+            @keydown=${this._handleKeydown}
+          />
+        </div>
+        <svg class="chevron ${this._open ? 'open' : ''}" viewBox="0 0 16 16" fill="none">
+          <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="listbox ${this._open ? 'open' : ''}" part="listbox" role="listbox">
+        ${filteredOptions.length > 0
+          ? filteredOptions.map(
+              (option, i) => html`
+                <div
+                  class="option ${i === this._highlightedIndex ? 'highlighted' : ''}"
+                  role="option"
+                  aria-selected=${this.value === option ? 'true' : 'false'}
+                  @click=${() => this._selectOption(option)}
+                >${option}</div>
+              `
+            )
+          : html`<div class="empty">No results</div>`}
+      </div>
+    `;
+  }
+}
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'qz-combobox': QzCombobox;
+  }
+}

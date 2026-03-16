@@ -1,0 +1,779 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Project Quartz — Component Library</title>
+    <link rel="stylesheet" href="./src/index.css" />
+    <script type="module" src="/src/index.ts"></script>
+
+    <style>
+      .demo-section {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 2rem;
+      }
+
+      .demo-section h2 {
+        font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display',
+          'Segoe UI', Roboto, sans-serif;
+        font-size: 1.5rem;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        margin: 2.5rem 0 1rem;
+        color: var(--qz-text);
+      }
+
+      .demo-section h2:first-of-type {
+        margin-top: 0;
+      }
+
+      .demo-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        align-items: center;
+        margin-bottom: 1rem;
+      }
+
+      .demo-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1rem;
+      }
+
+      .color-swatch-row {
+        display: flex;
+        gap: 0;
+        margin-bottom: 1.5rem;
+        border-radius: 0.75rem;
+        corner-shape: squircle;
+        overflow: hidden;
+        border: 1px solid var(--qz-border);
+      }
+
+      .color-swatch {
+        flex: 1;
+        aspect-ratio: 1;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        padding: 0.4rem;
+        font-size: 0.65rem;
+        font-family: monospace;
+        font-weight: 500;
+      }
+
+      .palette-label {
+        font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display',
+          'Segoe UI', Roboto, sans-serif;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--qz-text);
+        margin: 0.75rem 0 0.35rem;
+      }
+
+      .theme-toggle {
+        position: fixed;
+        top: 1rem;
+        right: 1rem;
+        z-index: 100;
+      }
+
+      .card-content h3 {
+        font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display',
+          'Segoe UI', Roboto, sans-serif;
+        font-size: 1.125rem;
+        font-weight: 600;
+        margin: 0 0 0.5rem;
+        color: var(--qz-text);
+      }
+
+      .card-content p {
+        font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display',
+          'Segoe UI', Roboto, sans-serif;
+        font-size: 0.875rem;
+        color: var(--qz-text-secondary);
+        margin: 0;
+        line-height: 1.5;
+      }
+
+      .demo-label {
+        font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display',
+          'Segoe UI', Roboto, sans-serif;
+        font-size: 0.8rem;
+        font-weight: 500;
+        color: var(--qz-text-tertiary);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        margin: 1rem 0 0.5rem;
+      }
+    </style>
+  </head>
+  <body>
+    <qz-theme-provider id="theme-root" theme="system">
+      <div class="theme-toggle">
+        <qz-button
+          variant="secondary"
+          size="sm"
+          onclick="
+            const tp = document.getElementById('theme-root');
+            const themes = ['system', 'light', 'dark'];
+            const i = (themes.indexOf(tp.theme) + 1) % themes.length;
+            tp.theme = themes[i];
+            this.textContent = 'Theme: ' + themes[i];
+          "
+        >
+          Theme: system
+        </qz-button>
+      </div>
+
+      <qz-surface variant="sunken" flush style="min-height: 100vh; --qz-surface-padding: 0;">
+        <div class="demo-section">
+
+          <!-- ============ COLOR PALETTES ============ -->
+
+          <h2>Color Palette</h2>
+
+          <p class="palette-label">Neutral</p>
+          <div class="color-swatch-row">
+            <div class="color-swatch" style="background: var(--qz-color-neutral-50); color: #555;">50</div>
+            <div class="color-swatch" style="background: var(--qz-color-neutral-100); color: #555;">100</div>
+            <div class="color-swatch" style="background: var(--qz-color-neutral-200); color: #555;">200</div>
+            <div class="color-swatch" style="background: var(--qz-color-neutral-300); color: #555;">300</div>
+            <div class="color-swatch" style="background: var(--qz-color-neutral-400); color: #fff;">400</div>
+            <div class="color-swatch" style="background: var(--qz-color-neutral-500); color: #fff;">500</div>
+            <div class="color-swatch" style="background: var(--qz-color-neutral-600); color: #fff;">600</div>
+            <div class="color-swatch" style="background: var(--qz-color-neutral-700); color: #fff;">700</div>
+            <div class="color-swatch" style="background: var(--qz-color-neutral-800); color: #fff;">800</div>
+            <div class="color-swatch" style="background: var(--qz-color-neutral-900); color: #fff;">900</div>
+            <div class="color-swatch" style="background: var(--qz-color-neutral-950); color: #fff;">950</div>
+          </div>
+
+          <p class="palette-label">Primary (default: purple)</p>
+          <div class="color-swatch-row">
+            <div class="color-swatch" style="background: var(--qz-color-primary-50); color: #555;">50</div>
+            <div class="color-swatch" style="background: var(--qz-color-primary-100); color: #555;">100</div>
+            <div class="color-swatch" style="background: var(--qz-color-primary-200); color: #555;">200</div>
+            <div class="color-swatch" style="background: var(--qz-color-primary-300); color: #555;">300</div>
+            <div class="color-swatch" style="background: var(--qz-color-primary-400); color: #fff;">400</div>
+            <div class="color-swatch" style="background: var(--qz-color-primary-500); color: #fff;">500</div>
+            <div class="color-swatch" style="background: var(--qz-color-primary-600); color: #fff;">600</div>
+            <div class="color-swatch" style="background: var(--qz-color-primary-700); color: #fff;">700</div>
+            <div class="color-swatch" style="background: var(--qz-color-primary-800); color: #fff;">800</div>
+            <div class="color-swatch" style="background: var(--qz-color-primary-900); color: #fff;">900</div>
+            <div class="color-swatch" style="background: var(--qz-color-primary-950); color: #fff;">950</div>
+          </div>
+
+          <p class="palette-label">Secondary (default: blue)</p>
+          <div class="color-swatch-row">
+            <div class="color-swatch" style="background: var(--qz-color-secondary-50); color: #555;">50</div>
+            <div class="color-swatch" style="background: var(--qz-color-secondary-100); color: #555;">100</div>
+            <div class="color-swatch" style="background: var(--qz-color-secondary-200); color: #555;">200</div>
+            <div class="color-swatch" style="background: var(--qz-color-secondary-300); color: #555;">300</div>
+            <div class="color-swatch" style="background: var(--qz-color-secondary-400); color: #fff;">400</div>
+            <div class="color-swatch" style="background: var(--qz-color-secondary-500); color: #fff;">500</div>
+            <div class="color-swatch" style="background: var(--qz-color-secondary-600); color: #fff;">600</div>
+            <div class="color-swatch" style="background: var(--qz-color-secondary-700); color: #fff;">700</div>
+            <div class="color-swatch" style="background: var(--qz-color-secondary-800); color: #fff;">800</div>
+            <div class="color-swatch" style="background: var(--qz-color-secondary-900); color: #fff;">900</div>
+            <div class="color-swatch" style="background: var(--qz-color-secondary-950); color: #fff;">950</div>
+          </div>
+
+          <p class="palette-label">Success (default: green)</p>
+          <div class="color-swatch-row">
+            <div class="color-swatch" style="background: var(--qz-color-success-50); color: #555;">50</div>
+            <div class="color-swatch" style="background: var(--qz-color-success-100); color: #555;">100</div>
+            <div class="color-swatch" style="background: var(--qz-color-success-200); color: #555;">200</div>
+            <div class="color-swatch" style="background: var(--qz-color-success-300); color: #555;">300</div>
+            <div class="color-swatch" style="background: var(--qz-color-success-400); color: #fff;">400</div>
+            <div class="color-swatch" style="background: var(--qz-color-success-500); color: #fff;">500</div>
+            <div class="color-swatch" style="background: var(--qz-color-success-600); color: #fff;">600</div>
+            <div class="color-swatch" style="background: var(--qz-color-success-700); color: #fff;">700</div>
+            <div class="color-swatch" style="background: var(--qz-color-success-800); color: #fff;">800</div>
+            <div class="color-swatch" style="background: var(--qz-color-success-900); color: #fff;">900</div>
+            <div class="color-swatch" style="background: var(--qz-color-success-950); color: #fff;">950</div>
+          </div>
+
+          <p class="palette-label">Warning (default: yellow)</p>
+          <div class="color-swatch-row">
+            <div class="color-swatch" style="background: var(--qz-color-warning-50); color: #555;">50</div>
+            <div class="color-swatch" style="background: var(--qz-color-warning-100); color: #555;">100</div>
+            <div class="color-swatch" style="background: var(--qz-color-warning-200); color: #555;">200</div>
+            <div class="color-swatch" style="background: var(--qz-color-warning-300); color: #555;">300</div>
+            <div class="color-swatch" style="background: var(--qz-color-warning-400); color: #555;">400</div>
+            <div class="color-swatch" style="background: var(--qz-color-warning-500); color: #fff;">500</div>
+            <div class="color-swatch" style="background: var(--qz-color-warning-600); color: #fff;">600</div>
+            <div class="color-swatch" style="background: var(--qz-color-warning-700); color: #fff;">700</div>
+            <div class="color-swatch" style="background: var(--qz-color-warning-800); color: #fff;">800</div>
+            <div class="color-swatch" style="background: var(--qz-color-warning-900); color: #fff;">900</div>
+            <div class="color-swatch" style="background: var(--qz-color-warning-950); color: #fff;">950</div>
+          </div>
+
+          <p class="palette-label">Danger (default: red)</p>
+          <div class="color-swatch-row">
+            <div class="color-swatch" style="background: var(--qz-color-danger-50); color: #555;">50</div>
+            <div class="color-swatch" style="background: var(--qz-color-danger-100); color: #555;">100</div>
+            <div class="color-swatch" style="background: var(--qz-color-danger-200); color: #555;">200</div>
+            <div class="color-swatch" style="background: var(--qz-color-danger-300); color: #555;">300</div>
+            <div class="color-swatch" style="background: var(--qz-color-danger-400); color: #fff;">400</div>
+            <div class="color-swatch" style="background: var(--qz-color-danger-500); color: #fff;">500</div>
+            <div class="color-swatch" style="background: var(--qz-color-danger-600); color: #fff;">600</div>
+            <div class="color-swatch" style="background: var(--qz-color-danger-700); color: #fff;">700</div>
+            <div class="color-swatch" style="background: var(--qz-color-danger-800); color: #fff;">800</div>
+            <div class="color-swatch" style="background: var(--qz-color-danger-900); color: #fff;">900</div>
+            <div class="color-swatch" style="background: var(--qz-color-danger-950); color: #fff;">950</div>
+          </div>
+
+          <p class="palette-label">Info (default: blue)</p>
+          <div class="color-swatch-row">
+            <div class="color-swatch" style="background: var(--qz-color-info-50); color: #555;">50</div>
+            <div class="color-swatch" style="background: var(--qz-color-info-100); color: #555;">100</div>
+            <div class="color-swatch" style="background: var(--qz-color-info-200); color: #555;">200</div>
+            <div class="color-swatch" style="background: var(--qz-color-info-300); color: #555;">300</div>
+            <div class="color-swatch" style="background: var(--qz-color-info-400); color: #fff;">400</div>
+            <div class="color-swatch" style="background: var(--qz-color-info-500); color: #fff;">500</div>
+            <div class="color-swatch" style="background: var(--qz-color-info-600); color: #fff;">600</div>
+            <div class="color-swatch" style="background: var(--qz-color-info-700); color: #fff;">700</div>
+            <div class="color-swatch" style="background: var(--qz-color-info-800); color: #fff;">800</div>
+            <div class="color-swatch" style="background: var(--qz-color-info-900); color: #fff;">900</div>
+            <div class="color-swatch" style="background: var(--qz-color-info-950); color: #fff;">950</div>
+          </div>
+
+          <qz-divider></qz-divider>
+
+          <!-- ============ BUTTONS ============ -->
+
+          <h2>Buttons — Variants</h2>
+          <div class="demo-row">
+            <qz-button variant="primary">Primary</qz-button>
+            <qz-button variant="secondary">Secondary</qz-button>
+            <qz-button variant="ghost">Ghost</qz-button>
+            <qz-button variant="subtle">Subtle</qz-button>
+            <qz-button variant="danger">Danger</qz-button>
+          </div>
+
+          <p class="demo-label">Sizes</p>
+          <div class="demo-row">
+            <qz-button size="sm">Small</qz-button>
+            <qz-button size="md">Medium</qz-button>
+            <qz-button size="lg">Large</qz-button>
+          </div>
+
+          <p class="demo-label">States</p>
+          <div class="demo-row">
+            <qz-button disabled>Disabled</qz-button>
+            <qz-button loading>Loading</qz-button>
+            <qz-button variant="secondary" loading>Loading</qz-button>
+            <qz-button variant="danger" disabled>Disabled</qz-button>
+          </div>
+
+          <qz-divider></qz-divider>
+
+          <!-- ============ CARDS ============ -->
+
+          <h2>Cards</h2>
+          <div class="demo-grid">
+            <qz-card>
+              <div class="card-content">
+                <h3>Bordered Card</h3>
+                <p>Default card with a subtle border. Great for content sections and grouping related items together.</p>
+              </div>
+            </qz-card>
+
+            <qz-card elevated>
+              <div class="card-content">
+                <h3>Elevated Card</h3>
+                <p>Card with shadow elevation — use for content that should visually lift above the surface.</p>
+              </div>
+            </qz-card>
+
+            <qz-card>
+              <div slot="header">
+                <div class="card-content">
+                  <h3>Card with Header</h3>
+                </div>
+              </div>
+              <div class="card-content">
+                <p>This card uses the header slot to separate the title from body content.</p>
+              </div>
+              <div slot="footer">
+                <div class="demo-row" style="margin: 0;">
+                  <qz-button size="sm" variant="ghost">Cancel</qz-button>
+                  <qz-button size="sm">Confirm</qz-button>
+                </div>
+              </div>
+            </qz-card>
+          </div>
+
+          <qz-divider></qz-divider>
+
+          <!-- ============ SURFACES ============ -->
+
+          <h2>Surfaces</h2>
+          <div class="demo-grid">
+            <qz-surface bordered>
+              <div class="card-content">
+                <h3>Default Surface</h3>
+                <p>Base surface with border.</p>
+              </div>
+            </qz-surface>
+
+            <qz-surface variant="raised">
+              <div class="card-content">
+                <h3>Raised Surface</h3>
+                <p>Elevated with shadow.</p>
+              </div>
+            </qz-surface>
+
+            <qz-surface variant="sunken" bordered>
+              <div class="card-content">
+                <h3>Sunken Surface</h3>
+                <p>Recessed background.</p>
+              </div>
+            </qz-surface>
+          </div>
+
+          <qz-divider></qz-divider>
+
+          <!-- ============ FORM INPUTS ============ -->
+
+          <h2>Form Inputs — Floating Labels</h2>
+          <div class="demo-grid">
+            <qz-field>
+              <qz-input label="Full name" required></qz-input>
+              <qz-hint-text slot="hint">As it appears on your ID.</qz-hint-text>
+            </qz-field>
+
+            <qz-field>
+              <qz-input label="Email address" type="email" clearable></qz-input>
+            </qz-field>
+
+            <qz-field>
+              <qz-input label="Password" type="password" invalid></qz-input>
+              <qz-error-text slot="error">Password must be at least 8 characters.</qz-error-text>
+            </qz-field>
+          </div>
+
+          <p class="demo-label">Floating label sizes</p>
+          <div class="demo-grid">
+            <qz-input label="Small input" size="sm"></qz-input>
+            <qz-input label="Medium input" size="md"></qz-input>
+            <qz-input label="Large input" size="lg"></qz-input>
+          </div>
+
+          <p class="demo-label">Without floating label (placeholder only)</p>
+          <div class="demo-grid">
+            <qz-input placeholder="Search..." clearable></qz-input>
+            <qz-input placeholder="Plain input"></qz-input>
+          </div>
+
+          <p class="demo-label">Input states</p>
+          <div class="demo-grid">
+            <qz-input label="Disabled" disabled value="Cannot interact"></qz-input>
+            <qz-input label="Readonly" readonly value="Cannot edit"></qz-input>
+            <qz-input label="Invalid" invalid></qz-input>
+          </div>
+
+          <p class="demo-label">Textarea — Floating Labels</p>
+          <div class="demo-grid">
+            <qz-field>
+              <qz-textarea label="Bio" clearable maxlength="280"></qz-textarea>
+              <qz-hint-text slot="hint">Max 280 characters.</qz-hint-text>
+            </qz-field>
+
+            <qz-field>
+              <qz-textarea label="Comments" rows="4"></qz-textarea>
+            </qz-field>
+          </div>
+
+          <p class="demo-label">Textarea without floating label</p>
+          <qz-textarea placeholder="Write your thoughts..." style="max-width: 32rem;"></qz-textarea>
+
+          <qz-divider></qz-divider>
+
+          <!-- ============ CHECKBOX & SWITCH ============ -->
+
+          <h2>Checkbox & Switch</h2>
+          <div class="demo-grid">
+            <qz-surface bordered style="--qz-surface-padding: var(--qz-space-5);">
+              <div class="card-content">
+                <h3>Checkboxes</h3>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-top: 0.75rem;">
+                <qz-checkbox>Accept terms and conditions</qz-checkbox>
+                <qz-checkbox checked>Remember me</qz-checkbox>
+                <qz-checkbox indeterminate>Select all items</qz-checkbox>
+                <qz-checkbox disabled>Disabled option</qz-checkbox>
+              </div>
+            </qz-surface>
+
+            <qz-surface bordered style="--qz-surface-padding: var(--qz-space-5);">
+              <div class="card-content">
+                <h3>Switches</h3>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-top: 0.75rem;">
+                <qz-switch>Dark mode</qz-switch>
+                <qz-switch checked>Notifications</qz-switch>
+                <qz-switch loading>Syncing</qz-switch>
+                <qz-switch disabled>Disabled</qz-switch>
+              </div>
+            </qz-surface>
+          </div>
+
+          <qz-divider></qz-divider>
+
+          <!-- ============ BADGES ============ -->
+
+          <h2>Badges</h2>
+          <div class="demo-row">
+            <qz-badge variant="neutral">Neutral</qz-badge>
+            <qz-badge variant="primary">Primary</qz-badge>
+            <qz-badge variant="secondary">Secondary</qz-badge>
+            <qz-badge variant="success">Success</qz-badge>
+            <qz-badge variant="warning">Warning</qz-badge>
+            <qz-badge variant="danger">Danger</qz-badge>
+            <qz-badge variant="info">Info</qz-badge>
+          </div>
+          <p class="demo-label">Sizes</p>
+          <div class="demo-row">
+            <qz-badge variant="primary" size="sm">Small</qz-badge>
+            <qz-badge variant="primary" size="md">Medium</qz-badge>
+            <qz-badge variant="primary" size="lg">Large</qz-badge>
+          </div>
+
+          <qz-divider></qz-divider>
+
+          <!-- ============ ALERTS ============ -->
+
+          <h2>Alerts</h2>
+          <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+            <qz-alert variant="info">This is an informational message.</qz-alert>
+            <qz-alert variant="success">Changes saved successfully.</qz-alert>
+            <qz-alert variant="warning" closable>Your session will expire in 5 minutes.</qz-alert>
+            <qz-alert variant="danger" closable>Something went wrong. Please try again.</qz-alert>
+            <qz-alert variant="neutral">A neutral system notice.</qz-alert>
+          </div>
+
+          <qz-divider></qz-divider>
+
+          <!-- ============ TABS ============ -->
+
+          <h2>Tabs</h2>
+          <qz-tabs>
+            <qz-tab slot="nav" panel="general">General</qz-tab>
+            <qz-tab slot="nav" panel="settings">Settings</qz-tab>
+            <qz-tab slot="nav" panel="billing">Billing</qz-tab>
+            <qz-tab slot="nav" panel="disabled" disabled>Disabled</qz-tab>
+
+            <qz-tab-panel name="general">
+              <qz-surface bordered>
+                <div class="card-content">
+                  <h3>General Settings</h3>
+                  <p>Manage your account details and preferences.</p>
+                </div>
+              </qz-surface>
+            </qz-tab-panel>
+            <qz-tab-panel name="settings">
+              <qz-surface bordered>
+                <div class="card-content">
+                  <h3>App Settings</h3>
+                  <p>Configure notifications, theme, and display options.</p>
+                </div>
+              </qz-surface>
+            </qz-tab-panel>
+            <qz-tab-panel name="billing">
+              <qz-surface bordered>
+                <div class="card-content">
+                  <h3>Billing & Plans</h3>
+                  <p>View your subscription and payment history.</p>
+                </div>
+              </qz-surface>
+            </qz-tab-panel>
+            <qz-tab-panel name="disabled">
+              <p>This tab is disabled.</p>
+            </qz-tab-panel>
+          </qz-tabs>
+
+          <qz-divider></qz-divider>
+
+          <!-- ============ ACCORDION ============ -->
+
+          <h2>Accordion</h2>
+          <qz-surface bordered style="--qz-surface-padding: 0 var(--qz-space-4);">
+            <qz-accordion single>
+              <qz-accordion-item open>
+                <span slot="header">What is Project Quartz?</span>
+                A framework-agnostic UI component library built with Web Components and Lit.
+                It provides a clean, modern design language with full theming support.
+              </qz-accordion-item>
+              <qz-accordion-item>
+                <span slot="header">How do I customize the theme?</span>
+                Override the CSS custom properties on the theme provider. All primitive token scales
+                use role-based names (primary, secondary, etc.) so you can swap entire palettes.
+              </qz-accordion-item>
+              <qz-accordion-item>
+                <span slot="header">Which frameworks are supported?</span>
+                Quartz works with any framework — plain HTML, React, Vue, Svelte, Angular —
+                because it's built on standard Web Components.
+              </qz-accordion-item>
+              <qz-accordion-item disabled>
+                <span slot="header">Disabled section</span>
+                This content is not accessible.
+              </qz-accordion-item>
+            </qz-accordion>
+          </qz-surface>
+
+          <qz-divider></qz-divider>
+
+          <!-- ============ DIALOG ============ -->
+
+          <h2>Dialog</h2>
+          <div class="demo-row">
+            <qz-button onclick="document.getElementById('demo-dialog').open = true">
+              Open Dialog
+            </qz-button>
+            <qz-button variant="secondary" onclick="document.getElementById('demo-dialog-lg').open = true">
+              Open Large Dialog
+            </qz-button>
+          </div>
+
+          <qz-dialog id="demo-dialog" label="Confirm Action" size="sm">
+            <p>Are you sure you want to proceed? This action cannot be undone.</p>
+            <div slot="footer">
+              <qz-button variant="ghost" size="sm" onclick="document.getElementById('demo-dialog').open = false">Cancel</qz-button>
+              <qz-button size="sm" onclick="document.getElementById('demo-dialog').open = false">Confirm</qz-button>
+            </div>
+          </qz-dialog>
+
+          <qz-dialog id="demo-dialog-lg" label="Edit Profile" size="lg">
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+              <qz-input label="Display name"></qz-input>
+              <qz-textarea label="Bio"></qz-textarea>
+            </div>
+            <div slot="footer">
+              <qz-button variant="ghost" size="sm" onclick="document.getElementById('demo-dialog-lg').open = false">Cancel</qz-button>
+              <qz-button size="sm" onclick="document.getElementById('demo-dialog-lg').open = false">Save Changes</qz-button>
+            </div>
+          </qz-dialog>
+
+          <qz-divider></qz-divider>
+
+          <!-- ============ TOOLTIP ============ -->
+
+          <h2>Tooltip</h2>
+          <div class="demo-row">
+            <qz-tooltip content="This is a tooltip" placement="top">
+              <qz-button variant="secondary">Hover me (top)</qz-button>
+            </qz-tooltip>
+            <qz-tooltip content="Positioned to the right" placement="right">
+              <qz-button variant="secondary">Right</qz-button>
+            </qz-tooltip>
+            <qz-tooltip content="Positioned below" placement="bottom">
+              <qz-button variant="secondary">Bottom</qz-button>
+            </qz-tooltip>
+            <qz-tooltip content="Positioned left" placement="left">
+              <qz-button variant="secondary">Left</qz-button>
+            </qz-tooltip>
+          </div>
+
+          <qz-divider></qz-divider>
+
+          <!-- ============ SPINNER ============ -->
+
+          <h2>Spinner</h2>
+          <div class="demo-row">
+            <qz-spinner size="sm"></qz-spinner>
+            <qz-spinner size="md"></qz-spinner>
+            <qz-spinner size="lg"></qz-spinner>
+          </div>
+
+          <qz-divider></qz-divider>
+
+          <!-- ============ ICON BUTTON ============ -->
+
+          <h2>Icon Buttons</h2>
+          <div class="demo-row">
+            <qz-icon-button variant="ghost" label="Settings">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M12 15a3 3 0 100-6 3 3 0 000 6z" stroke="currentColor" stroke-width="1.5"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" stroke="currentColor" stroke-width="1.5"/></svg>
+            </qz-icon-button>
+            <qz-icon-button variant="ghost" label="Close">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            </qz-icon-button>
+            <qz-icon-button variant="primary" label="Add">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            </qz-icon-button>
+            <qz-icon-button variant="danger" label="Delete">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            </qz-icon-button>
+          </div>
+
+          <qz-divider></qz-divider>
+
+          <!-- ============ DIVIDER ============ -->
+
+          <h2>Divider</h2>
+          <qz-surface bordered>
+            <div class="card-content">
+              <p>Content above the divider.</p>
+            </div>
+            <qz-divider></qz-divider>
+            <div class="card-content">
+              <p>Content below the divider.</p>
+            </div>
+          </qz-surface>
+
+          <qz-divider></qz-divider>
+
+          <!-- ============ RADIO ============ -->
+
+          <h2>Radio Group</h2>
+          <div class="demo-grid">
+            <qz-surface bordered style="--qz-surface-padding: var(--qz-space-5);">
+              <div class="card-content"><h3>Plan Selection</h3></div>
+              <div style="margin-top: 0.75rem;">
+                <qz-radio-group label="Select a plan" value="pro">
+                  <qz-radio value="free">Free</qz-radio>
+                  <qz-radio value="pro">Pro</qz-radio>
+                  <qz-radio value="enterprise">Enterprise</qz-radio>
+                  <qz-radio value="legacy" disabled>Legacy (unavailable)</qz-radio>
+                </qz-radio-group>
+              </div>
+            </qz-surface>
+
+            <qz-surface bordered style="--qz-surface-padding: var(--qz-space-5);">
+              <div class="card-content"><h3>Disabled Group</h3></div>
+              <div style="margin-top: 0.75rem;">
+                <qz-radio-group label="Disabled group" disabled>
+                  <qz-radio value="a">Option A</qz-radio>
+                  <qz-radio value="b" checked>Option B</qz-radio>
+                  <qz-radio value="c">Option C</qz-radio>
+                </qz-radio-group>
+              </div>
+            </qz-surface>
+          </div>
+
+          <qz-divider></qz-divider>
+
+          <!-- ============ SELECT ============ -->
+
+          <h2>Select</h2>
+          <div class="demo-grid">
+            <qz-select label="Country" value="us">
+              <qz-option value="us">United States</qz-option>
+              <qz-option value="ca">Canada</qz-option>
+              <qz-option value="uk">United Kingdom</qz-option>
+              <qz-option value="de">Germany</qz-option>
+              <qz-option value="jp">Japan</qz-option>
+              <qz-option value="xx" disabled>Unavailable</qz-option>
+            </qz-select>
+
+            <qz-select label="Size" clearable>
+              <qz-option value="sm">Small</qz-option>
+              <qz-option value="md">Medium</qz-option>
+              <qz-option value="lg">Large</qz-option>
+              <qz-option value="xl">Extra Large</qz-option>
+            </qz-select>
+
+            <qz-select label="Status" placeholder="Select a status" invalid>
+              <qz-option value="active">Active</qz-option>
+              <qz-option value="inactive">Inactive</qz-option>
+            </qz-select>
+          </div>
+
+          <qz-divider></qz-divider>
+
+          <!-- ============ SLIDER ============ -->
+
+          <h2>Slider</h2>
+          <div style="display: flex; flex-direction: column; gap: 1.5rem; max-width: 24rem;">
+            <qz-slider label="Volume" value="65"></qz-slider>
+            <qz-slider label="Brightness" value="30" min="0" max="100"></qz-slider>
+            <qz-slider label="Disabled" value="50" disabled></qz-slider>
+          </div>
+
+          <qz-divider></qz-divider>
+
+          <!-- ============ SEARCH FIELD ============ -->
+
+          <h2>Search Field</h2>
+          <div class="demo-grid">
+            <qz-search-field placeholder="Search components..."></qz-search-field>
+            <qz-search-field placeholder="Search (small)" size="sm"></qz-search-field>
+            <qz-search-field placeholder="Search (large)" size="lg"></qz-search-field>
+          </div>
+
+          <qz-divider></qz-divider>
+
+          <!-- ============ COMBOBOX ============ -->
+
+          <h2>Combobox</h2>
+          <div class="demo-grid">
+            <qz-combobox id="combo-fruit" label="Favorite fruit"></qz-combobox>
+            <qz-combobox id="combo-lang" label="Language" size="lg"></qz-combobox>
+          </div>
+          <script type="module">
+            document.getElementById('combo-fruit').options = ['Apple', 'Banana', 'Cherry', 'Date', 'Elderberry', 'Fig', 'Grape'];
+            document.getElementById('combo-lang').options = ['JavaScript', 'TypeScript', 'Python', 'Rust', 'Go', 'Java', 'C#', 'Swift'];
+          </script>
+
+          <qz-divider></qz-divider>
+
+          <!-- ============ POPOVER ============ -->
+
+          <h2>Popover</h2>
+          <div class="demo-row">
+            <qz-popover placement="bottom-start">
+              <qz-button variant="secondary">Click me</qz-button>
+              <div slot="content" style="width: 14rem;">
+                <div class="card-content">
+                  <h3>Popover Content</h3>
+                  <p>This is a rich popover with interactive content.</p>
+                </div>
+                <div style="margin-top: 0.75rem;">
+                  <qz-button size="sm" variant="primary" style="width: 100%;">Action</qz-button>
+                </div>
+              </div>
+            </qz-popover>
+
+            <qz-popover trigger="hover" placement="top">
+              <qz-button variant="ghost">Hover me</qz-button>
+              <div slot="content">
+                <div class="card-content">
+                  <p>Hover-triggered popover with more detail than a tooltip.</p>
+                </div>
+              </div>
+            </qz-popover>
+          </div>
+
+          <qz-divider></qz-divider>
+
+          <!-- ============ MENU ============ -->
+
+          <h2>Menu</h2>
+          <div class="demo-row">
+            <qz-menu style="min-width: 14rem;">
+              <qz-menu-item>
+                <svg slot="prefix" viewBox="0 0 16 16" width="16" height="16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                New File
+                <span slot="suffix" style="font-size: 0.7rem; color: var(--qz-text-tertiary);">⌘N</span>
+              </qz-menu-item>
+              <qz-menu-item>
+                <svg slot="prefix" viewBox="0 0 16 16" width="16" height="16" fill="none"><path d="M4 12V4h8v8H4z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Open
+              </qz-menu-item>
+              <qz-menu-item selected>Save</qz-menu-item>
+              <qz-menu-divider></qz-menu-divider>
+              <qz-menu-item disabled>Export</qz-menu-item>
+              <qz-menu-divider></qz-menu-divider>
+              <qz-menu-item destructive>Delete Project</qz-menu-item>
+            </qz-menu>
+          </div>
+
+        </div>
+      </qz-surface>
+    </qz-theme-provider>
+  </body>
+</html>
