@@ -13,7 +13,7 @@ import { resetStyles } from '../../styles/reset.css.js';
  *
  * @csspart field - The outer field container
  *
- * @cssprop --qz-field-gap - Override gap between elements (default: --qz-space-1-5)
+ * @cssprop --am-field-gap - Override gap between elements (default: --am-space-1-5)
  *
  * @example
  * ```html
@@ -24,8 +24,8 @@ import { resetStyles } from '../../styles/reset.css.js';
  * </qz-field>
  * ```
  */
-@customElement('qz-field')
-export class QzField extends LitElement {
+@customElement('am-field')
+export class AmField extends LitElement {
   static styles = [
     resetStyles,
     css`
@@ -36,7 +36,7 @@ export class QzField extends LitElement {
       .field {
         display: flex;
         flex-direction: column;
-        gap: var(--qz-field-gap, var(--qz-space-1-5));
+        gap: var(--am-field-gap, var(--am-space-1-5));
       }
     `,
   ];
@@ -55,6 +55,6 @@ export class QzField extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'qz-field': QzField;
+    'am-field': AmField;
   }
 }

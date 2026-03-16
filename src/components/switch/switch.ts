@@ -18,8 +18,8 @@ import { resetStyles } from '../../styles/reset.css.js';
  * <qz-switch checked>Notifications</qz-switch>
  * ```
  */
-@customElement('qz-switch')
-export class QzSwitch extends LitElement {
+@customElement('am-switch')
+export class AmSwitch extends LitElement {
   static formAssociated = true;
 
   @property({ type: Boolean, reflect: true }) checked = false;
@@ -41,14 +41,14 @@ export class QzSwitch extends LitElement {
       :host {
         display: inline-flex;
         align-items: center;
-        gap: var(--qz-space-2-5);
+        gap: var(--am-space-2-5);
         cursor: pointer;
         user-select: none;
         -webkit-tap-highlight-color: transparent;
       }
 
       :host([disabled]) {
-        opacity: var(--qz-disabled-opacity);
+        opacity: var(--am-disabled-opacity);
         cursor: not-allowed;
         pointer-events: none;
       }
@@ -57,27 +57,27 @@ export class QzSwitch extends LitElement {
         position: relative;
         width: 2.5rem;
         height: 1.5rem;
-        border-radius: var(--qz-radius-full);
-        background: var(--qz-border-strong);
-        transition: background var(--qz-duration-fast) var(--qz-ease-default);
+        border-radius: var(--am-radius-full);
+        background: var(--am-border-strong);
+        transition: background var(--am-duration-fast) var(--am-ease-default);
         flex-shrink: 0;
       }
 
       :host([checked]) .track {
-        background: var(--qz-primary);
+        background: var(--am-primary);
       }
 
       :host(:hover:not([disabled])) .track {
-        background: var(--qz-text-tertiary);
+        background: var(--am-text-tertiary);
       }
 
       :host(:hover[checked]:not([disabled])) .track {
-        background: var(--qz-primary-hover);
+        background: var(--am-primary-hover);
       }
 
       .track:focus-visible {
-        outline: var(--qz-focus-ring-width) solid var(--qz-focus-ring);
-        outline-offset: var(--qz-focus-ring-offset);
+        outline: var(--am-focus-ring-width) solid var(--am-focus-ring);
+        outline-offset: var(--am-focus-ring-offset);
       }
 
       .thumb {
@@ -86,11 +86,11 @@ export class QzSwitch extends LitElement {
         left: 0.1875rem;
         width: 1.125rem;
         height: 1.125rem;
-        border-radius: var(--qz-radius-full);
-        background: var(--qz-color-neutral-0);
-        box-shadow: var(--qz-shadow-sm);
+        border-radius: var(--am-radius-full);
+        background: var(--am-color-neutral-0);
+        box-shadow: var(--am-shadow-sm);
         transition:
-          transform var(--qz-duration-normal) var(--qz-ease-spring);
+          transform var(--am-duration-normal) var(--am-ease-spring);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -103,24 +103,24 @@ export class QzSwitch extends LitElement {
       .loading-spinner {
         width: 0.625rem;
         height: 0.625rem;
-        border-radius: var(--qz-radius-full);
-        border: 1.5px solid var(--qz-text-tertiary);
+        border-radius: var(--am-radius-full);
+        border: 1.5px solid var(--am-text-tertiary);
         border-top-color: transparent;
         animation: spin 0.6s linear infinite;
       }
 
       :host([checked]) .loading-spinner {
-        border-color: var(--qz-primary);
+        border-color: var(--am-primary);
         border-top-color: transparent;
       }
 
       @keyframes spin { to { transform: rotate(360deg); } }
 
       .label {
-        font-family: var(--qz-font-sans);
-        font-size: var(--qz-text-sm);
-        line-height: var(--qz-leading-normal);
-        color: var(--qz-text);
+        font-family: var(--am-font-sans);
+        font-size: var(--am-text-sm);
+        line-height: var(--am-leading-normal);
+        color: var(--am-text);
       }
 
       @media (prefers-reduced-motion: reduce) {
@@ -139,7 +139,7 @@ export class QzSwitch extends LitElement {
   private _toggle = () => {
     if (this.disabled || this.loading) return;
     this.checked = !this.checked;
-    this.dispatchEvent(new CustomEvent('qz-change', { detail: { checked: this.checked }, bubbles: true, composed: true }));
+    this.dispatchEvent(new CustomEvent('am-change', { detail: { checked: this.checked }, bubbles: true, composed: true }));
   };
 
   private _handleKeyDown(e: KeyboardEvent) {
@@ -183,6 +183,6 @@ export class QzSwitch extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'qz-switch': QzSwitch;
+    'am-switch': AmSwitch;
   }
 }

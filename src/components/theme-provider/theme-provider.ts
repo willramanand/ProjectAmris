@@ -19,8 +19,8 @@ export type Theme = 'light' | 'dark' | 'system';
  * </qz-theme-provider>
  * ```
  */
-@customElement('qz-theme-provider')
-export class QzThemeProvider extends LitElement {
+@customElement('am-theme-provider')
+export class AmThemeProvider extends LitElement {
   /**
    * The active theme.
    * - `light` — force light theme
@@ -38,10 +38,10 @@ export class QzThemeProvider extends LitElement {
       :host {
         display: contents;
         color-scheme: light;
-        color: var(--qz-text);
-        font-family: var(--qz-font-sans);
-        font-size: var(--qz-text-base);
-        line-height: var(--qz-leading-normal);
+        color: var(--am-text);
+        font-family: var(--am-font-sans);
+        font-size: var(--am-text-base);
+        line-height: var(--am-leading-normal);
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
       }
@@ -65,6 +65,6 @@ export class QzThemeProvider extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'qz-theme-provider': QzThemeProvider;
+    'am-theme-provider': AmThemeProvider;
   }
 }

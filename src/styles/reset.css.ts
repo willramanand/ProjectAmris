@@ -12,7 +12,7 @@ export const resetStyles = css`
   }
 
   :host {
-    font-family: var(--qz-font-sans);
+    font-family: var(--am-font-sans);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
@@ -27,8 +27,8 @@ export const resetStyles = css`
  */
 export const focusRingStyles = css`
   :focus-visible {
-    outline: var(--qz-focus-ring-width) solid var(--qz-focus-ring);
-    outline-offset: var(--qz-focus-ring-offset);
+    outline: var(--am-focus-ring-width) solid var(--am-focus-ring);
+    outline-offset: var(--am-focus-ring-offset);
   }
 
   :focus:not(:focus-visible) {

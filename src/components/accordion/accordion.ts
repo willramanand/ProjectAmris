@@ -4,7 +4,7 @@ import { resetStyles } from '../../styles/reset.css.js';
 import { uniqueId } from '../../utilities/unique-id.js';
 
 /* ================================================================
-   QzAccordionItem — individual expandable section
+   AmAccordionItem — individual expandable section
    ================================================================ */
 
 /**
@@ -19,8 +19,8 @@ import { uniqueId } from '../../utilities/unique-id.js';
  *
  * @fires qz-toggle - Fires when toggled with { open } detail
  */
-@customElement('qz-accordion-item')
-export class QzAccordionItem extends LitElement {
+@customElement('am-accordion-item')
+export class AmAccordionItem extends LitElement {
   @property({ type: Boolean, reflect: true }) open = false;
   @property({ type: Boolean, reflect: true }) disabled = false;
 
@@ -32,7 +32,7 @@ export class QzAccordionItem extends LitElement {
     css`
       :host {
         display: block;
-        border-bottom: var(--qz-border-1) solid var(--qz-border);
+        border-bottom: var(--am-border-1) solid var(--am-border);
       }
 
       .header {
@@ -42,36 +42,36 @@ export class QzAccordionItem extends LitElement {
         justify-content: space-between;
         width: 100%;
         box-sizing: border-box;
-        padding: var(--qz-space-4) var(--qz-space-1);
-        font-family: var(--qz-font-sans);
-        font-size: var(--qz-text-sm);
-        font-weight: var(--qz-weight-medium);
-        color: var(--qz-text);
+        padding: var(--am-space-4) var(--am-space-1);
+        font-family: var(--am-font-sans);
+        font-size: var(--am-text-sm);
+        font-weight: var(--am-weight-medium);
+        color: var(--am-text);
         cursor: pointer;
         user-select: none;
-        transition: color var(--qz-duration-fast) var(--qz-ease-default);
+        transition: color var(--am-duration-fast) var(--am-ease-default);
       }
 
-      .header:hover { color: var(--qz-primary); }
+      .header:hover { color: var(--am-primary); }
 
       :host([disabled]) .header {
-        opacity: var(--qz-disabled-opacity);
+        opacity: var(--am-disabled-opacity);
         cursor: not-allowed;
         pointer-events: none;
       }
 
       .header:focus-visible {
-        outline: var(--qz-focus-ring-width) solid var(--qz-focus-ring);
-        outline-offset: calc(-1 * var(--qz-focus-ring-width));
-        border-radius: var(--qz-radius-sm);
+        outline: var(--am-focus-ring-width) solid var(--am-focus-ring);
+        outline-offset: calc(-1 * var(--am-focus-ring-width));
+        border-radius: var(--am-radius-sm);
         corner-shape: squircle;
       }
 
       .chevron {
         width: 1rem;
         height: 1rem;
-        color: var(--qz-text-tertiary);
-        transition: transform var(--qz-duration-normal) var(--qz-ease-spring);
+        color: var(--am-text-tertiary);
+        transition: transform var(--am-duration-normal) var(--am-ease-spring);
         flex-shrink: 0;
       }
 
@@ -82,7 +82,7 @@ export class QzAccordionItem extends LitElement {
       .body-wrapper {
         display: grid;
         grid-template-rows: 0fr;
-        transition: grid-template-rows var(--qz-duration-normal) var(--qz-ease-spring);
+        transition: grid-template-rows var(--am-duration-normal) var(--am-ease-spring);
       }
 
       :host([open]) .body-wrapper {
@@ -94,11 +94,11 @@ export class QzAccordionItem extends LitElement {
       }
 
       .body-inner {
-        padding: 0 var(--qz-space-1) var(--qz-space-4);
-        font-family: var(--qz-font-sans);
-        font-size: var(--qz-text-sm);
-        color: var(--qz-text-secondary);
-        line-height: var(--qz-leading-normal);
+        padding: 0 var(--am-space-1) var(--am-space-4);
+        font-family: var(--am-font-sans);
+        font-size: var(--am-text-sm);
+        color: var(--am-text-secondary);
+        line-height: var(--am-leading-normal);
       }
 
       @media (prefers-reduced-motion: reduce) {
@@ -110,7 +110,7 @@ export class QzAccordionItem extends LitElement {
   private _toggle() {
     if (this.disabled) return;
     this.open = !this.open;
-    this.dispatchEvent(new CustomEvent('qz-toggle', { detail: { open: this.open }, bubbles: true, composed: true }));
+    this.dispatchEvent(new CustomEvent('am-toggle', { detail: { open: this.open }, bubbles: true, composed: true }));
   }
 
   private _handleKeyDown(e: KeyboardEvent) {
@@ -155,7 +155,7 @@ export class QzAccordionItem extends LitElement {
 }
 
 /* ================================================================
-   QzAccordion — container that manages single/multiple expansion
+   AmAccordion — container that manages single/multiple expansion
    ================================================================ */
 
 /**
@@ -177,18 +177,18 @@ export class QzAccordionItem extends LitElement {
  * </qz-accordion>
  * ```
  */
-@customElement('qz-accordion')
-export class QzAccordion extends LitElement {
+@customElement('am-accordion')
+export class AmAccordion extends LitElement {
   /** When true, only one item can be open at a time. */
   @property({ type: Boolean, reflect: true }) single = false;
 
-  @queryAssignedElements({ selector: 'qz-accordion-item' })
-  private _items!: QzAccordionItem[];
+  @queryAssignedElements({ selector: 'am-accordion-item' })
+  private _items!: AmAccordionItem[];
 
   static styles = css`
     :host {
       display: block;
-      border-radius: var(--qz-radius-xl);
+      border-radius: var(--am-radius-xl);
       corner-shape: squircle;
       overflow: hidden;
     }
@@ -196,17 +196,17 @@ export class QzAccordion extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
-    this.addEventListener('qz-toggle', this._handleToggle as EventListener);
+    this.addEventListener('am-toggle', this._handleToggle as EventListener);
   }
 
   disconnectedCallback() {
     super.disconnectedCallback();
-    this.removeEventListener('qz-toggle', this._handleToggle as EventListener);
+    this.removeEventListener('am-toggle', this._handleToggle as EventListener);
   }
 
   private _handleToggle = (e: CustomEvent) => {
     if (!this.single) return;
-    const toggled = e.target as QzAccordionItem;
+    const toggled = e.target as AmAccordionItem;
     if (!toggled.open) return;
     for (const item of this._items) {
       if (item !== toggled) item.open = false;
@@ -220,7 +220,7 @@ export class QzAccordion extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'qz-accordion-item': QzAccordionItem;
-    'qz-accordion': QzAccordion;
+    'am-accordion-item': AmAccordionItem;
+    'am-accordion': AmAccordion;
   }
 }

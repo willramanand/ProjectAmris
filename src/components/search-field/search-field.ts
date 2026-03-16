@@ -24,8 +24,8 @@ export type SearchFieldSize = 'sm' | 'md' | 'lg';
  * <qz-search-field size="lg" placeholder="Find anything"></qz-search-field>
  * ```
  */
-@customElement('qz-search-field')
-export class QzSearchField extends LitElement {
+@customElement('am-search-field')
+export class AmSearchField extends LitElement {
   @property() value = '';
   @property() placeholder = 'Search...';
   @property({ reflect: true }) size: SearchFieldSize = 'md';
@@ -44,51 +44,51 @@ export class QzSearchField extends LitElement {
       .wrapper {
         display: flex;
         align-items: center;
-        gap: var(--qz-space-2);
-        border: var(--qz-border-1) solid var(--qz-border-strong);
-        border-radius: var(--qz-radius-xl);
+        gap: var(--am-space-2);
+        border: var(--am-border-1) solid var(--am-border-strong);
+        border-radius: var(--am-radius-xl);
         corner-shape: squircle;
-        background: var(--qz-surface);
+        background: var(--am-surface);
         transition:
-          border-color var(--qz-duration-fast) var(--qz-ease-default),
-          box-shadow var(--qz-duration-fast) var(--qz-ease-default);
-        color: var(--qz-text);
+          border-color var(--am-duration-fast) var(--am-ease-default),
+          box-shadow var(--am-duration-fast) var(--am-ease-default);
+        color: var(--am-text);
         cursor: text;
       }
 
       .wrapper:hover:not(.disabled) {
-        border-color: var(--qz-text-tertiary);
+        border-color: var(--am-text-tertiary);
       }
 
       .wrapper.focused {
-        border-color: var(--qz-primary);
-        box-shadow: 0 0 0 var(--qz-focus-ring-width) color-mix(in srgb, var(--qz-focus-ring) 25%, transparent);
+        border-color: var(--am-primary);
+        box-shadow: 0 0 0 var(--am-focus-ring-width) color-mix(in srgb, var(--am-focus-ring) 25%, transparent);
       }
 
       .wrapper.disabled {
-        opacity: var(--qz-disabled-opacity);
+        opacity: var(--am-disabled-opacity);
         cursor: not-allowed;
       }
 
       /* ---- Sizes ---- */
 
       :host([size='sm']) .wrapper {
-        height: var(--qz-size-sm);
-        padding-inline: var(--qz-space-2-5);
-        font-size: var(--qz-text-sm);
+        height: var(--am-size-sm);
+        padding-inline: var(--am-space-2-5);
+        font-size: var(--am-text-sm);
       }
 
       :host([size='md']) .wrapper,
       :host(:not([size])) .wrapper {
-        height: var(--qz-size-md);
-        padding-inline: var(--qz-space-3);
-        font-size: var(--qz-text-sm);
+        height: var(--am-size-md);
+        padding-inline: var(--am-space-3);
+        font-size: var(--am-text-sm);
       }
 
       :host([size='lg']) .wrapper {
-        height: var(--qz-size-lg);
-        padding-inline: var(--qz-space-4);
-        font-size: var(--qz-text-base);
+        height: var(--am-size-lg);
+        padding-inline: var(--am-space-4);
+        font-size: var(--am-text-base);
       }
 
       /* ---- Search icon ---- */
@@ -99,7 +99,7 @@ export class QzSearchField extends LitElement {
         justify-content: center;
         width: 1rem;
         height: 1rem;
-        color: var(--qz-text-tertiary);
+        color: var(--am-text-tertiary);
         flex-shrink: 0;
       }
 
@@ -115,7 +115,7 @@ export class QzSearchField extends LitElement {
       }
 
       input::placeholder {
-        color: var(--qz-text-tertiary);
+        color: var(--am-text-tertiary);
       }
 
       input:disabled {
@@ -131,23 +131,23 @@ export class QzSearchField extends LitElement {
         justify-content: center;
         width: 1.25rem;
         height: 1.25rem;
-        border-radius: var(--qz-radius-full);
+        border-radius: var(--am-radius-full);
         cursor: pointer;
-        color: var(--qz-text-tertiary);
+        color: var(--am-text-tertiary);
         flex-shrink: 0;
         transition:
-          color var(--qz-duration-fast) var(--qz-ease-default),
-          background var(--qz-duration-fast) var(--qz-ease-default);
+          color var(--am-duration-fast) var(--am-ease-default),
+          background var(--am-duration-fast) var(--am-ease-default);
       }
 
       .clear-btn:hover {
-        color: var(--qz-text);
-        background: var(--qz-hover-overlay);
+        color: var(--am-text);
+        background: var(--am-hover-overlay);
       }
 
       .clear-btn:focus-visible {
-        outline: var(--qz-focus-ring-width) solid var(--qz-focus-ring);
-        outline-offset: var(--qz-focus-ring-offset);
+        outline: var(--am-focus-ring-width) solid var(--am-focus-ring);
+        outline-offset: var(--am-focus-ring-offset);
       }
 
       @media (prefers-reduced-motion: reduce) {
@@ -165,7 +165,7 @@ export class QzSearchField extends LitElement {
     const input = e.target as HTMLInputElement;
     this.value = input.value;
     this.dispatchEvent(
-      new CustomEvent('qz-input', {
+      new CustomEvent('am-input', {
         detail: { value: this.value },
         bubbles: true,
         composed: true,
@@ -175,7 +175,7 @@ export class QzSearchField extends LitElement {
 
   private _handleChange() {
     this.dispatchEvent(
-      new CustomEvent('qz-change', {
+      new CustomEvent('am-change', {
         detail: { value: this.value },
         bubbles: true,
         composed: true,
@@ -196,7 +196,7 @@ export class QzSearchField extends LitElement {
   private _handleKeydown(e: KeyboardEvent) {
     if (e.key === 'Enter') {
       this.dispatchEvent(
-        new CustomEvent('qz-search', {
+        new CustomEvent('am-search', {
           detail: { value: this.value },
           bubbles: true,
           composed: true,
@@ -212,17 +212,17 @@ export class QzSearchField extends LitElement {
     this.value = '';
     this.inputEl?.focus();
     this.dispatchEvent(
-      new CustomEvent('qz-clear', { bubbles: true, composed: true })
+      new CustomEvent('am-clear', { bubbles: true, composed: true })
     );
     this.dispatchEvent(
-      new CustomEvent('qz-input', {
+      new CustomEvent('am-input', {
         detail: { value: '' },
         bubbles: true,
         composed: true,
       })
     );
     this.dispatchEvent(
-      new CustomEvent('qz-change', {
+      new CustomEvent('am-change', {
         detail: { value: '' },
         bubbles: true,
         composed: true,
@@ -293,6 +293,6 @@ export class QzSearchField extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'qz-search-field': QzSearchField;
+    'am-search-field': AmSearchField;
   }
 }

@@ -12,8 +12,8 @@ import { resetStyles } from '../../styles/reset.css.js';
  * @csspart label - The floating label element
  * @csspart clear - The clear button
  *
- * @cssprop --qz-textarea-radius - Override border radius
- * @cssprop --qz-textarea-min-height - Override minimum height
+ * @cssprop --am-textarea-radius - Override border radius
+ * @cssprop --am-textarea-min-height - Override minimum height
  *
  * @fires qz-input - Fires on input with { value } detail
  * @fires qz-change - Fires on change with { value } detail
@@ -25,8 +25,8 @@ import { resetStyles } from '../../styles/reset.css.js';
  * <qz-textarea label="Bio" clearable></qz-textarea>
  * ```
  */
-@customElement('qz-textarea')
-export class QzTextarea extends LitElement {
+@customElement('am-textarea')
+export class AmTextarea extends LitElement {
   static formAssociated = true;
 
   /** Floating label text. */
@@ -61,26 +61,26 @@ export class QzTextarea extends LitElement {
       .wrapper {
         display: flex;
         position: relative;
-        border: var(--qz-border-1) solid var(--qz-border-strong);
-        border-radius: var(--qz-textarea-radius, var(--qz-radius-xl));
+        border: var(--am-border-1) solid var(--am-border-strong);
+        border-radius: var(--am-textarea-radius, var(--am-radius-xl));
         corner-shape: squircle;
-        background: var(--qz-surface);
+        background: var(--am-surface);
         transition:
-          border-color var(--qz-duration-fast) var(--qz-ease-default),
-          box-shadow var(--qz-duration-fast) var(--qz-ease-default);
+          border-color var(--am-duration-fast) var(--am-ease-default),
+          box-shadow var(--am-duration-fast) var(--am-ease-default);
         cursor: text;
       }
 
-      .wrapper:hover:not(.disabled) { border-color: var(--qz-text-tertiary); }
+      .wrapper:hover:not(.disabled) { border-color: var(--am-text-tertiary); }
 
       .wrapper.focused {
-        border-color: var(--qz-primary);
-        box-shadow: 0 0 0 var(--qz-focus-ring-width) color-mix(in srgb, var(--qz-focus-ring) 25%, transparent);
+        border-color: var(--am-primary);
+        box-shadow: 0 0 0 var(--am-focus-ring-width) color-mix(in srgb, var(--am-focus-ring) 25%, transparent);
       }
 
-      .wrapper.invalid { border-color: var(--qz-danger); }
-      .wrapper.invalid.focused { box-shadow: 0 0 0 var(--qz-focus-ring-width) color-mix(in srgb, var(--qz-danger) 25%, transparent); }
-      .wrapper.disabled { opacity: var(--qz-disabled-opacity); cursor: not-allowed; }
+      .wrapper.invalid { border-color: var(--am-danger); }
+      .wrapper.invalid.focused { box-shadow: 0 0 0 var(--am-focus-ring-width) color-mix(in srgb, var(--am-danger) 25%, transparent); }
+      .wrapper.disabled { opacity: var(--am-disabled-opacity); cursor: not-allowed; }
 
       .textarea-group {
         flex: 1;
@@ -94,12 +94,12 @@ export class QzTextarea extends LitElement {
         all: unset;
         flex: 1;
         min-width: 0;
-        font-family: var(--qz-font-sans);
-        font-size: var(--qz-text-sm);
-        color: var(--qz-text);
-        padding: var(--qz-space-2-5) var(--qz-space-3) var(--qz-space-3);
-        min-height: var(--qz-textarea-min-height, 5rem);
-        line-height: var(--qz-leading-normal);
+        font-family: var(--am-font-sans);
+        font-size: var(--am-text-sm);
+        color: var(--am-text);
+        padding: var(--am-space-2-5) var(--am-space-3) var(--am-space-3);
+        min-height: var(--am-textarea-min-height, 5rem);
+        line-height: var(--am-leading-normal);
         white-space: pre-wrap;
         word-wrap: break-word;
       }
@@ -117,7 +117,7 @@ export class QzTextarea extends LitElement {
       :host([resize]) textarea { resize: vertical; }
       :host(:not([resize])) textarea { resize: none; }
 
-      textarea::placeholder { color: var(--qz-text-tertiary); }
+      textarea::placeholder { color: var(--am-text-tertiary); }
       textarea:disabled { cursor: not-allowed; }
 
       /* ---- Floating label ---- */
@@ -125,16 +125,16 @@ export class QzTextarea extends LitElement {
       .floating-label {
         position: absolute;
         top: 0.875rem;
-        left: var(--qz-space-3);
-        font-family: var(--qz-font-sans);
-        font-size: var(--qz-text-sm);
-        color: var(--qz-text-tertiary);
+        left: var(--am-space-3);
+        font-family: var(--am-font-sans);
+        font-size: var(--am-text-sm);
+        color: var(--am-text-tertiary);
         pointer-events: none;
         transform-origin: left center;
         transition:
-          top var(--qz-duration-normal) var(--qz-ease-spring),
-          font-size var(--qz-duration-normal) var(--qz-ease-spring),
-          color var(--qz-duration-fast) var(--qz-ease-default);
+          top var(--am-duration-normal) var(--am-ease-spring),
+          font-size var(--am-duration-normal) var(--am-ease-spring),
+          color var(--am-duration-fast) var(--am-ease-default);
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -144,15 +144,15 @@ export class QzTextarea extends LitElement {
       .floated .floating-label {
         top: 0.25rem;
         font-size: 0.625rem;
-        color: var(--qz-text-secondary);
+        color: var(--am-text-secondary);
       }
 
       .focused .floating-label {
-        color: var(--qz-primary);
+        color: var(--am-primary);
       }
 
       .invalid .floating-label {
-        color: var(--qz-danger);
+        color: var(--am-danger);
       }
 
       /* ---- Clear button ---- */
@@ -167,19 +167,19 @@ export class QzTextarea extends LitElement {
         right: 0.5rem;
         width: 1.25rem;
         height: 1.25rem;
-        border-radius: var(--qz-radius-full);
+        border-radius: var(--am-radius-full);
         cursor: pointer;
-        color: var(--qz-text-tertiary);
+        color: var(--am-text-tertiary);
         flex-shrink: 0;
         transition:
-          color var(--qz-duration-fast) var(--qz-ease-default),
-          background var(--qz-duration-fast) var(--qz-ease-default);
+          color var(--am-duration-fast) var(--am-ease-default),
+          background var(--am-duration-fast) var(--am-ease-default);
       }
 
-      .clear-btn:hover { color: var(--qz-text); background: var(--qz-hover-overlay); }
+      .clear-btn:hover { color: var(--am-text); background: var(--am-hover-overlay); }
       .clear-btn:focus-visible {
-        outline: var(--qz-focus-ring-width) solid var(--qz-focus-ring);
-        outline-offset: var(--qz-focus-ring-offset);
+        outline: var(--am-focus-ring-width) solid var(--am-focus-ring);
+        outline-offset: var(--am-focus-ring-offset);
       }
 
       @media (prefers-reduced-motion: reduce) {
@@ -202,11 +202,11 @@ export class QzTextarea extends LitElement {
 
   private _handleInput(e: Event) {
     this.value = (e.target as HTMLTextAreaElement).value;
-    this.dispatchEvent(new CustomEvent('qz-input', { detail: { value: this.value }, bubbles: true, composed: true }));
+    this.dispatchEvent(new CustomEvent('am-input', { detail: { value: this.value }, bubbles: true, composed: true }));
   }
 
   private _handleChange() {
-    this.dispatchEvent(new CustomEvent('qz-change', { detail: { value: this.value }, bubbles: true, composed: true }));
+    this.dispatchEvent(new CustomEvent('am-change', { detail: { value: this.value }, bubbles: true, composed: true }));
   }
 
   private _handleFocus() { this._focused = true; this.requestUpdate(); }
@@ -215,9 +215,9 @@ export class QzTextarea extends LitElement {
   private _handleClear() {
     this.value = '';
     this.textareaEl?.focus();
-    this.dispatchEvent(new CustomEvent('qz-clear', { bubbles: true, composed: true }));
-    this.dispatchEvent(new CustomEvent('qz-input', { detail: { value: '' }, bubbles: true, composed: true }));
-    this.dispatchEvent(new CustomEvent('qz-change', { detail: { value: '' }, bubbles: true, composed: true }));
+    this.dispatchEvent(new CustomEvent('am-clear', { bubbles: true, composed: true }));
+    this.dispatchEvent(new CustomEvent('am-input', { detail: { value: '' }, bubbles: true, composed: true }));
+    this.dispatchEvent(new CustomEvent('am-change', { detail: { value: '' }, bubbles: true, composed: true }));
   }
 
   private _handleWrapperClick() {
@@ -280,6 +280,6 @@ export class QzTextarea extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'qz-textarea': QzTextarea;
+    'am-textarea': AmTextarea;
   }
 }

@@ -6,7 +6,7 @@ export default defineConfig({
     lib: {
       entry: resolve(__dirname, 'src/index.ts'),
       formats: ['es'],
-      fileName: 'project-quartz',
+      fileName: 'amris',
     },
     rollupOptions: {
       external: /^lit/,

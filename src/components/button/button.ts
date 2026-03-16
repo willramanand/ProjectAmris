@@ -21,8 +21,8 @@ export type ButtonSize = 'sm' | 'md' | 'lg';
  * @csspart button - The native button element
  * @csspart label - The label wrapper span
  *
- * @cssprop --qz-button-radius - Override border radius
- * @cssprop --qz-button-font-weight - Override font weight
+ * @cssprop --am-button-radius - Override border radius
+ * @cssprop --am-button-font-weight - Override font weight
  *
  * @fires click - Standard click event (not emitted when disabled)
  *
@@ -33,8 +33,8 @@ export type ButtonSize = 'sm' | 'md' | 'lg';
  * <qz-button variant="ghost" loading>Processing</qz-button>
  * ```
  */
-@customElement('qz-button')
-export class QzButton extends LitElement {
+@customElement('am-button')
+export class AmButton extends LitElement {
   /** Visual style variant. */
   @property({ reflect: true })
   variant: ButtonVariant = 'primary';
@@ -73,23 +73,23 @@ export class QzButton extends LitElement {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        gap: var(--qz-space-2);
+        gap: var(--am-space-2);
         box-sizing: border-box;
         cursor: pointer;
         user-select: none;
         white-space: nowrap;
         text-decoration: none;
-        font-family: var(--qz-font-sans);
-        font-weight: var(--qz-button-font-weight, var(--qz-weight-medium));
-        border-radius: var(--qz-button-radius, var(--qz-radius-xl));
+        font-family: var(--am-font-sans);
+        font-weight: var(--am-button-font-weight, var(--am-weight-medium));
+        border-radius: var(--am-button-radius, var(--am-radius-xl));
         corner-shape: squircle;
         transition:
-          background var(--qz-duration-fast) var(--qz-ease-default),
-          color var(--qz-duration-fast) var(--qz-ease-default),
-          border-color var(--qz-duration-fast) var(--qz-ease-default),
-          box-shadow var(--qz-duration-fast) var(--qz-ease-default),
-          opacity var(--qz-duration-fast) var(--qz-ease-default),
-          transform var(--qz-duration-fast) var(--qz-ease-spring);
+          background var(--am-duration-fast) var(--am-ease-default),
+          color var(--am-duration-fast) var(--am-ease-default),
+          border-color var(--am-duration-fast) var(--am-ease-default),
+          box-shadow var(--am-duration-fast) var(--am-ease-default),
+          opacity var(--am-duration-fast) var(--am-ease-default),
+          transform var(--am-duration-fast) var(--am-ease-spring);
         position: relative;
       }
 
@@ -97,43 +97,43 @@ export class QzButton extends LitElement {
 
       :host([size='sm']) button,
       button.sm {
-        height: var(--qz-size-sm);
-        padding-inline: var(--qz-space-3);
-        font-size: var(--qz-text-sm);
-        border-radius: var(--qz-button-radius, var(--qz-radius-lg));
+        height: var(--am-size-sm);
+        padding-inline: var(--am-space-3);
+        font-size: var(--am-text-sm);
+        border-radius: var(--am-button-radius, var(--am-radius-lg));
       }
 
       :host([size='md']) button,
       :host(:not([size])) button,
       button.md {
-        height: var(--qz-size-md);
-        padding-inline: var(--qz-space-4);
-        font-size: var(--qz-text-sm);
+        height: var(--am-size-md);
+        padding-inline: var(--am-space-4);
+        font-size: var(--am-text-sm);
       }
 
       :host([size='lg']) button,
       button.lg {
-        height: var(--qz-size-lg);
-        padding-inline: var(--qz-space-6);
-        font-size: var(--qz-text-base);
+        height: var(--am-size-lg);
+        padding-inline: var(--am-space-6);
+        font-size: var(--am-text-base);
       }
 
       /* ---- Primary ---- */
 
       :host([variant='primary']) button,
       :host(:not([variant])) button {
-        background: var(--qz-primary);
-        color: var(--qz-primary-text);
+        background: var(--am-primary);
+        color: var(--am-primary-text);
       }
 
       :host([variant='primary']) button:hover,
       :host(:not([variant])) button:hover {
-        background: var(--qz-primary-hover);
+        background: var(--am-primary-hover);
       }
 
       :host([variant='primary']) button:active,
       :host(:not([variant])) button:active {
-        background: var(--qz-primary-active);
+        background: var(--am-primary-active);
         transform: scale(0.98);
       }
 
@@ -141,17 +141,17 @@ export class QzButton extends LitElement {
 
       :host([variant='secondary']) button {
         background: transparent;
-        color: var(--qz-text);
-        border: var(--qz-border-1) solid var(--qz-border-strong);
+        color: var(--am-text);
+        border: var(--am-border-1) solid var(--am-border-strong);
       }
 
       :host([variant='secondary']) button:hover {
-        background: var(--qz-hover-overlay);
-        border-color: var(--qz-text-secondary);
+        background: var(--am-hover-overlay);
+        border-color: var(--am-text-secondary);
       }
 
       :host([variant='secondary']) button:active {
-        background: var(--qz-active-overlay);
+        background: var(--am-active-overlay);
         transform: scale(0.98);
       }
 
@@ -159,54 +159,54 @@ export class QzButton extends LitElement {
 
       :host([variant='ghost']) button {
         background: transparent;
-        color: var(--qz-text);
+        color: var(--am-text);
       }
 
       :host([variant='ghost']) button:hover {
-        background: var(--qz-hover-overlay);
+        background: var(--am-hover-overlay);
       }
 
       :host([variant='ghost']) button:active {
-        background: var(--qz-active-overlay);
+        background: var(--am-active-overlay);
         transform: scale(0.98);
       }
 
       /* ---- Subtle ---- */
 
       :host([variant='subtle']) button {
-        background: var(--qz-primary-subtle);
-        color: var(--qz-primary);
+        background: var(--am-primary-subtle);
+        color: var(--am-primary);
       }
 
       :host([variant='subtle']) button:hover {
-        background: var(--qz-primary-subtle-hover);
+        background: var(--am-primary-subtle-hover);
       }
 
       :host([variant='subtle']) button:active {
-        background: var(--qz-primary-subtle-hover);
+        background: var(--am-primary-subtle-hover);
         transform: scale(0.98);
       }
 
       /* ---- Danger ---- */
 
       :host([variant='danger']) button {
-        background: var(--qz-danger);
-        color: var(--qz-color-neutral-0);
+        background: var(--am-danger);
+        color: var(--am-color-neutral-0);
       }
 
       :host([variant='danger']) button:hover {
-        background: var(--qz-danger-hover);
+        background: var(--am-danger-hover);
       }
 
       :host([variant='danger']) button:active {
-        background: var(--qz-danger-active);
+        background: var(--am-danger-active);
         transform: scale(0.98);
       }
 
       /* ---- Disabled ---- */
 
       :host([disabled]) button {
-        opacity: var(--qz-disabled-opacity);
+        opacity: var(--am-disabled-opacity);
         cursor: not-allowed;
         pointer-events: none;
       }
@@ -243,7 +243,7 @@ export class QzButton extends LitElement {
       .loading-spinner {
         width: 1em;
         height: 1em;
-        border-radius: var(--qz-radius-full);
+        border-radius: var(--am-radius-full);
         border: 2px solid currentColor;
         border-top-color: transparent;
         animation: button-spin 0.6s linear infinite;
@@ -311,6 +311,6 @@ export class QzButton extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'qz-button': QzButton;
+    'am-button': AmButton;
   }
 }

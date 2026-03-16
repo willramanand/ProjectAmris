@@ -3,7 +3,7 @@ import { customElement, property, queryAssignedElements } from 'lit/decorators.j
 import { resetStyles } from '../../styles/reset.css.js';
 
 /* ================================================================
-   QzRadio — individual radio button
+   AmRadio — individual radio button
    ================================================================ */
 
 /**
@@ -21,8 +21,8 @@ import { resetStyles } from '../../styles/reset.css.js';
  * <qz-radio value="b" checked>Option B</qz-radio>
  * ```
  */
-@customElement('qz-radio')
-export class QzRadio extends LitElement {
+@customElement('am-radio')
+export class AmRadio extends LitElement {
   static formAssociated = true;
 
   @property({ type: String }) value = '';
@@ -43,14 +43,14 @@ export class QzRadio extends LitElement {
       :host {
         display: inline-flex;
         align-items: center;
-        gap: var(--qz-space-2-5);
+        gap: var(--am-space-2-5);
         cursor: pointer;
         user-select: none;
         -webkit-tap-highlight-color: transparent;
       }
 
       :host([disabled]) {
-        opacity: var(--qz-disabled-opacity);
+        opacity: var(--am-disabled-opacity);
         cursor: not-allowed;
         pointer-events: none;
       }
@@ -63,8 +63,8 @@ export class QzRadio extends LitElement {
       }
 
       .control:focus-visible {
-        outline: var(--qz-focus-ring-width) solid var(--qz-focus-ring);
-        outline-offset: var(--qz-focus-ring-offset);
+        outline: var(--am-focus-ring-width) solid var(--am-focus-ring);
+        outline-offset: var(--am-focus-ring-offset);
         border-radius: 50%;
       }
 
@@ -75,33 +75,33 @@ export class QzRadio extends LitElement {
       }
 
       .radio-ring {
-        stroke: var(--qz-border-strong);
-        fill: var(--qz-surface);
+        stroke: var(--am-border-strong);
+        fill: var(--am-surface);
         stroke-width: 2;
-        transition: stroke var(--qz-duration-fast) var(--qz-ease-default);
+        transition: stroke var(--am-duration-fast) var(--am-ease-default);
       }
 
       :host(:hover:not([disabled])) .radio-ring {
-        stroke: var(--qz-text-tertiary);
+        stroke: var(--am-text-tertiary);
       }
 
       :host([checked]) .radio-ring {
-        stroke: var(--qz-primary);
+        stroke: var(--am-primary);
       }
 
       :host(:hover[checked]:not([disabled])) .radio-ring {
-        stroke: var(--qz-primary-hover);
+        stroke: var(--am-primary-hover);
       }
 
       .radio-dot {
-        fill: var(--qz-primary);
+        fill: var(--am-primary);
         opacity: 0;
         transform-box: fill-box;
         transform-origin: center;
         transform: scale(0);
         transition:
-          opacity var(--qz-duration-fast) var(--qz-ease-default),
-          transform var(--qz-duration-fast) var(--qz-ease-spring);
+          opacity var(--am-duration-fast) var(--am-ease-default),
+          transform var(--am-duration-fast) var(--am-ease-spring);
       }
 
       :host([checked]) .radio-dot {
@@ -110,10 +110,10 @@ export class QzRadio extends LitElement {
       }
 
       .label {
-        font-family: var(--qz-font-sans);
-        font-size: var(--qz-text-sm);
-        line-height: var(--qz-leading-normal);
-        color: var(--qz-text);
+        font-family: var(--am-font-sans);
+        font-size: var(--am-text-sm);
+        line-height: var(--am-leading-normal);
+        color: var(--am-text);
       }
 
       @media (prefers-reduced-motion: reduce) {
@@ -136,7 +136,7 @@ export class QzRadio extends LitElement {
     if (this.checked) return;
     this.checked = true;
     this.dispatchEvent(
-      new CustomEvent('qz-change', {
+      new CustomEvent('am-change', {
         detail: { checked: this.checked, value: this.value },
         bubbles: true,
         composed: true,
@@ -185,7 +185,7 @@ export class QzRadio extends LitElement {
 }
 
 /* ================================================================
-   QzRadioGroup — radio group container
+   AmRadioGroup — radio group container
    ================================================================ */
 
 /**
@@ -205,8 +205,8 @@ export class QzRadio extends LitElement {
  * </qz-radio-group>
  * ```
  */
-@customElement('qz-radio-group')
-export class QzRadioGroup extends LitElement {
+@customElement('am-radio-group')
+export class AmRadioGroup extends LitElement {
   static formAssociated = true;
 
   /** The value of the currently selected radio. */
@@ -224,8 +224,8 @@ export class QzRadioGroup extends LitElement {
   /** Name attribute for form association. */
   @property() name = '';
 
-  @queryAssignedElements({ selector: 'qz-radio' })
-  private _radios!: QzRadio[];
+  @queryAssignedElements({ selector: 'am-radio' })
+  private _radios!: AmRadio[];
 
   private internals: ElementInternals;
 
@@ -240,11 +240,11 @@ export class QzRadioGroup extends LitElement {
       :host {
         display: flex;
         flex-direction: column;
-        gap: var(--qz-space-2-5);
+        gap: var(--am-space-2-5);
       }
 
       :host([disabled]) {
-        opacity: var(--qz-disabled-opacity);
+        opacity: var(--am-disabled-opacity);
         cursor: not-allowed;
         pointer-events: none;
       }
@@ -254,13 +254,13 @@ export class QzRadioGroup extends LitElement {
   connectedCallback() {
     super.connectedCallback();
     this.setAttribute('role', 'radiogroup');
-    this.addEventListener('qz-change', this._handleRadioChange as EventListener);
+    this.addEventListener('am-change', this._handleRadioChange as EventListener);
     this.addEventListener('keydown', this._handleKeyDown);
   }
 
   disconnectedCallback() {
     super.disconnectedCallback();
-    this.removeEventListener('qz-change', this._handleRadioChange as EventListener);
+    this.removeEventListener('am-change', this._handleRadioChange as EventListener);
     this.removeEventListener('keydown', this._handleKeyDown);
   }
 
@@ -287,11 +287,11 @@ export class QzRadioGroup extends LitElement {
     }
   }
 
-  private _getRadios(): QzRadio[] {
+  private _getRadios(): AmRadio[] {
     return this._radios ?? [];
   }
 
-  private _getEnabledRadios(): QzRadio[] {
+  private _getEnabledRadios(): AmRadio[] {
     return this._getRadios().filter(r => !r.disabled);
   }
 
@@ -320,8 +320,8 @@ export class QzRadioGroup extends LitElement {
   }
 
   private _handleRadioChange = (e: CustomEvent) => {
-    const target = e.target as QzRadio;
-    if (!(target instanceof QzRadio)) return;
+    const target = e.target as AmRadio;
+    if (!(target instanceof AmRadio)) return;
 
     // Stop the child radio's event from propagating beyond the group
     e.stopPropagation();
@@ -333,7 +333,7 @@ export class QzRadioGroup extends LitElement {
     this._syncRadios();
 
     this.dispatchEvent(
-      new CustomEvent('qz-change', {
+      new CustomEvent('am-change', {
         detail: { value: this.value },
         bubbles: true,
         composed: true,
@@ -343,7 +343,7 @@ export class QzRadioGroup extends LitElement {
 
   private _handleKeyDown = (e: KeyboardEvent) => {
     const target = e.target as Element;
-    const radio = target.closest('qz-radio') as QzRadio | null;
+    const radio = target.closest('am-radio') as AmRadio | null;
     if (!radio) return;
 
     const radios = this._getEnabledRadios();
@@ -352,7 +352,7 @@ export class QzRadioGroup extends LitElement {
     const idx = radios.indexOf(radio);
     if (idx === -1) return;
 
-    let next: QzRadio | undefined;
+    let next: AmRadio | undefined;
 
     if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
       next = radios[(idx + 1) % radios.length];
@@ -370,7 +370,7 @@ export class QzRadioGroup extends LitElement {
 
       // Stop child event and dispatch group event
       this.dispatchEvent(
-        new CustomEvent('qz-change', {
+        new CustomEvent('am-change', {
           detail: { value: this.value },
           bubbles: true,
           composed: true,
@@ -392,7 +392,7 @@ export class QzRadioGroup extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'qz-radio': QzRadio;
-    'qz-radio-group': QzRadioGroup;
+    'am-radio': AmRadio;
+    'am-radio-group': AmRadioGroup;
   }
 }

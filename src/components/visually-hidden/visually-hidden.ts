@@ -13,8 +13,8 @@ import { customElement } from 'lit/decorators.js';
  * <qz-visually-hidden>Close dialog</qz-visually-hidden>
  * ```
  */
-@customElement('qz-visually-hidden')
-export class QzVisuallyHidden extends LitElement {
+@customElement('am-visually-hidden')
+export class AmVisuallyHidden extends LitElement {
   static styles = css`
     :host {
       position: absolute !important;
@@ -36,6 +36,6 @@ export class QzVisuallyHidden extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'qz-visually-hidden': QzVisuallyHidden;
+    'am-visually-hidden': AmVisuallyHidden;
   }
 }

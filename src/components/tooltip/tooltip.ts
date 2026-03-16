@@ -12,9 +12,9 @@ import { resetStyles } from '../../styles/reset.css.js';
  * @csspart tooltip - The tooltip popup element
  * @csspart arrow - The tooltip arrow
  *
- * @cssprop --qz-tooltip-bg - Override background color
- * @cssprop --qz-tooltip-color - Override text color
- * @cssprop --qz-tooltip-radius - Override border radius
+ * @cssprop --am-tooltip-bg - Override background color
+ * @cssprop --am-tooltip-color - Override text color
+ * @cssprop --am-tooltip-radius - Override border radius
  *
  * @example
  * ```html
@@ -23,8 +23,8 @@ import { resetStyles } from '../../styles/reset.css.js';
  * </qz-tooltip>
  * ```
  */
-@customElement('qz-tooltip')
-export class QzTooltip extends LitElement {
+@customElement('am-tooltip')
+export class AmTooltip extends LitElement {
   /** Tooltip text content. */
   @property() content = '';
 
@@ -58,20 +58,20 @@ export class QzTooltip extends LitElement {
 
       .tooltip {
         position: fixed;
-        z-index: var(--qz-z-tooltip);
+        z-index: var(--am-z-tooltip);
         max-width: 16rem;
-        padding: var(--qz-space-1-5) var(--qz-space-2-5);
-        background: var(--qz-tooltip-bg, var(--qz-color-neutral-800));
-        color: var(--qz-tooltip-color, var(--qz-color-neutral-50));
-        font-family: var(--qz-font-sans);
-        font-size: var(--qz-text-xs);
-        font-weight: var(--qz-weight-medium);
-        line-height: var(--qz-leading-snug);
-        border-radius: var(--qz-tooltip-radius, var(--qz-radius-lg));
+        padding: var(--am-space-1-5) var(--am-space-2-5);
+        background: var(--am-tooltip-bg, var(--am-color-neutral-800));
+        color: var(--am-tooltip-color, var(--am-color-neutral-50));
+        font-family: var(--am-font-sans);
+        font-size: var(--am-text-xs);
+        font-weight: var(--am-weight-medium);
+        line-height: var(--am-leading-snug);
+        border-radius: var(--am-tooltip-radius, var(--am-radius-lg));
         corner-shape: squircle;
         pointer-events: none;
         opacity: 0;
-        transition: opacity var(--qz-duration-fast) var(--qz-ease-default);
+        transition: opacity var(--am-duration-fast) var(--am-ease-default);
         width: max-content;
       }
 
@@ -83,7 +83,7 @@ export class QzTooltip extends LitElement {
         position: absolute;
         width: 0.5rem;
         height: 0.5rem;
-        background: var(--qz-tooltip-bg, var(--qz-color-neutral-800));
+        background: var(--am-tooltip-bg, var(--am-color-neutral-800));
         transform: rotate(45deg);
       }
 
@@ -173,6 +173,6 @@ export class QzTooltip extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'qz-tooltip': QzTooltip;
+    'am-tooltip': AmTooltip;
   }
 }

@@ -15,11 +15,11 @@ import { resetStyles } from '../../styles/reset.css.js';
  * @csspart body - The body region
  * @csspart footer - The footer region
  *
- * @cssprop --qz-card-padding - Override internal padding
- * @cssprop --qz-card-radius - Override border radius
+ * @cssprop --am-card-padding - Override internal padding
+ * @cssprop --am-card-radius - Override border radius
  */
-@customElement('qz-card')
-export class QzCard extends LitElement {
+@customElement('am-card')
+export class AmCard extends LitElement {
   /** Whether the card appears elevated with a shadow. */
   @property({ type: Boolean, reflect: true })
   elevated = false;
@@ -33,40 +33,40 @@ export class QzCard extends LitElement {
     css`
       :host {
         display: block;
-        background: var(--qz-surface-raised);
-        border-radius: var(--qz-card-radius, var(--qz-radius-2xl));
+        background: var(--am-surface-raised);
+        border-radius: var(--am-card-radius, var(--am-radius-2xl));
         corner-shape: squircle;
         overflow: hidden;
-        color: var(--qz-text);
+        color: var(--am-text);
       }
 
       :host([bordered]) {
-        border: var(--qz-border-1) solid var(--qz-border);
+        border: var(--am-border-1) solid var(--am-border);
       }
 
       :host([elevated]) {
-        box-shadow: var(--qz-shadow-raised);
+        box-shadow: var(--am-shadow-raised);
         border-color: transparent;
       }
 
       .header {
-        padding: var(--qz-card-padding, var(--qz-space-5))
-          var(--qz-card-padding, var(--qz-space-6));
+        padding: var(--am-card-padding, var(--am-space-5))
+          var(--am-card-padding, var(--am-space-6));
         padding-bottom: 0;
       }
 
       .body {
-        padding: var(--qz-card-padding, var(--qz-space-5))
-          var(--qz-card-padding, var(--qz-space-6));
+        padding: var(--am-card-padding, var(--am-space-5))
+          var(--am-card-padding, var(--am-space-6));
       }
 
       .header + .body {
-        padding-top: var(--qz-space-3);
+        padding-top: var(--am-space-3);
       }
 
       .footer {
-        padding: var(--qz-space-4) var(--qz-card-padding, var(--qz-space-6));
-        border-top: var(--qz-border-1) solid var(--qz-border-subtle);
+        padding: var(--am-space-4) var(--am-card-padding, var(--am-space-6));
+        border-top: var(--am-border-1) solid var(--am-border-subtle);
       }
 
       /* Hide empty slots */
@@ -98,6 +98,6 @@ export class QzCard extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'qz-card': QzCard;
+    'am-card': AmCard;
   }
 }

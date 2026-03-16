@@ -6,7 +6,7 @@ import { resetStyles } from '../../styles/reset.css.js';
 export type SelectSize = 'sm' | 'md' | 'lg';
 
 /* ================================================================
-   QzOption — individual selectable option
+   AmOption — individual selectable option
    ================================================================ */
 
 /**
@@ -20,8 +20,8 @@ export type SelectSize = 'sm' | 'md' | 'lg';
  * <qz-option value="banana" disabled>Banana</qz-option>
  * ```
  */
-@customElement('qz-option')
-export class QzOption extends LitElement {
+@customElement('am-option')
+export class AmOption extends LitElement {
   /** The value associated with this option. */
   @property() value = '';
 
@@ -36,31 +36,31 @@ export class QzOption extends LitElement {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: var(--qz-space-2);
-      padding: var(--qz-space-2) var(--qz-space-3);
-      font-family: var(--qz-font-sans);
-      font-size: var(--qz-text-sm);
-      color: var(--qz-text);
+      gap: var(--am-space-2);
+      padding: var(--am-space-2) var(--am-space-3);
+      font-family: var(--am-font-sans);
+      font-size: var(--am-text-sm);
+      color: var(--am-text);
       cursor: pointer;
       user-select: none;
       transition:
-        background var(--qz-duration-fast) var(--qz-ease-default),
-        color var(--qz-duration-fast) var(--qz-ease-default);
+        background var(--am-duration-fast) var(--am-ease-default),
+        color var(--am-duration-fast) var(--am-ease-default);
     }
 
     :host(:hover) {
-      background: var(--qz-hover-overlay);
-      border-radius: var(--qz-radius-md);
+      background: var(--am-hover-overlay);
+      border-radius: var(--am-radius-md);
       corner-shape: squircle;
     }
 
     :host([selected]) {
-      color: var(--qz-primary);
-      font-weight: var(--qz-weight-medium);
+      color: var(--am-primary);
+      font-weight: var(--am-weight-medium);
     }
 
     :host([disabled]) {
-      opacity: var(--qz-disabled-opacity);
+      opacity: var(--am-disabled-opacity);
       cursor: not-allowed;
       pointer-events: none;
     }
@@ -69,7 +69,7 @@ export class QzOption extends LitElement {
       flex-shrink: 0;
       width: 0.875rem;
       height: 0.875rem;
-      color: var(--qz-primary);
+      color: var(--am-primary);
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -104,7 +104,7 @@ export class QzOption extends LitElement {
   private _handleClick = () => {
     if (this.disabled) return;
     this.dispatchEvent(
-      new CustomEvent('qz-select-option', {
+      new CustomEvent('am-select-option', {
         detail: { value: this.value },
         bubbles: true,
         composed: true,
@@ -125,7 +125,7 @@ export class QzOption extends LitElement {
 }
 
 /* ================================================================
-   QzSelect — custom dropdown select with floating label
+   AmSelect — custom dropdown select with floating label
    ================================================================ */
 
 /**
@@ -150,8 +150,8 @@ export class QzOption extends LitElement {
  * </qz-select>
  * ```
  */
-@customElement('qz-select')
-export class QzSelect extends LitElement {
+@customElement('am-select')
+export class AmSelect extends LitElement {
   static formAssociated = true;
 
   /** Floating label text. When set, uses the floating label pattern. */
@@ -191,8 +191,8 @@ export class QzSelect extends LitElement {
   @query('.trigger') private triggerEl!: HTMLElement;
   @query('.listbox') private listboxEl!: HTMLElement;
 
-  @queryAssignedElements({ selector: 'qz-option' })
-  private _options!: QzOption[];
+  @queryAssignedElements({ selector: 'am-option' })
+  private _options!: AmOption[];
 
   private internals: ElementInternals;
   private _documentClickHandler = this._handleDocumentClick.bind(this);
@@ -216,52 +216,52 @@ export class QzSelect extends LitElement {
         all: unset;
         display: flex;
         align-items: center;
-        gap: var(--qz-space-2);
+        gap: var(--am-space-2);
         width: 100%;
-        border: var(--qz-border-1) solid var(--qz-border-strong);
-        border-radius: var(--qz-input-radius, var(--qz-radius-xl));
+        border: var(--am-border-1) solid var(--am-border-strong);
+        border-radius: var(--am-input-radius, var(--am-radius-xl));
         corner-shape: squircle;
-        background: var(--qz-surface);
+        background: var(--am-surface);
         transition:
-          border-color var(--qz-duration-fast) var(--qz-ease-default),
-          box-shadow var(--qz-duration-fast) var(--qz-ease-default);
-        color: var(--qz-text);
+          border-color var(--am-duration-fast) var(--am-ease-default),
+          box-shadow var(--am-duration-fast) var(--am-ease-default);
+        color: var(--am-text);
         position: relative;
         cursor: pointer;
         box-sizing: border-box;
       }
 
       .trigger:hover:not(.disabled) {
-        border-color: var(--qz-text-tertiary);
+        border-color: var(--am-text-tertiary);
       }
 
       .trigger.focused {
-        border-color: var(--qz-primary);
-        box-shadow: 0 0 0 var(--qz-focus-ring-width) color-mix(in srgb, var(--qz-focus-ring) 25%, transparent);
+        border-color: var(--am-primary);
+        box-shadow: 0 0 0 var(--am-focus-ring-width) color-mix(in srgb, var(--am-focus-ring) 25%, transparent);
       }
 
       .trigger.invalid {
-        border-color: var(--qz-danger);
+        border-color: var(--am-danger);
       }
 
       .trigger.invalid.focused {
-        box-shadow: 0 0 0 var(--qz-focus-ring-width) color-mix(in srgb, var(--qz-danger) 25%, transparent);
+        box-shadow: 0 0 0 var(--am-focus-ring-width) color-mix(in srgb, var(--am-danger) 25%, transparent);
       }
 
       .trigger.disabled {
-        opacity: var(--qz-disabled-opacity);
+        opacity: var(--am-disabled-opacity);
         cursor: not-allowed;
       }
 
       /* ---- Sizes without floating label ---- */
-      :host([size='sm']) .trigger:not(.has-label) { height: var(--qz-size-sm); padding-inline: var(--qz-space-2-5); font-size: var(--qz-text-sm); }
-      :host([size='md']) .trigger:not(.has-label), :host(:not([size])) .trigger:not(.has-label) { height: var(--qz-size-md); padding-inline: var(--qz-space-3); font-size: var(--qz-text-sm); }
-      :host([size='lg']) .trigger:not(.has-label) { height: var(--qz-size-lg); padding-inline: var(--qz-space-4); font-size: var(--qz-text-base); }
+      :host([size='sm']) .trigger:not(.has-label) { height: var(--am-size-sm); padding-inline: var(--am-space-2-5); font-size: var(--am-text-sm); }
+      :host([size='md']) .trigger:not(.has-label), :host(:not([size])) .trigger:not(.has-label) { height: var(--am-size-md); padding-inline: var(--am-space-3); font-size: var(--am-text-sm); }
+      :host([size='lg']) .trigger:not(.has-label) { height: var(--am-size-lg); padding-inline: var(--am-space-4); font-size: var(--am-text-base); }
 
       /* ---- Sizes with floating label (taller to fit label + value) ---- */
-      :host([size='sm']) .trigger.has-label { height: 2.75rem; padding-inline: var(--qz-space-2-5); font-size: var(--qz-text-sm); }
-      :host([size='md']) .trigger.has-label, :host(:not([size])) .trigger.has-label { height: 3.25rem; padding-inline: var(--qz-space-3); font-size: var(--qz-text-sm); }
-      :host([size='lg']) .trigger.has-label { height: 3.5rem; padding-inline: var(--qz-space-4); font-size: var(--qz-text-base); }
+      :host([size='sm']) .trigger.has-label { height: 2.75rem; padding-inline: var(--am-space-2-5); font-size: var(--am-text-sm); }
+      :host([size='md']) .trigger.has-label, :host(:not([size])) .trigger.has-label { height: 3.25rem; padding-inline: var(--am-space-3); font-size: var(--am-text-sm); }
+      :host([size='lg']) .trigger.has-label { height: 3.5rem; padding-inline: var(--am-space-4); font-size: var(--am-text-base); }
 
       /* ---- Input group (mirrors qz-input) ---- */
 
@@ -283,14 +283,14 @@ export class QzSelect extends LitElement {
       .display-value {
         font: inherit;
         color: inherit;
-        line-height: var(--qz-leading-normal);
+        line-height: var(--am-leading-normal);
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
       }
 
       .display-value.placeholder {
-        color: var(--qz-text-tertiary);
+        color: var(--am-text-tertiary);
       }
 
       /* Hide placeholder when floating label is not floated */
@@ -305,16 +305,16 @@ export class QzSelect extends LitElement {
         top: 50%;
         left: 0;
         transform: translateY(-50%);
-        font-family: var(--qz-font-sans);
+        font-family: var(--am-font-sans);
         font-size: inherit;
-        color: var(--qz-text-tertiary);
+        color: var(--am-text-tertiary);
         pointer-events: none;
         transform-origin: left center;
         transition:
-          top var(--qz-duration-normal) var(--qz-ease-spring),
-          transform var(--qz-duration-normal) var(--qz-ease-spring),
-          font-size var(--qz-duration-normal) var(--qz-ease-spring),
-          color var(--qz-duration-fast) var(--qz-ease-default);
+          top var(--am-duration-normal) var(--am-ease-spring),
+          transform var(--am-duration-normal) var(--am-ease-spring),
+          font-size var(--am-duration-normal) var(--am-ease-spring),
+          color var(--am-duration-fast) var(--am-ease-default);
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -325,15 +325,15 @@ export class QzSelect extends LitElement {
         top: 0.35rem;
         transform: none;
         font-size: 0.625rem;
-        color: var(--qz-text-secondary);
+        color: var(--am-text-secondary);
       }
 
       .focused .floating-label {
-        color: var(--qz-primary);
+        color: var(--am-primary);
       }
 
       .invalid .floating-label {
-        color: var(--qz-danger);
+        color: var(--am-danger);
       }
 
       /* ---- Chevron ---- */
@@ -342,8 +342,8 @@ export class QzSelect extends LitElement {
         flex-shrink: 0;
         width: 1rem;
         height: 1rem;
-        color: var(--qz-text-tertiary);
-        transition: transform var(--qz-duration-fast) var(--qz-ease-default);
+        color: var(--am-text-tertiary);
+        transition: transform var(--am-duration-fast) var(--am-ease-default);
       }
 
       .chevron.open {
@@ -359,44 +359,44 @@ export class QzSelect extends LitElement {
         justify-content: center;
         width: 1.25rem;
         height: 1.25rem;
-        border-radius: var(--qz-radius-full);
+        border-radius: var(--am-radius-full);
         cursor: pointer;
-        color: var(--qz-text-tertiary);
+        color: var(--am-text-tertiary);
         flex-shrink: 0;
         transition:
-          color var(--qz-duration-fast) var(--qz-ease-default),
-          background var(--qz-duration-fast) var(--qz-ease-default);
+          color var(--am-duration-fast) var(--am-ease-default),
+          background var(--am-duration-fast) var(--am-ease-default);
       }
 
       .clear-btn:hover {
-        color: var(--qz-text);
-        background: var(--qz-hover-overlay);
+        color: var(--am-text);
+        background: var(--am-hover-overlay);
       }
 
       .clear-btn:focus-visible {
-        outline: var(--qz-focus-ring-width) solid var(--qz-focus-ring);
-        outline-offset: var(--qz-focus-ring-offset);
+        outline: var(--am-focus-ring-width) solid var(--am-focus-ring);
+        outline-offset: var(--am-focus-ring-offset);
       }
 
       /* ---- Dropdown panel ---- */
 
       .listbox {
         position: fixed;
-        z-index: var(--qz-z-dropdown);
-        background: var(--qz-surface-raised);
-        border: var(--qz-border-1) solid var(--qz-border);
-        border-radius: var(--qz-radius-xl);
+        z-index: var(--am-z-dropdown);
+        background: var(--am-surface-raised);
+        border: var(--am-border-1) solid var(--am-border);
+        border-radius: var(--am-radius-xl);
         corner-shape: squircle;
-        box-shadow: var(--qz-shadow-lg);
-        padding: var(--qz-space-1);
+        box-shadow: var(--am-shadow-lg);
+        padding: var(--am-space-1);
         max-height: 16rem;
         overflow-y: auto;
         opacity: 0;
         transform: translateY(-4px);
         pointer-events: none;
         transition:
-          opacity var(--qz-duration-fast) var(--qz-ease-default),
-          transform var(--qz-duration-fast) var(--qz-ease-default);
+          opacity var(--am-duration-fast) var(--am-ease-default),
+          transform var(--am-duration-fast) var(--am-ease-default);
       }
 
       .listbox.open {
@@ -424,13 +424,13 @@ export class QzSelect extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
-    this.addEventListener('qz-select-option', this._handleOptionSelect as EventListener);
+    this.addEventListener('am-select-option', this._handleOptionSelect as EventListener);
     document.addEventListener('click', this._documentClickHandler);
   }
 
   disconnectedCallback() {
     super.disconnectedCallback();
-    this.removeEventListener('qz-select-option', this._handleOptionSelect as EventListener);
+    this.removeEventListener('am-select-option', this._handleOptionSelect as EventListener);
     document.removeEventListener('click', this._documentClickHandler);
   }
 
@@ -503,7 +503,7 @@ export class QzSelect extends LitElement {
     if (newValue !== this.value) {
       this.value = newValue;
       this.dispatchEvent(
-        new CustomEvent('qz-change', {
+        new CustomEvent('am-change', {
           detail: { value: this.value },
           bubbles: true,
           composed: true,
@@ -577,11 +577,11 @@ export class QzSelect extends LitElement {
     }
   }
 
-  private _getNavigableOptions(): QzOption[] {
+  private _getNavigableOptions(): AmOption[] {
     return (this._options ?? []).filter(opt => !opt.disabled);
   }
 
-  private _moveHighlight(direction: number, options: QzOption[]) {
+  private _moveHighlight(direction: number, options: AmOption[]) {
     if (options.length === 0) return;
     let idx = this._highlightedIndex + direction;
     if (idx < 0) idx = options.length - 1;
@@ -590,7 +590,7 @@ export class QzSelect extends LitElement {
     this._scrollHighlightedIntoView(options[idx]);
   }
 
-  private _scrollHighlightedIntoView(option: QzOption) {
+  private _scrollHighlightedIntoView(option: AmOption) {
     option.scrollIntoView?.({ block: 'nearest' });
   }
 
@@ -599,7 +599,7 @@ export class QzSelect extends LitElement {
     if (this.value) {
       this.value = '';
       this.dispatchEvent(
-        new CustomEvent('qz-change', {
+        new CustomEvent('am-change', {
           detail: { value: '' },
           bubbles: true,
           composed: true,
@@ -691,7 +691,7 @@ export class QzSelect extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'qz-option': QzOption;
-    'qz-select': QzSelect;
+    'am-option': AmOption;
+    'am-select': AmSelect;
   }
 }

@@ -12,17 +12,17 @@ import { resetStyles } from '../../styles/reset.css.js';
  * <qz-hint-text>Must be at least 8 characters.</qz-hint-text>
  * ```
  */
-@customElement('qz-hint-text')
-export class QzHintText extends LitElement {
+@customElement('am-hint-text')
+export class AmHintText extends LitElement {
   static styles = [
     resetStyles,
     css`
       :host {
         display: block;
-        font-family: var(--qz-font-sans);
-        font-size: var(--qz-text-xs);
-        color: var(--qz-text-tertiary);
-        line-height: var(--qz-leading-normal);
+        font-family: var(--am-font-sans);
+        font-size: var(--am-text-xs);
+        color: var(--am-text-tertiary);
+        line-height: var(--am-leading-normal);
       }
     `,
   ];
@@ -34,6 +34,6 @@ export class QzHintText extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'qz-hint-text': QzHintText;
+    'am-hint-text': AmHintText;
   }
 }

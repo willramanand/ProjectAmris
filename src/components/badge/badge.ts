@@ -17,8 +17,8 @@ export type BadgeSize = 'sm' | 'md' | 'lg';
  * <qz-badge variant="warning" size="sm">Pending</qz-badge>
  * ```
  */
-@customElement('qz-badge')
-export class QzBadge extends LitElement {
+@customElement('am-badge')
+export class AmBadge extends LitElement {
   @property({ reflect: true }) variant: BadgeVariant = 'neutral';
   @property({ reflect: true }) size: BadgeSize = 'md';
 
@@ -32,10 +32,10 @@ export class QzBadge extends LitElement {
       .badge {
         display: inline-flex;
         align-items: center;
-        gap: var(--qz-space-1);
-        font-family: var(--qz-font-sans);
-        font-weight: var(--qz-weight-medium);
-        border-radius: var(--qz-radius-full);
+        gap: var(--am-space-1);
+        font-family: var(--am-font-sans);
+        font-weight: var(--am-weight-medium);
+        border-radius: var(--am-radius-full);
         corner-shape: squircle;
         white-space: nowrap;
         line-height: 1;
@@ -47,13 +47,13 @@ export class QzBadge extends LitElement {
       :host([size='lg']) .badge { padding: 0.375rem 0.75rem; font-size: 0.8125rem; }
 
       /* Variants */
-      :host([variant='neutral']) .badge, :host(:not([variant])) .badge { background: var(--qz-color-neutral-100); color: var(--qz-text-secondary); }
-      :host([variant='primary']) .badge { background: var(--qz-primary-subtle); color: var(--qz-primary); }
-      :host([variant='secondary']) .badge { background: var(--qz-secondary-subtle); color: var(--qz-secondary); }
-      :host([variant='success']) .badge { background: var(--qz-success-subtle); color: var(--qz-success-text); }
-      :host([variant='warning']) .badge { background: var(--qz-warning-subtle); color: var(--qz-warning-text); }
-      :host([variant='danger']) .badge { background: var(--qz-danger-subtle); color: var(--qz-danger-text); }
-      :host([variant='info']) .badge { background: var(--qz-info-subtle); color: var(--qz-info-text); }
+      :host([variant='neutral']) .badge, :host(:not([variant])) .badge { background: var(--am-color-neutral-100); color: var(--am-text-secondary); }
+      :host([variant='primary']) .badge { background: var(--am-primary-subtle); color: var(--am-primary); }
+      :host([variant='secondary']) .badge { background: var(--am-secondary-subtle); color: var(--am-secondary); }
+      :host([variant='success']) .badge { background: var(--am-success-subtle); color: var(--am-success-text); }
+      :host([variant='warning']) .badge { background: var(--am-warning-subtle); color: var(--am-warning-text); }
+      :host([variant='danger']) .badge { background: var(--am-danger-subtle); color: var(--am-danger-text); }
+      :host([variant='info']) .badge { background: var(--am-info-subtle); color: var(--am-info-text); }
     `,
   ];
 
@@ -64,6 +64,6 @@ export class QzBadge extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'qz-badge': QzBadge;
+    'am-badge': AmBadge;
   }
 }

@@ -4,12 +4,12 @@ import { customElement, property } from 'lit/decorators.js';
 /**
  * Divider — a horizontal or vertical separator line.
  *
- * @cssprop --qz-divider-color - Override color (default: --qz-border)
- * @cssprop --qz-divider-width - Override thickness (default: 1px)
- * @cssprop --qz-divider-spacing - Override margin (default: --qz-space-4)
+ * @cssprop --am-divider-color - Override color (default: --am-border)
+ * @cssprop --am-divider-width - Override thickness (default: 1px)
+ * @cssprop --am-divider-spacing - Override margin (default: --am-space-4)
  */
-@customElement('qz-divider')
-export class QzDivider extends LitElement {
+@customElement('am-divider')
+export class AmDivider extends LitElement {
   /** Orientation of the divider. */
   @property({ reflect: true })
   orientation: 'horizontal' | 'vertical' = 'horizontal';
@@ -21,17 +21,17 @@ export class QzDivider extends LitElement {
 
     :host([orientation='horizontal']) {
       border: none;
-      border-top: var(--qz-divider-width, 1px) solid
-        var(--qz-divider-color, var(--qz-border));
-      margin-block: var(--qz-divider-spacing, var(--qz-space-4));
+      border-top: var(--am-divider-width, 1px) solid
+        var(--am-divider-color, var(--am-border));
+      margin-block: var(--am-divider-spacing, var(--am-space-4));
     }
 
     :host([orientation='vertical']) {
       display: inline-block;
       border: none;
-      border-left: var(--qz-divider-width, 1px) solid
-        var(--qz-divider-color, var(--qz-border));
-      margin-inline: var(--qz-divider-spacing, var(--qz-space-4));
+      border-left: var(--am-divider-width, 1px) solid
+        var(--am-divider-color, var(--am-border));
+      margin-inline: var(--am-divider-spacing, var(--am-space-4));
       align-self: stretch;
       min-height: 1em;
     }
@@ -52,6 +52,6 @@ export class QzDivider extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'qz-divider': QzDivider;
+    'am-divider': AmDivider;
   }
 }

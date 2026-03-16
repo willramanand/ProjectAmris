@@ -6,13 +6,13 @@ export type SpinnerSize = 'sm' | 'md' | 'lg';
 /**
  * Spinner — an animated loading indicator.
  *
- * @cssprop --qz-spinner-color - Override color (default: --qz-primary)
- * @cssprop --qz-spinner-track - Override track color (default: --qz-border)
- * @cssprop --qz-spinner-size - Override size (default: based on size prop)
- * @cssprop --qz-spinner-width - Override stroke width (default: 2px)
+ * @cssprop --am-spinner-color - Override color (default: --am-primary)
+ * @cssprop --am-spinner-track - Override track color (default: --am-border)
+ * @cssprop --am-spinner-size - Override size (default: based on size prop)
+ * @cssprop --am-spinner-width - Override stroke width (default: 2px)
  */
-@customElement('qz-spinner')
-export class QzSpinner extends LitElement {
+@customElement('am-spinner')
+export class AmSpinner extends LitElement {
   /** Visual size of the spinner. */
   @property({ reflect: true })
   size: SpinnerSize = 'md';
@@ -29,25 +29,25 @@ export class QzSpinner extends LitElement {
     }
 
     :host([size='sm']) {
-      --_size: var(--qz-spinner-size, 1rem);
+      --_size: var(--am-spinner-size, 1rem);
     }
 
     :host([size='md']),
     :host(:not([size])) {
-      --_size: var(--qz-spinner-size, 1.5rem);
+      --_size: var(--am-spinner-size, 1.5rem);
     }
 
     :host([size='lg']) {
-      --_size: var(--qz-spinner-size, 2rem);
+      --_size: var(--am-spinner-size, 2rem);
     }
 
     .spinner {
       width: var(--_size);
       height: var(--_size);
-      border-radius: var(--qz-radius-full);
-      border: var(--qz-spinner-width, 2px) solid
-        var(--qz-spinner-track, var(--qz-border));
-      border-top-color: var(--qz-spinner-color, var(--qz-primary));
+      border-radius: var(--am-radius-full);
+      border: var(--am-spinner-width, 2px) solid
+        var(--am-spinner-track, var(--am-border));
+      border-top-color: var(--am-spinner-color, var(--am-primary));
       animation: spin 0.6s linear infinite;
     }
 
@@ -79,6 +79,6 @@ export class QzSpinner extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'qz-spinner': QzSpinner;
+    'am-spinner': AmSpinner;
   }
 }

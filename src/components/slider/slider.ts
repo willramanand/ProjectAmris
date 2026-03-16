@@ -17,8 +17,8 @@ import { resetStyles } from '../../styles/reset.css.js';
  * <qz-slider label="Volume" value="75"></qz-slider>
  * ```
  */
-@customElement('qz-slider')
-export class QzSlider extends LitElement {
+@customElement('am-slider')
+export class AmSlider extends LitElement {
   static formAssociated = true;
 
   @property({ type: Number }) value = 50;
@@ -45,7 +45,7 @@ export class QzSlider extends LitElement {
       }
 
       :host([disabled]) {
-        opacity: var(--qz-disabled-opacity);
+        opacity: var(--am-disabled-opacity);
         cursor: not-allowed;
         pointer-events: none;
       }
@@ -69,13 +69,13 @@ export class QzSlider extends LitElement {
 
       input[type='range']::-webkit-slider-runnable-track {
         height: 0.25rem;
-        border-radius: var(--qz-radius-full);
+        border-radius: var(--am-radius-full);
         background: linear-gradient(
           to right,
-          var(--qz-primary) 0%,
-          var(--qz-primary) var(--fill-percent, 50%),
-          var(--qz-color-neutral-200) var(--fill-percent, 50%),
-          var(--qz-color-neutral-200) 100%
+          var(--am-primary) 0%,
+          var(--am-primary) var(--fill-percent, 50%),
+          var(--am-color-neutral-200) var(--fill-percent, 50%),
+          var(--am-color-neutral-200) 100%
         );
       }
 
@@ -87,19 +87,19 @@ export class QzSlider extends LitElement {
         width: 1.25rem;
         height: 1.25rem;
         margin-top: -0.5rem;
-        border-radius: var(--qz-radius-full);
+        border-radius: var(--am-radius-full);
         corner-shape: squircle;
-        background: var(--qz-surface);
-        border: var(--qz-border-2) solid var(--qz-primary);
-        box-shadow: var(--qz-shadow-sm);
+        background: var(--am-surface);
+        border: var(--am-border-2) solid var(--am-primary);
+        box-shadow: var(--am-shadow-sm);
         transition:
-          transform var(--qz-duration-normal) var(--qz-ease-spring),
-          border-color var(--qz-duration-fast) var(--qz-ease-default);
+          transform var(--am-duration-normal) var(--am-ease-spring),
+          border-color var(--am-duration-fast) var(--am-ease-default);
       }
 
       input[type='range']:hover::-webkit-slider-thumb {
         transform: scale(1.1);
-        border-color: var(--qz-primary-hover);
+        border-color: var(--am-primary-hover);
       }
 
       input[type='range']:active::-webkit-slider-thumb {
@@ -107,23 +107,23 @@ export class QzSlider extends LitElement {
       }
 
       input[type='range']:focus-visible::-webkit-slider-thumb {
-        outline: var(--qz-focus-ring-width) solid var(--qz-focus-ring);
-        outline-offset: var(--qz-focus-ring-offset);
+        outline: var(--am-focus-ring-width) solid var(--am-focus-ring);
+        outline-offset: var(--am-focus-ring-offset);
       }
 
       /* ---- Firefox Track ---- */
 
       input[type='range']::-moz-range-track {
         height: 0.25rem;
-        border-radius: var(--qz-radius-full);
-        background: var(--qz-color-neutral-200);
+        border-radius: var(--am-radius-full);
+        background: var(--am-color-neutral-200);
         border: none;
       }
 
       input[type='range']::-moz-range-progress {
         height: 0.25rem;
-        border-radius: var(--qz-radius-full);
-        background: var(--qz-primary);
+        border-radius: var(--am-radius-full);
+        background: var(--am-primary);
       }
 
       /* ---- Firefox Thumb ---- */
@@ -131,19 +131,19 @@ export class QzSlider extends LitElement {
       input[type='range']::-moz-range-thumb {
         width: 1.25rem;
         height: 1.25rem;
-        border-radius: var(--qz-radius-full);
+        border-radius: var(--am-radius-full);
         corner-shape: squircle;
-        background: var(--qz-surface);
-        border: var(--qz-border-2) solid var(--qz-primary);
-        box-shadow: var(--qz-shadow-sm);
+        background: var(--am-surface);
+        border: var(--am-border-2) solid var(--am-primary);
+        box-shadow: var(--am-shadow-sm);
         transition:
-          transform var(--qz-duration-normal) var(--qz-ease-spring),
-          border-color var(--qz-duration-fast) var(--qz-ease-default);
+          transform var(--am-duration-normal) var(--am-ease-spring),
+          border-color var(--am-duration-fast) var(--am-ease-default);
       }
 
       input[type='range']:hover::-moz-range-thumb {
         transform: scale(1.1);
-        border-color: var(--qz-primary-hover);
+        border-color: var(--am-primary-hover);
       }
 
       input[type='range']:active::-moz-range-thumb {
@@ -151,8 +151,8 @@ export class QzSlider extends LitElement {
       }
 
       input[type='range']:focus-visible::-moz-range-thumb {
-        outline: var(--qz-focus-ring-width) solid var(--qz-focus-ring);
-        outline-offset: var(--qz-focus-ring-offset);
+        outline: var(--am-focus-ring-width) solid var(--am-focus-ring);
+        outline-offset: var(--am-focus-ring-offset);
       }
 
       @media (prefers-reduced-motion: reduce) {
@@ -173,13 +173,13 @@ export class QzSlider extends LitElement {
   private _handleInput(e: Event) {
     const input = e.target as HTMLInputElement;
     this.value = Number(input.value);
-    this.dispatchEvent(new CustomEvent('qz-input', { detail: { value: this.value }, bubbles: true, composed: true }));
+    this.dispatchEvent(new CustomEvent('am-input', { detail: { value: this.value }, bubbles: true, composed: true }));
   }
 
   private _handleChange(e: Event) {
     const input = e.target as HTMLInputElement;
     this.value = Number(input.value);
-    this.dispatchEvent(new CustomEvent('qz-change', { detail: { value: this.value }, bubbles: true, composed: true }));
+    this.dispatchEvent(new CustomEvent('am-change', { detail: { value: this.value }, bubbles: true, composed: true }));
   }
 
   render() {
@@ -202,6 +202,6 @@ export class QzSlider extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'qz-slider': QzSlider;
+    'am-slider': AmSlider;
   }
 }

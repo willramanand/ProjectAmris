@@ -19,8 +19,8 @@ export type DialogSize = 'sm' | 'md' | 'lg' | 'xl';
  * @csspart close - The close button
  * @csspart backdrop - The backdrop overlay
  *
- * @cssprop --qz-dialog-radius - Override border radius
- * @cssprop --qz-dialog-padding - Override content padding
+ * @cssprop --am-dialog-radius - Override border radius
+ * @cssprop --am-dialog-padding - Override content padding
  *
  * @fires qz-open - Fires when the dialog opens
  * @fires qz-close - Fires when the dialog closes
@@ -30,14 +30,14 @@ export type DialogSize = 'sm' | 'md' | 'lg' | 'xl';
  * <qz-dialog label="Confirm" open>
  *   <p>Are you sure you want to continue?</p>
  *   <div slot="footer">
- *     <qz-button variant="ghost" onclick="this.closest('qz-dialog').open = false">Cancel</qz-button>
+ *     <qz-button variant="ghost" onclick="this.closest('am-dialog').open = false">Cancel</qz-button>
  *     <qz-button>Confirm</qz-button>
  *   </div>
  * </qz-dialog>
  * ```
  */
-@customElement('qz-dialog')
-export class QzDialog extends LitElement {
+@customElement('am-dialog')
+export class AmDialog extends LitElement {
   /** Whether the dialog is open. */
   @property({ type: Boolean, reflect: true }) open = false;
 
@@ -68,11 +68,11 @@ export class QzDialog extends LitElement {
         margin: auto;
         border: none;
         padding: 0;
-        background: var(--qz-surface-raised);
-        color: var(--qz-text);
-        border-radius: var(--qz-dialog-radius, var(--qz-radius-2xl));
+        background: var(--am-surface-raised);
+        color: var(--am-text);
+        border-radius: var(--am-dialog-radius, var(--am-radius-2xl));
         corner-shape: squircle;
-        box-shadow: var(--qz-shadow-xl);
+        box-shadow: var(--am-shadow-xl);
         max-height: min(85vh, 40rem);
         display: flex;
         flex-direction: column;
@@ -97,16 +97,16 @@ export class QzDialog extends LitElement {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: var(--qz-space-3);
-        padding: var(--qz-dialog-padding, var(--qz-space-5)) var(--qz-dialog-padding, var(--qz-space-6));
+        gap: var(--am-space-3);
+        padding: var(--am-dialog-padding, var(--am-space-5)) var(--am-dialog-padding, var(--am-space-6));
         padding-bottom: 0;
       }
 
       .title {
-        font-family: var(--qz-font-sans);
-        font-size: var(--qz-text-lg);
-        font-weight: var(--qz-weight-semibold);
-        color: var(--qz-text);
+        font-family: var(--am-font-sans);
+        font-size: var(--am-text-lg);
+        font-weight: var(--am-weight-semibold);
+        color: var(--am-text);
         margin: 0;
         flex: 1;
         min-width: 0;
@@ -119,39 +119,39 @@ export class QzDialog extends LitElement {
         justify-content: center;
         width: 2rem;
         height: 2rem;
-        border-radius: var(--qz-radius-lg);
+        border-radius: var(--am-radius-lg);
         corner-shape: squircle;
         cursor: pointer;
-        color: var(--qz-text-tertiary);
+        color: var(--am-text-tertiary);
         flex-shrink: 0;
         transition:
-          background var(--qz-duration-fast) var(--qz-ease-default),
-          color var(--qz-duration-fast) var(--qz-ease-default);
+          background var(--am-duration-fast) var(--am-ease-default),
+          color var(--am-duration-fast) var(--am-ease-default);
       }
 
-      .close-btn:hover { background: var(--qz-hover-overlay); color: var(--qz-text); }
+      .close-btn:hover { background: var(--am-hover-overlay); color: var(--am-text); }
       .close-btn:focus-visible {
-        outline: var(--qz-focus-ring-width) solid var(--qz-focus-ring);
-        outline-offset: var(--qz-focus-ring-offset);
+        outline: var(--am-focus-ring-width) solid var(--am-focus-ring);
+        outline-offset: var(--am-focus-ring-offset);
       }
 
       .body {
-        padding: var(--qz-space-4) var(--qz-dialog-padding, var(--qz-space-6));
+        padding: var(--am-space-4) var(--am-dialog-padding, var(--am-space-6));
         overflow-y: auto;
         flex: 1;
-        font-family: var(--qz-font-sans);
-        font-size: var(--qz-text-sm);
-        line-height: var(--qz-leading-normal);
-        color: var(--qz-text-secondary);
+        font-family: var(--am-font-sans);
+        font-size: var(--am-text-sm);
+        line-height: var(--am-leading-normal);
+        color: var(--am-text-secondary);
       }
 
       .footer {
         display: flex;
         align-items: center;
         justify-content: flex-end;
-        gap: var(--qz-space-2);
-        padding: var(--qz-space-4) var(--qz-dialog-padding, var(--qz-space-6));
-        border-top: var(--qz-border-1) solid var(--qz-border-subtle);
+        gap: var(--am-space-2);
+        padding: var(--am-space-4) var(--am-dialog-padding, var(--am-space-6));
+        border-top: var(--am-border-1) solid var(--am-border-subtle);
       }
 
       /* Hide empty footer */
@@ -168,7 +168,7 @@ export class QzDialog extends LitElement {
       }
 
       dialog.nudge {
-        animation: dialog-nudge 0.3s var(--qz-ease-spring);
+        animation: dialog-nudge 0.3s var(--am-ease-spring);
       }
 
       @media (prefers-reduced-motion: reduce) {
@@ -188,7 +188,7 @@ export class QzDialog extends LitElement {
   private _show() {
     this._previouslyFocused = document.activeElement;
     this.dialogEl?.showModal();
-    this.dispatchEvent(new CustomEvent('qz-open', { bubbles: true, composed: true }));
+    this.dispatchEvent(new CustomEvent('am-open', { bubbles: true, composed: true }));
   }
 
   private _hide() {
@@ -196,7 +196,7 @@ export class QzDialog extends LitElement {
     if (this._previouslyFocused instanceof HTMLElement) {
       this._previouslyFocused.focus();
     }
-    this.dispatchEvent(new CustomEvent('qz-close', { bubbles: true, composed: true }));
+    this.dispatchEvent(new CustomEvent('am-close', { bubbles: true, composed: true }));
   }
 
   private _handleBackdropClick(e: MouseEvent) {
@@ -272,6 +272,6 @@ export class QzDialog extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'qz-dialog': QzDialog;
+    'am-dialog': AmDialog;
   }
 }

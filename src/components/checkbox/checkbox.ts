@@ -18,8 +18,8 @@ import { resetStyles } from '../../styles/reset.css.js';
  * <qz-checkbox indeterminate>Select all</qz-checkbox>
  * ```
  */
-@customElement('qz-checkbox')
-export class QzCheckbox extends LitElement {
+@customElement('am-checkbox')
+export class AmCheckbox extends LitElement {
   static formAssociated = true;
 
   @property({ type: Boolean, reflect: true }) checked = false;
@@ -42,14 +42,14 @@ export class QzCheckbox extends LitElement {
       :host {
         display: inline-flex;
         align-items: flex-start;
-        gap: var(--qz-space-2);
+        gap: var(--am-space-2);
         cursor: pointer;
         user-select: none;
         -webkit-tap-highlight-color: transparent;
       }
 
       :host([disabled]) {
-        opacity: var(--qz-disabled-opacity);
+        opacity: var(--am-disabled-opacity);
         cursor: not-allowed;
         pointer-events: none;
       }
@@ -60,48 +60,48 @@ export class QzCheckbox extends LitElement {
         width: 1.125rem;
         height: 1.125rem;
         margin-top: 0.125rem;
-        border: var(--qz-border-2) solid var(--qz-border-strong);
-        border-radius: var(--qz-radius-sm);
+        border: var(--am-border-2) solid var(--am-border-strong);
+        border-radius: var(--am-radius-sm);
         corner-shape: squircle;
-        background: var(--qz-surface);
+        background: var(--am-surface);
         transition:
-          background var(--qz-duration-fast) var(--qz-ease-default),
-          border-color var(--qz-duration-fast) var(--qz-ease-default);
+          background var(--am-duration-fast) var(--am-ease-default),
+          border-color var(--am-duration-fast) var(--am-ease-default);
         display: flex;
         align-items: center;
         justify-content: center;
       }
 
       :host(:hover:not([disabled])) .control {
-        border-color: var(--qz-primary);
+        border-color: var(--am-primary);
       }
 
       :host([checked]) .control,
       :host([indeterminate]) .control {
-        background: var(--qz-primary);
-        border-color: var(--qz-primary);
+        background: var(--am-primary);
+        border-color: var(--am-primary);
       }
 
       :host(:hover[checked]:not([disabled])) .control,
       :host(:hover[indeterminate]:not([disabled])) .control {
-        background: var(--qz-primary-hover);
-        border-color: var(--qz-primary-hover);
+        background: var(--am-primary-hover);
+        border-color: var(--am-primary-hover);
       }
 
       .control:focus-visible {
-        outline: var(--qz-focus-ring-width) solid var(--qz-focus-ring);
-        outline-offset: var(--qz-focus-ring-offset);
+        outline: var(--am-focus-ring-width) solid var(--am-focus-ring);
+        outline-offset: var(--am-focus-ring-offset);
       }
 
       .check-icon {
         width: 0.75rem;
         height: 0.75rem;
-        color: var(--qz-primary-text);
+        color: var(--am-primary-text);
         opacity: 0;
         transform: scale(0.5);
         transition:
-          opacity var(--qz-duration-fast) var(--qz-ease-default),
-          transform var(--qz-duration-fast) var(--qz-ease-spring);
+          opacity var(--am-duration-fast) var(--am-ease-default),
+          transform var(--am-duration-fast) var(--am-ease-spring);
       }
 
       :host([checked]) .check-icon,
@@ -111,10 +111,10 @@ export class QzCheckbox extends LitElement {
       }
 
       .label {
-        font-family: var(--qz-font-sans);
-        font-size: var(--qz-text-sm);
-        line-height: var(--qz-leading-normal);
-        color: var(--qz-text);
+        font-family: var(--am-font-sans);
+        font-size: var(--am-text-sm);
+        line-height: var(--am-leading-normal);
+        color: var(--am-text);
       }
 
       input {
@@ -143,7 +143,7 @@ export class QzCheckbox extends LitElement {
     if (this.disabled) return;
     this.checked = !this.checked;
     this.indeterminate = false;
-    this.dispatchEvent(new CustomEvent('qz-change', { detail: { checked: this.checked }, bubbles: true, composed: true }));
+    this.dispatchEvent(new CustomEvent('am-change', { detail: { checked: this.checked }, bubbles: true, composed: true }));
   };
 
   private _handleKeyDown(e: KeyboardEvent) {
@@ -188,6 +188,6 @@ export class QzCheckbox extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'qz-checkbox': QzCheckbox;
+    'am-checkbox': AmCheckbox;
   }
 }

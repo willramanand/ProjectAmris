@@ -16,7 +16,7 @@ export type AlertVariant = 'info' | 'success' | 'warning' | 'danger' | 'neutral'
  * @csspart content - The content wrapper
  * @csspart action - The action wrapper
  *
- * @cssprop --qz-alert-radius - Override border radius
+ * @cssprop --am-alert-radius - Override border radius
  *
  * @fires qz-close - Fires when the alert is dismissed
  *
@@ -26,8 +26,8 @@ export type AlertVariant = 'info' | 'success' | 'warning' | 'danger' | 'neutral'
  * <qz-alert variant="danger" closable>Something went wrong.</qz-alert>
  * ```
  */
-@customElement('qz-alert')
-export class QzAlert extends LitElement {
+@customElement('am-alert')
+export class AmAlert extends LitElement {
   @property({ reflect: true }) variant: AlertVariant = 'info';
   @property({ type: Boolean, reflect: true }) closable = false;
   @property({ type: Boolean, reflect: true }) open = true;
@@ -41,22 +41,22 @@ export class QzAlert extends LitElement {
       .alert {
         display: flex;
         align-items: flex-start;
-        gap: var(--qz-space-3);
-        padding: var(--qz-space-3) var(--qz-space-4);
-        border-radius: var(--qz-alert-radius, var(--qz-radius-xl));
+        gap: var(--am-space-3);
+        padding: var(--am-space-3) var(--am-space-4);
+        border-radius: var(--am-alert-radius, var(--am-radius-xl));
         corner-shape: squircle;
-        border: var(--qz-border-1) solid transparent;
-        font-family: var(--qz-font-sans);
-        font-size: var(--qz-text-sm);
-        line-height: var(--qz-leading-normal);
+        border: var(--am-border-1) solid transparent;
+        font-family: var(--am-font-sans);
+        font-size: var(--am-text-sm);
+        line-height: var(--am-leading-normal);
       }
 
       /* Variants */
-      :host([variant='info']) .alert { background: var(--qz-info-subtle); color: var(--qz-info-text); border-color: color-mix(in srgb, var(--qz-info) 20%, transparent); }
-      :host([variant='success']) .alert { background: var(--qz-success-subtle); color: var(--qz-success-text); border-color: color-mix(in srgb, var(--qz-success) 20%, transparent); }
-      :host([variant='warning']) .alert { background: var(--qz-warning-subtle); color: var(--qz-warning-text); border-color: color-mix(in srgb, var(--qz-warning) 20%, transparent); }
-      :host([variant='danger']) .alert { background: var(--qz-danger-subtle); color: var(--qz-danger-text); border-color: color-mix(in srgb, var(--qz-danger) 20%, transparent); }
-      :host([variant='neutral']) .alert { background: var(--qz-color-neutral-100); color: var(--qz-text-secondary); border-color: var(--qz-border); }
+      :host([variant='info']) .alert { background: var(--am-info-subtle); color: var(--am-info-text); border-color: color-mix(in srgb, var(--am-info) 20%, transparent); }
+      :host([variant='success']) .alert { background: var(--am-success-subtle); color: var(--am-success-text); border-color: color-mix(in srgb, var(--am-success) 20%, transparent); }
+      :host([variant='warning']) .alert { background: var(--am-warning-subtle); color: var(--am-warning-text); border-color: color-mix(in srgb, var(--am-warning) 20%, transparent); }
+      :host([variant='danger']) .alert { background: var(--am-danger-subtle); color: var(--am-danger-text); border-color: color-mix(in srgb, var(--am-danger) 20%, transparent); }
+      :host([variant='neutral']) .alert { background: var(--am-color-neutral-100); color: var(--am-text-secondary); border-color: var(--am-border); }
 
       .icon { flex-shrink: 0; display: flex; padding-top: 0.0625rem; }
       .content { flex: 1; min-width: 0; }
@@ -70,16 +70,16 @@ export class QzAlert extends LitElement {
         justify-content: center;
         width: 1.5rem;
         height: 1.5rem;
-        border-radius: var(--qz-radius-sm);
+        border-radius: var(--am-radius-sm);
         color: currentColor;
         opacity: 0.6;
-        transition: opacity var(--qz-duration-fast) var(--qz-ease-default);
+        transition: opacity var(--am-duration-fast) var(--am-ease-default);
       }
 
       .close-btn:hover { opacity: 1; }
       .close-btn:focus-visible {
-        outline: var(--qz-focus-ring-width) solid var(--qz-focus-ring);
-        outline-offset: var(--qz-focus-ring-offset);
+        outline: var(--am-focus-ring-width) solid var(--am-focus-ring);
+        outline-offset: var(--am-focus-ring-offset);
       }
 
       @media (prefers-reduced-motion: reduce) {
@@ -90,7 +90,7 @@ export class QzAlert extends LitElement {
 
   private _close() {
     this.open = false;
-    this.dispatchEvent(new CustomEvent('qz-close', { bubbles: true, composed: true }));
+    this.dispatchEvent(new CustomEvent('am-close', { bubbles: true, composed: true }));
   }
 
   connectedCallback() {
@@ -120,6 +120,6 @@ export class QzAlert extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'qz-alert': QzAlert;
+    'am-alert': AmAlert;
   }
 }

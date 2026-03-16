@@ -13,8 +13,8 @@ import { resetStyles } from '../../styles/reset.css.js';
  * <qz-label for="email-input" required>Email address</qz-label>
  * ```
  */
-@customElement('qz-label')
-export class QzLabel extends LitElement {
+@customElement('am-label')
+export class AmLabel extends LitElement {
   /** The ID of the form control this label is for. */
   @property() for = '';
 
@@ -34,27 +34,27 @@ export class QzLabel extends LitElement {
       label {
         display: inline-flex;
         align-items: baseline;
-        gap: var(--qz-space-1);
-        font-family: var(--qz-font-sans);
-        font-size: var(--qz-text-sm);
-        font-weight: var(--qz-weight-medium);
-        color: var(--qz-text);
-        line-height: var(--qz-leading-normal);
+        gap: var(--am-space-1);
+        font-family: var(--am-font-sans);
+        font-size: var(--am-text-sm);
+        font-weight: var(--am-weight-medium);
+        color: var(--am-text);
+        line-height: var(--am-leading-normal);
         cursor: pointer;
         user-select: none;
       }
 
       .indicator {
-        font-size: var(--qz-text-xs);
-        font-weight: var(--qz-weight-regular);
+        font-size: var(--am-text-xs);
+        font-weight: var(--am-weight-regular);
       }
 
       .required-indicator {
-        color: var(--qz-danger);
+        color: var(--am-danger);
       }
 
       .optional-indicator {
-        color: var(--qz-text-tertiary);
+        color: var(--am-text-tertiary);
       }
     `,
   ];
@@ -88,6 +88,6 @@ export class QzLabel extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'qz-label': QzLabel;
+    'am-label': AmLabel;
   }
 }

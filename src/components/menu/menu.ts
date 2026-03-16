@@ -3,20 +3,20 @@ import { customElement, property, queryAssignedElements } from 'lit/decorators.j
 import { resetStyles } from '../../styles/reset.css.js';
 
 /* ================================================================
-   QzMenuDivider — horizontal separator between menu items
+   AmMenuDivider — horizontal separator between menu items
    ================================================================ */
 
 /**
  * Menu Divider — a visual separator for grouping menu items.
  */
-@customElement('qz-menu-divider')
-export class QzMenuDivider extends LitElement {
+@customElement('am-menu-divider')
+export class AmMenuDivider extends LitElement {
   static styles = css`
     :host {
       display: block;
-      height: var(--qz-border-1);
-      background: var(--qz-border);
-      margin: var(--qz-space-1) 0;
+      height: var(--am-border-1);
+      background: var(--am-border);
+      margin: var(--am-space-1) 0;
     }
   `;
 
@@ -31,7 +31,7 @@ export class QzMenuDivider extends LitElement {
 }
 
 /* ================================================================
-   QzMenuItem — a single actionable item inside a menu
+   AmMenuItem — a single actionable item inside a menu
    ================================================================ */
 
 /**
@@ -43,8 +43,8 @@ export class QzMenuDivider extends LitElement {
  *
  * @fires qz-select - Fires on click with `{ item }` detail
  */
-@customElement('qz-menu-item')
-export class QzMenuItem extends LitElement {
+@customElement('am-menu-item')
+export class AmMenuItem extends LitElement {
   /** Whether this item is disabled. */
   @property({ type: Boolean, reflect: true }) disabled = false;
 
@@ -60,36 +60,36 @@ export class QzMenuItem extends LitElement {
       :host {
         display: flex;
         align-items: center;
-        gap: var(--qz-space-2-5);
-        padding: var(--qz-space-2) var(--qz-space-3);
-        font-size: var(--qz-text-sm);
-        color: var(--qz-text);
-        border-radius: var(--qz-radius-md);
+        gap: var(--am-space-2-5);
+        padding: var(--am-space-2) var(--am-space-3);
+        font-size: var(--am-text-sm);
+        color: var(--am-text);
+        border-radius: var(--am-radius-md);
         corner-shape: squircle;
         cursor: pointer;
         user-select: none;
-        transition: background var(--qz-duration-fast) var(--qz-ease-default);
+        transition: background var(--am-duration-fast) var(--am-ease-default);
       }
 
       :host(:hover) {
-        background: var(--qz-hover-overlay);
+        background: var(--am-hover-overlay);
       }
 
       :host(:focus-visible) {
-        outline: var(--qz-focus-ring-width) solid var(--qz-focus-ring);
-        outline-offset: calc(-1 * var(--qz-focus-ring-width));
+        outline: var(--am-focus-ring-width) solid var(--am-focus-ring);
+        outline-offset: calc(-1 * var(--am-focus-ring-width));
       }
 
       :host([destructive]) {
-        color: var(--qz-danger);
+        color: var(--am-danger);
       }
 
       :host([destructive]:hover) {
-        background: color-mix(in srgb, var(--qz-danger) 10%, transparent);
+        background: color-mix(in srgb, var(--am-danger) 10%, transparent);
       }
 
       :host([disabled]) {
-        opacity: var(--qz-disabled-opacity);
+        opacity: var(--am-disabled-opacity);
         cursor: not-allowed;
         pointer-events: none;
       }
@@ -118,7 +118,7 @@ export class QzMenuItem extends LitElement {
 
       .suffix {
         margin-left: auto;
-        color: var(--qz-text-tertiary);
+        color: var(--am-text-tertiary);
       }
 
       @media (prefers-reduced-motion: reduce) {
@@ -145,7 +145,7 @@ export class QzMenuItem extends LitElement {
   private _handleClick = () => {
     if (this.disabled) return;
     this.dispatchEvent(
-      new CustomEvent('qz-select', {
+      new CustomEvent('am-select', {
         detail: { item: this },
         bubbles: true,
         composed: true,
@@ -166,7 +166,7 @@ export class QzMenuItem extends LitElement {
 }
 
 /* ================================================================
-   QzMenu — container for menu items with keyboard navigation
+   AmMenu — container for menu items with keyboard navigation
    ================================================================ */
 
 /**
@@ -187,10 +187,10 @@ export class QzMenuItem extends LitElement {
  * </qz-menu>
  * ```
  */
-@customElement('qz-menu')
-export class QzMenu extends LitElement {
-  @queryAssignedElements({ selector: 'qz-menu-item' })
-  private _items!: QzMenuItem[];
+@customElement('am-menu')
+export class AmMenu extends LitElement {
+  @queryAssignedElements({ selector: 'am-menu-item' })
+  private _items!: AmMenuItem[];
 
   static styles = [
     resetStyles,
@@ -198,12 +198,12 @@ export class QzMenu extends LitElement {
       :host {
         display: flex;
         flex-direction: column;
-        padding: var(--qz-space-1);
-        background: var(--qz-surface-raised);
-        border: var(--qz-border-1) solid var(--qz-border);
-        border-radius: var(--qz-radius-xl);
+        padding: var(--am-space-1);
+        background: var(--am-surface-raised);
+        border: var(--am-border-1) solid var(--am-border);
+        border-radius: var(--am-radius-xl);
         corner-shape: squircle;
-        box-shadow: var(--qz-shadow-lg);
+        box-shadow: var(--am-shadow-lg);
         min-width: 12rem;
       }
     `,
@@ -220,7 +220,7 @@ export class QzMenu extends LitElement {
     this.removeEventListener('keydown', this._handleKeyDown);
   }
 
-  private _getEnabledItems(): QzMenuItem[] {
+  private _getEnabledItems(): AmMenuItem[] {
     return (this._items ?? []).filter(item => !item.disabled);
   }
 
@@ -245,7 +245,7 @@ export class QzMenu extends LitElement {
     const enabled = this._getEnabledItems();
     if (enabled.length === 0) return;
 
-    const current = e.target as QzMenuItem;
+    const current = e.target as AmMenuItem;
     const currentIdx = enabled.indexOf(current);
 
     switch (e.key) {
@@ -306,8 +306,8 @@ export class QzMenu extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'qz-menu': QzMenu;
-    'qz-menu-item': QzMenuItem;
-    'qz-menu-divider': QzMenuDivider;
+    'am-menu': AmMenu;
+    'am-menu-item': AmMenuItem;
+    'am-menu-divider': AmMenuDivider;
   }
 }

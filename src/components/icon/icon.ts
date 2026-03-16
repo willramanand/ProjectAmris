@@ -10,8 +10,8 @@ export type IconSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
  * @slot - Optional: provide your own inline SVG instead of using name/src
  * @csspart svg - The SVG use element container
  *
- * @cssprop --qz-icon-size - Override size
- * @cssprop --qz-icon-color - Override color (default: currentColor)
+ * @cssprop --am-icon-size - Override size
+ * @cssprop --am-icon-color - Override color (default: currentColor)
  *
  * @example
  * ```html
@@ -24,8 +24,8 @@ export type IconSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
  * </qz-icon>
  * ```
  */
-@customElement('qz-icon')
-export class QzIcon extends LitElement {
+@customElement('am-icon')
+export class AmIcon extends LitElement {
   /** Icon name (references an ID in the SVG sprite). */
   @property()
   name = '';
@@ -47,25 +47,25 @@ export class QzIcon extends LitElement {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      color: var(--qz-icon-color, currentColor);
+      color: var(--am-icon-color, currentColor);
       line-height: 0;
     }
 
     :host([size='xs']) {
-      --_size: var(--qz-icon-size, 0.875rem);
+      --_size: var(--am-icon-size, 0.875rem);
     }
     :host([size='sm']) {
-      --_size: var(--qz-icon-size, 1rem);
+      --_size: var(--am-icon-size, 1rem);
     }
     :host([size='md']),
     :host(:not([size])) {
-      --_size: var(--qz-icon-size, 1.25rem);
+      --_size: var(--am-icon-size, 1.25rem);
     }
     :host([size='lg']) {
-      --_size: var(--qz-icon-size, 1.5rem);
+      --_size: var(--am-icon-size, 1.5rem);
     }
     :host([size='xl']) {
-      --_size: var(--qz-icon-size, 2rem);
+      --_size: var(--am-icon-size, 2rem);
     }
 
     svg,
@@ -104,6 +104,6 @@ export class QzIcon extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'qz-icon': QzIcon;
+    'am-icon': AmIcon;
   }
 }

@@ -3,7 +3,7 @@ import { customElement, property, queryAssignedElements } from 'lit/decorators.j
 import { resetStyles } from '../../styles/reset.css.js';
 
 /* ================================================================
-   QzTab — individual tab trigger
+   AmTab — individual tab trigger
    ================================================================ */
 
 /**
@@ -12,8 +12,8 @@ import { resetStyles } from '../../styles/reset.css.js';
  * @slot - Tab label content
  * @csspart tab - The tab button
  */
-@customElement('qz-tab')
-export class QzTab extends LitElement {
+@customElement('am-tab')
+export class AmTab extends LitElement {
   /** The name of the panel this tab controls. */
   @property({ reflect: true }) panel = '';
 
@@ -30,37 +30,37 @@ export class QzTab extends LitElement {
       all: unset;
       display: inline-flex;
       align-items: center;
-      gap: var(--qz-space-2);
-      padding: var(--qz-space-2) var(--qz-space-4);
-      font-family: var(--qz-font-sans);
-      font-size: var(--qz-text-sm);
-      font-weight: var(--qz-weight-medium);
-      color: var(--qz-text-secondary);
+      gap: var(--am-space-2);
+      padding: var(--am-space-2) var(--am-space-4);
+      font-family: var(--am-font-sans);
+      font-size: var(--am-text-sm);
+      font-weight: var(--am-weight-medium);
+      color: var(--am-text-secondary);
       cursor: pointer;
       white-space: nowrap;
       border-bottom: 2px solid transparent;
       transition:
-        color var(--qz-duration-fast) var(--qz-ease-default),
-        border-color var(--qz-duration-fast) var(--qz-ease-default);
+        color var(--am-duration-fast) var(--am-ease-default),
+        border-color var(--am-duration-fast) var(--am-ease-default);
     }
 
-    button:hover { color: var(--qz-text); }
+    button:hover { color: var(--am-text); }
 
     :host([selected]) button {
-      color: var(--qz-primary);
-      border-bottom-color: var(--qz-primary);
+      color: var(--am-primary);
+      border-bottom-color: var(--am-primary);
     }
 
     :host([disabled]) button {
-      opacity: var(--qz-disabled-opacity);
+      opacity: var(--am-disabled-opacity);
       cursor: not-allowed;
       pointer-events: none;
     }
 
     button:focus-visible {
-      outline: var(--qz-focus-ring-width) solid var(--qz-focus-ring);
-      outline-offset: calc(-1 * var(--qz-focus-ring-width));
-      border-radius: var(--qz-radius-sm);
+      outline: var(--am-focus-ring-width) solid var(--am-focus-ring);
+      outline-offset: calc(-1 * var(--am-focus-ring-width));
+      border-radius: var(--am-radius-sm);
     }
 
     @media (prefers-reduced-motion: reduce) { button { transition: none; } }
@@ -82,7 +82,7 @@ export class QzTab extends LitElement {
 }
 
 /* ================================================================
-   QzTabPanel — individual tab panel
+   AmTabPanel — individual tab panel
    ================================================================ */
 
 /**
@@ -90,8 +90,8 @@ export class QzTab extends LitElement {
  *
  * @slot - Panel content
  */
-@customElement('qz-tab-panel')
-export class QzTabPanel extends LitElement {
+@customElement('am-tab-panel')
+export class AmTabPanel extends LitElement {
   /** Unique name linking this panel to a qz-tab. */
   @property({ reflect: true }) name = '';
 
@@ -114,7 +114,7 @@ export class QzTabPanel extends LitElement {
 }
 
 /* ================================================================
-   QzTabs — tab group container
+   AmTabs — tab group container
    ================================================================ */
 
 /**
@@ -138,13 +138,13 @@ export class QzTabPanel extends LitElement {
  * </qz-tabs>
  * ```
  */
-@customElement('qz-tabs')
-export class QzTabs extends LitElement {
+@customElement('am-tabs')
+export class AmTabs extends LitElement {
   /** The currently active panel name. */
   @property({ reflect: true, attribute: 'active-panel' }) activePanel = '';
 
-  @queryAssignedElements({ slot: 'nav', selector: 'qz-tab' })
-  private _tabs!: QzTab[];
+  @queryAssignedElements({ slot: 'nav', selector: 'am-tab' })
+  private _tabs!: AmTab[];
 
   static styles = [
     resetStyles,
@@ -153,7 +153,7 @@ export class QzTabs extends LitElement {
 
       .nav {
         display: flex;
-        border-bottom: var(--qz-border-1) solid var(--qz-border);
+        border-bottom: var(--am-border-1) solid var(--am-border);
         overflow-x: auto;
         scrollbar-width: none;
       }
@@ -161,7 +161,7 @@ export class QzTabs extends LitElement {
       .nav::-webkit-scrollbar { display: none; }
 
       .panels {
-        padding-top: var(--qz-space-4);
+        padding-top: var(--am-space-4);
       }
     `,
   ];
@@ -200,23 +200,23 @@ export class QzTabs extends LitElement {
     });
   }
 
-  private _getPanels(): QzTabPanel[] {
-    return [...this.querySelectorAll('qz-tab-panel')] as QzTabPanel[];
+  private _getPanels(): AmTabPanel[] {
+    return [...this.querySelectorAll('am-tab-panel')] as AmTabPanel[];
   }
 
   private _handleTabClick = (e: Event) => {
-    const tab = (e.target as Element).closest('qz-tab') as QzTab | null;
+    const tab = (e.target as Element).closest('am-tab') as AmTab | null;
     if (!tab || tab.disabled) return;
     this._selectTab(tab.panel);
   };
 
   private _handleKeyDown = (e: KeyboardEvent) => {
-    const tab = (e.target as Element).closest('qz-tab') as QzTab | null;
+    const tab = (e.target as Element).closest('am-tab') as AmTab | null;
     if (!tab) return;
 
     const tabs = this._tabs.filter(t => !t.disabled);
     const idx = tabs.indexOf(tab);
-    let next: QzTab | undefined;
+    let next: AmTab | undefined;
 
     if (e.key === 'ArrowRight') next = tabs[(idx + 1) % tabs.length];
     else if (e.key === 'ArrowLeft') next = tabs[(idx - 1 + tabs.length) % tabs.length];
@@ -234,7 +234,7 @@ export class QzTabs extends LitElement {
     if (panel === this.activePanel) return;
     this.activePanel = panel;
     this._syncTabs();
-    this.dispatchEvent(new CustomEvent('qz-tab-change', { detail: { panel }, bubbles: true, composed: true }));
+    this.dispatchEvent(new CustomEvent('am-tab-change', { detail: { panel }, bubbles: true, composed: true }));
   }
 
   private _handleSlotChange() {
@@ -255,8 +255,8 @@ export class QzTabs extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'qz-tab': QzTab;
-    'qz-tab-panel': QzTabPanel;
-    'qz-tabs': QzTabs;
+    'am-tab': AmTab;
+    'am-tab-panel': AmTabPanel;
+    'am-tabs': AmTabs;
   }
 }

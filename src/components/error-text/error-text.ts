@@ -12,17 +12,17 @@ import { resetStyles } from '../../styles/reset.css.js';
  * <qz-error-text>This field is required.</qz-error-text>
  * ```
  */
-@customElement('qz-error-text')
-export class QzErrorText extends LitElement {
+@customElement('am-error-text')
+export class AmErrorText extends LitElement {
   static styles = [
     resetStyles,
     css`
       :host {
         display: block;
-        font-family: var(--qz-font-sans);
-        font-size: var(--qz-text-xs);
-        color: var(--qz-danger-text);
-        line-height: var(--qz-leading-normal);
+        font-family: var(--am-font-sans);
+        font-size: var(--am-text-xs);
+        color: var(--am-danger-text);
+        line-height: var(--am-leading-normal);
       }
     `,
   ];
@@ -39,6 +39,6 @@ export class QzErrorText extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'qz-error-text': QzErrorText;
+    'am-error-text': AmErrorText;
   }
 }

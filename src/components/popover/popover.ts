@@ -24,8 +24,8 @@ import { resetStyles } from '../../styles/reset.css.js';
  * </qz-popover>
  * ```
  */
-@customElement('qz-popover')
-export class QzPopover extends LitElement {
+@customElement('am-popover')
+export class AmPopover extends LitElement {
   /** Whether the popover is shown. */
   @property({ type: Boolean, reflect: true }) open = false;
 
@@ -61,16 +61,16 @@ export class QzPopover extends LitElement {
 
       .popover {
         position: fixed;
-        z-index: var(--qz-z-popover);
-        background: var(--qz-surface-raised);
-        border: var(--qz-border-1) solid var(--qz-border);
-        border-radius: var(--qz-radius-xl);
+        z-index: var(--am-z-popover);
+        background: var(--am-surface-raised);
+        border: var(--am-border-1) solid var(--am-border);
+        border-radius: var(--am-radius-xl);
         corner-shape: squircle;
-        box-shadow: var(--qz-shadow-lg);
-        padding: var(--qz-space-3);
+        box-shadow: var(--am-shadow-lg);
+        padding: var(--am-space-3);
         opacity: 0;
         pointer-events: none;
-        transition: opacity var(--qz-duration-fast) var(--qz-ease-default);
+        transition: opacity var(--am-duration-fast) var(--am-ease-default);
         width: max-content;
       }
 
@@ -83,8 +83,8 @@ export class QzPopover extends LitElement {
         position: absolute;
         width: 0.5rem;
         height: 0.5rem;
-        background: var(--qz-surface-raised);
-        border: var(--qz-border-1) solid var(--qz-border);
+        background: var(--am-surface-raised);
+        border: var(--am-border-1) solid var(--am-border);
         transform: rotate(45deg);
       }
 
@@ -149,9 +149,9 @@ export class QzPopover extends LitElement {
     if (changed.has('open')) {
       if (this.open) {
         this._updatePosition();
-        this.dispatchEvent(new CustomEvent('qz-show', { bubbles: true, composed: true }));
+        this.dispatchEvent(new CustomEvent('am-show', { bubbles: true, composed: true }));
       } else {
-        this.dispatchEvent(new CustomEvent('qz-hide', { bubbles: true, composed: true }));
+        this.dispatchEvent(new CustomEvent('am-hide', { bubbles: true, composed: true }));
       }
     }
   }
@@ -221,6 +221,6 @@ export class QzPopover extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'qz-popover': QzPopover;
+    'am-popover': AmPopover;
   }
 }

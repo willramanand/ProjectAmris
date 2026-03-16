@@ -11,11 +11,11 @@ export type SurfaceVariant = 'default' | 'raised' | 'sunken';
  * @slot - Default slot for content
  * @csspart surface - The surface container element
  *
- * @cssprop --qz-surface-padding - Override padding (default: --qz-space-6)
- * @cssprop --qz-surface-radius - Override border radius (default: --qz-radius-xl)
+ * @cssprop --am-surface-padding - Override padding (default: --am-space-6)
+ * @cssprop --am-surface-radius - Override border radius (default: --am-radius-xl)
  */
-@customElement('qz-surface')
-export class QzSurface extends LitElement {
+@customElement('am-surface')
+export class AmSurface extends LitElement {
   /** Visual elevation variant. */
   @property({ reflect: true })
   variant: SurfaceVariant = 'default';
@@ -33,11 +33,11 @@ export class QzSurface extends LitElement {
     css`
       :host {
         display: block;
-        background: var(--qz-surface);
-        border-radius: var(--qz-surface-radius, var(--qz-radius-xl));
+        background: var(--am-surface);
+        border-radius: var(--am-surface-radius, var(--am-radius-xl));
         corner-shape: squircle;
-        padding: var(--qz-surface-padding, var(--qz-space-6));
-        color: var(--qz-text);
+        padding: var(--am-surface-padding, var(--am-space-6));
+        color: var(--am-text);
       }
 
       :host([flush]) {
@@ -46,16 +46,16 @@ export class QzSurface extends LitElement {
       }
 
       :host([bordered]) {
-        border: var(--qz-border-1) solid var(--qz-border);
+        border: var(--am-border-1) solid var(--am-border);
       }
 
       :host([variant='raised']) {
-        background: var(--qz-surface-raised);
-        box-shadow: var(--qz-shadow-raised);
+        background: var(--am-surface-raised);
+        box-shadow: var(--am-shadow-raised);
       }
 
       :host([variant='sunken']) {
-        background: var(--qz-surface-sunken);
+        background: var(--am-surface-sunken);
       }
     `,
   ];
@@ -67,6 +67,6 @@ export class QzSurface extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'qz-surface': QzSurface;
+    'am-surface': AmSurface;
   }
 }
