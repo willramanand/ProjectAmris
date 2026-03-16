@@ -1,4 +1,4 @@
-# Project UI Library Roadmap
+# Project Amris Library Roadmap
 
 ## 1. Vision and Core Goals
 
