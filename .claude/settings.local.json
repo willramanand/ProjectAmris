@@ -4,7 +4,9 @@
       "Bash(npx tsc:*)",
       "Bash(npx vite:*)",
       "Bash(find:*)",
-      "Bash(sed:*)"
+      "Bash(sed:*)",
+      "Bash(xargs grep:*)",
+      "Bash(ls:*)"
     ]
   }
 }

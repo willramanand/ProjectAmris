@@ -772,6 +772,745 @@
             </am-menu>
           </div>
 
+          <am-divider></am-divider>
+
+          <!-- ============ PROGRESS ============ -->
+
+          <h2>Progress</h2>
+          <div style="display: flex; flex-direction: column; gap: 1.25rem; max-width: 24rem;">
+            <div>
+              <p class="demo-label" style="margin-top:0;">Determinate</p>
+              <am-progress value="65"></am-progress>
+            </div>
+            <div>
+              <p class="demo-label" style="margin-top:0;">Variants</p>
+              <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                <am-progress value="80" variant="primary"></am-progress>
+                <am-progress value="60" variant="success"></am-progress>
+                <am-progress value="45" variant="warning"></am-progress>
+                <am-progress value="30" variant="danger"></am-progress>
+                <am-progress value="70" variant="info"></am-progress>
+              </div>
+            </div>
+            <div>
+              <p class="demo-label" style="margin-top:0;">Sizes</p>
+              <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                <am-progress value="50" size="sm"></am-progress>
+                <am-progress value="50" size="md"></am-progress>
+                <am-progress value="50" size="lg"></am-progress>
+              </div>
+            </div>
+            <div>
+              <p class="demo-label" style="margin-top:0;">Indeterminate</p>
+              <am-progress indeterminate></am-progress>
+            </div>
+          </div>
+
+          <am-divider></am-divider>
+
+          <!-- ============ PROGRESS RING ============ -->
+
+          <h2>Progress Ring</h2>
+          <div class="demo-row">
+            <am-progress-ring value="75" size="sm"></am-progress-ring>
+            <am-progress-ring value="42" size="md">42%</am-progress-ring>
+            <am-progress-ring value="90" size="lg" variant="success">90%</am-progress-ring>
+            <am-progress-ring indeterminate variant="info" size="md"></am-progress-ring>
+          </div>
+
+          <p class="demo-label">Variants</p>
+          <div class="demo-row">
+            <am-progress-ring value="60" variant="primary"></am-progress-ring>
+            <am-progress-ring value="60" variant="success"></am-progress-ring>
+            <am-progress-ring value="60" variant="warning"></am-progress-ring>
+            <am-progress-ring value="60" variant="danger"></am-progress-ring>
+            <am-progress-ring value="60" variant="info"></am-progress-ring>
+          </div>
+
+          <am-divider></am-divider>
+
+          <!-- ============ AVATAR ============ -->
+
+          <h2>Avatar</h2>
+          <div class="demo-row">
+            <am-avatar size="xs" initials="XS"></am-avatar>
+            <am-avatar size="sm" initials="SM"></am-avatar>
+            <am-avatar size="md" initials="MD"></am-avatar>
+            <am-avatar size="lg" initials="LG"></am-avatar>
+            <am-avatar size="xl" initials="XL"></am-avatar>
+          </div>
+
+          <p class="demo-label">Fallback (no image, no initials)</p>
+          <div class="demo-row">
+            <am-avatar size="sm"></am-avatar>
+            <am-avatar size="md"></am-avatar>
+            <am-avatar size="lg"></am-avatar>
+          </div>
+
+          <p class="demo-label">Square shape</p>
+          <div class="demo-row">
+            <am-avatar size="sm" shape="square" initials="SQ"></am-avatar>
+            <am-avatar size="md" shape="square" initials="SQ"></am-avatar>
+            <am-avatar size="lg" shape="square" initials="SQ"></am-avatar>
+          </div>
+
+          <am-divider></am-divider>
+
+          <!-- ============ TOAST ============ -->
+
+          <h2>Toast</h2>
+          <div class="demo-row">
+            <am-button variant="primary" onclick="document.getElementById('toast-region').toast({ message: 'Changes saved.', variant: 'success' })">
+              Success Toast
+            </am-button>
+            <am-button variant="secondary" onclick="document.getElementById('toast-region').toast({ message: 'New update available.', variant: 'info' })">
+              Info Toast
+            </am-button>
+            <am-button variant="subtle" onclick="document.getElementById('toast-region').toast({ message: 'Disk space is running low.', variant: 'warning' })">
+              Warning Toast
+            </am-button>
+            <am-button variant="danger" onclick="document.getElementById('toast-region').toast({ message: 'Failed to save. Please try again.', variant: 'danger' })">
+              Danger Toast
+            </am-button>
+          </div>
+          <am-toast-region id="toast-region" placement="bottom-center"></am-toast-region>
+
+          <am-divider></am-divider>
+
+          <!-- ============ EMPTY STATE ============ -->
+
+          <h2>Empty State</h2>
+          <am-surface bordered>
+            <am-empty-state>
+              <svg slot="icon" viewBox="0 0 24 24" fill="none">
+                <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="1.5"/>
+                <path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              </svg>
+              <span slot="heading">No results found</span>
+              Try adjusting your search or filter criteria to find what you're looking for.
+              <am-button slot="action" size="sm" variant="secondary">Clear filters</am-button>
+            </am-empty-state>
+          </am-surface>
+
+          <am-divider></am-divider>
+
+          <!-- ============ BREADCRUMB ============ -->
+
+          <h2>Breadcrumb</h2>
+          <am-breadcrumb>
+            <am-breadcrumb-item href="#">Home</am-breadcrumb-item>
+            <am-breadcrumb-item href="#">Products</am-breadcrumb-item>
+            <am-breadcrumb-item href="#">Electronics</am-breadcrumb-item>
+            <am-breadcrumb-item>Widget Pro</am-breadcrumb-item>
+          </am-breadcrumb>
+
+          <am-divider></am-divider>
+
+          <!-- ============ PAGINATION ============ -->
+
+          <h2>Pagination</h2>
+          <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+            <am-pagination total="10" page="4"></am-pagination>
+            <am-pagination total="50" page="25"></am-pagination>
+            <am-pagination total="3" page="1"></am-pagination>
+          </div>
+
+          <am-divider></am-divider>
+
+          <!-- ============ SKELETON ============ -->
+
+          <h2>Skeleton</h2>
+          <div style="display: flex; flex-direction: column; gap: 1rem; max-width: 20rem;">
+            <div class="demo-row" style="margin-bottom: 0;">
+              <am-skeleton variant="circular" style="width: 2.5rem; height: 2.5rem; flex-shrink: 0;"></am-skeleton>
+              <div style="flex: 1; display: flex; flex-direction: column; gap: 0.5rem;">
+                <am-skeleton variant="text" style="width: 60%;"></am-skeleton>
+                <am-skeleton variant="text" style="width: 90%;"></am-skeleton>
+              </div>
+            </div>
+            <am-skeleton variant="rectangular" style="width: 100%; height: 8rem;"></am-skeleton>
+            <am-skeleton variant="text" style="width: 100%;"></am-skeleton>
+            <am-skeleton variant="text" style="width: 80%;"></am-skeleton>
+          </div>
+
+          <am-divider></am-divider>
+
+          <!-- ============ STATUS DOT ============ -->
+
+          <h2>Status Dot</h2>
+          <div class="demo-row">
+            <am-status-dot variant="success" pulse>Online</am-status-dot>
+            <am-status-dot variant="warning">Away</am-status-dot>
+            <am-status-dot variant="danger">Offline</am-status-dot>
+            <am-status-dot variant="neutral">Unknown</am-status-dot>
+            <am-status-dot variant="info">Syncing</am-status-dot>
+          </div>
+
+          <p class="demo-label">Sizes</p>
+          <div class="demo-row">
+            <am-status-dot variant="success" size="sm">Small</am-status-dot>
+            <am-status-dot variant="success" size="md">Medium</am-status-dot>
+            <am-status-dot variant="success" size="lg">Large</am-status-dot>
+          </div>
+
+          <am-divider></am-divider>
+
+          <!-- ============ DRAWER ============ -->
+
+          <h2>Drawer</h2>
+          <div class="demo-row">
+            <am-button variant="secondary" onclick="document.getElementById('demo-drawer-end').open = true">
+              Open Drawer (end)
+            </am-button>
+            <am-button variant="secondary" onclick="document.getElementById('demo-drawer-start').open = true">
+              Open Drawer (start)
+            </am-button>
+          </div>
+
+          <am-drawer id="demo-drawer-end" label="Settings" placement="end">
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+              <am-input label="Display name"></am-input>
+              <am-textarea label="Bio" rows="3"></am-textarea>
+              <am-switch>Enable notifications</am-switch>
+            </div>
+            <div slot="footer">
+              <am-button variant="ghost" size="sm" onclick="document.getElementById('demo-drawer-end').open = false">Cancel</am-button>
+              <am-button size="sm" onclick="document.getElementById('demo-drawer-end').open = false">Save</am-button>
+            </div>
+          </am-drawer>
+
+          <am-drawer id="demo-drawer-start" label="Navigation" placement="start" size="sm">
+            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+              <am-button variant="ghost" style="justify-content: flex-start;">Dashboard</am-button>
+              <am-button variant="ghost" style="justify-content: flex-start;">Projects</am-button>
+              <am-button variant="ghost" style="justify-content: flex-start;">Settings</am-button>
+              <am-button variant="ghost" style="justify-content: flex-start;">Help</am-button>
+            </div>
+          </am-drawer>
+
+          <am-divider></am-divider>
+
+          <!-- ============ BUTTON GROUP ============ -->
+
+          <h2>Button Group</h2>
+          <div class="demo-row">
+            <am-button-group>
+              <am-button variant="secondary">Left</am-button>
+              <am-button variant="secondary">Center</am-button>
+              <am-button variant="secondary">Right</am-button>
+            </am-button-group>
+          </div>
+
+          <p class="demo-label">Vertical</p>
+          <div class="demo-row">
+            <am-button-group orientation="vertical">
+              <am-button variant="secondary" size="sm">Top</am-button>
+              <am-button variant="secondary" size="sm">Middle</am-button>
+              <am-button variant="secondary" size="sm">Bottom</am-button>
+            </am-button-group>
+          </div>
+
+          <am-divider></am-divider>
+
+          <!-- ============ LINK BUTTON ============ -->
+
+          <h2>Link Button</h2>
+          <div class="demo-row">
+            <am-link-button href="#" variant="primary">Get Started</am-link-button>
+            <am-link-button href="#" variant="secondary">Documentation</am-link-button>
+            <am-link-button href="#" variant="ghost">Learn more</am-link-button>
+            <am-link-button href="#" variant="subtle">View details</am-link-button>
+            <am-link-button href="#" variant="danger">Delete</am-link-button>
+          </div>
+
+          <p class="demo-label">Sizes</p>
+          <div class="demo-row">
+            <am-link-button href="#" size="sm">Small</am-link-button>
+            <am-link-button href="#" size="md">Medium</am-link-button>
+            <am-link-button href="#" size="lg">Large</am-link-button>
+          </div>
+
+          <am-divider></am-divider>
+
+          <!-- ============ PANEL ============ -->
+
+          <h2>Panel</h2>
+          <div class="demo-grid">
+            <am-panel bordered>
+              <span slot="header">Account Settings</span>
+              <p style="margin: 0;">Manage your account preferences and profile information.</p>
+            </am-panel>
+
+            <am-panel bordered>
+              <span slot="header">Notifications</span>
+              <p style="margin: 0;">Configure how and when you receive notifications.</p>
+            </am-panel>
+          </div>
+
+          <am-divider></am-divider>
+
+          <!-- ============ STACK ============ -->
+
+          <h2>Stack</h2>
+          <div class="demo-grid">
+            <am-surface bordered style="--am-surface-padding: var(--am-space-4);">
+              <div class="card-content"><h3>Vertical (default)</h3></div>
+              <am-stack gap="2" style="margin-top: 0.5rem;">
+                <am-badge variant="primary">Item 1</am-badge>
+                <am-badge variant="secondary">Item 2</am-badge>
+                <am-badge variant="success">Item 3</am-badge>
+              </am-stack>
+            </am-surface>
+
+            <am-surface bordered style="--am-surface-padding: var(--am-space-4);">
+              <div class="card-content"><h3>Horizontal</h3></div>
+              <am-stack direction="horizontal" gap="2" align="center" style="margin-top: 0.5rem;">
+                <am-avatar size="sm" initials="JD"></am-avatar>
+                <am-stack gap="0">
+                  <span style="font-size: var(--am-text-sm); font-weight: 600;">Jane Doe</span>
+                  <span style="font-size: var(--am-text-xs); color: var(--am-text-secondary);">Engineer</span>
+                </am-stack>
+                <am-status-dot variant="success" style="margin-left: auto;">Online</am-status-dot>
+              </am-stack>
+            </am-surface>
+          </div>
+
+          <am-divider></am-divider>
+
+          <!-- ============ GRID ============ -->
+
+          <h2>Grid</h2>
+          <am-grid columns="3" gap="3">
+            <am-surface bordered style="--am-surface-padding: var(--am-space-4); text-align: center;">
+              <span style="font-size: var(--am-text-sm); color: var(--am-text-secondary);">Column 1</span>
+            </am-surface>
+            <am-surface bordered style="--am-surface-padding: var(--am-space-4); text-align: center;">
+              <span style="font-size: var(--am-text-sm); color: var(--am-text-secondary);">Column 2</span>
+            </am-surface>
+            <am-surface bordered style="--am-surface-padding: var(--am-space-4); text-align: center;">
+              <span style="font-size: var(--am-text-sm); color: var(--am-text-secondary);">Column 3</span>
+            </am-surface>
+          </am-grid>
+
+          <p class="demo-label">Responsive auto-fill</p>
+          <am-grid gap="3" style="--am-grid-min: 12rem;">
+            <am-surface bordered style="--am-surface-padding: var(--am-space-4); text-align: center;">
+              <span style="font-size: var(--am-text-sm); color: var(--am-text-secondary);">Auto 1</span>
+            </am-surface>
+            <am-surface bordered style="--am-surface-padding: var(--am-space-4); text-align: center;">
+              <span style="font-size: var(--am-text-sm); color: var(--am-text-secondary);">Auto 2</span>
+            </am-surface>
+            <am-surface bordered style="--am-surface-padding: var(--am-space-4); text-align: center;">
+              <span style="font-size: var(--am-text-sm); color: var(--am-text-secondary);">Auto 3</span>
+            </am-surface>
+            <am-surface bordered style="--am-surface-padding: var(--am-space-4); text-align: center;">
+              <span style="font-size: var(--am-text-sm); color: var(--am-text-secondary);">Auto 4</span>
+            </am-surface>
+          </am-grid>
+
+          <am-divider></am-divider>
+
+          <!-- ============ LIST ============ -->
+
+          <h2>List</h2>
+          <am-surface bordered style="--am-surface-padding: 0; max-width: 28rem;">
+            <am-list dividers>
+              <am-list-item>
+                <am-avatar slot="prefix" initials="AJ" size="sm"></am-avatar>
+                Alice Johnson
+                <span slot="description">alice@example.com</span>
+                <am-badge slot="suffix" variant="success" size="sm">Active</am-badge>
+              </am-list-item>
+              <am-list-item>
+                <am-avatar slot="prefix" initials="BS" size="sm"></am-avatar>
+                Bob Smith
+                <span slot="description">bob@example.com</span>
+                <am-badge slot="suffix" variant="warning" size="sm">Away</am-badge>
+              </am-list-item>
+              <am-list-item>
+                <am-avatar slot="prefix" initials="CW" size="sm"></am-avatar>
+                Carol Wang
+                <span slot="description">carol@example.com</span>
+                <am-badge slot="suffix" variant="danger" size="sm">Offline</am-badge>
+              </am-list-item>
+            </am-list>
+          </am-surface>
+
+          <am-divider></am-divider>
+
+          <!-- ============ TABLE ============ -->
+
+          <h2>Table</h2>
+          <am-table striped hoverable>
+            <table>
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Role</th>
+                  <th>Status</th>
+                  <th>Last Active</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td>Alice Johnson</td><td>Engineer</td><td>Active</td><td>2 min ago</td></tr>
+                <tr><td>Bob Smith</td><td>Designer</td><td>Away</td><td>1 hour ago</td></tr>
+                <tr><td>Carol Wang</td><td>Product Manager</td><td>Active</td><td>Just now</td></tr>
+                <tr><td>David Lee</td><td>Engineer</td><td>Offline</td><td>3 days ago</td></tr>
+                <tr><td>Eva Martinez</td><td>QA Lead</td><td>Active</td><td>15 min ago</td></tr>
+              </tbody>
+            </table>
+          </am-table>
+
+          <am-divider></am-divider>
+
+          <!-- ============ TAG ============ -->
+
+          <h2>Tag</h2>
+          <div class="demo-row">
+            <am-tag variant="neutral">Neutral</am-tag>
+            <am-tag variant="primary">React</am-tag>
+            <am-tag variant="secondary">TypeScript</am-tag>
+            <am-tag variant="success">Published</am-tag>
+            <am-tag variant="warning">Draft</am-tag>
+            <am-tag variant="danger">Breaking</am-tag>
+            <am-tag variant="info">New</am-tag>
+          </div>
+
+          <p class="demo-label">Removable</p>
+          <div class="demo-row">
+            <am-tag variant="primary" removable>React</am-tag>
+            <am-tag variant="secondary" removable>Vue</am-tag>
+            <am-tag variant="success" removable>Svelte</am-tag>
+          </div>
+
+          <am-divider></am-divider>
+
+          <!-- ============ STAT ============ -->
+
+          <h2>Stat</h2>
+          <am-grid columns="3" gap="4">
+            <am-surface bordered style="--am-surface-padding: var(--am-space-5);">
+              <am-stat trend="up">
+                <span slot="label">Revenue</span>
+                $48,200
+                <span slot="description">+12.5% from last month</span>
+              </am-stat>
+            </am-surface>
+            <am-surface bordered style="--am-surface-padding: var(--am-space-5);">
+              <am-stat trend="down">
+                <span slot="label">Churn Rate</span>
+                3.2%
+                <span slot="description">-0.8% from last month</span>
+              </am-stat>
+            </am-surface>
+            <am-surface bordered style="--am-surface-padding: var(--am-space-5);">
+              <am-stat>
+                <span slot="label">Active Users</span>
+                1,429
+                <span slot="description">No change</span>
+              </am-stat>
+            </am-surface>
+          </am-grid>
+
+          <am-divider></am-divider>
+
+          <!-- ============ NUMBER FIELD ============ -->
+
+          <h2>Number Field</h2>
+          <div class="demo-grid">
+            <am-number-field label="Quantity" value="1" min="0" max="99" step="1"></am-number-field>
+            <am-number-field label="Price" value="9.99" min="0" step="0.01"></am-number-field>
+            <am-number-field label="Disabled" value="5" disabled></am-number-field>
+          </div>
+
+          <am-divider></am-divider>
+
+          <!-- ============ INPUT OTP ============ -->
+
+          <h2>Input OTP</h2>
+          <div class="demo-row">
+            <am-input-otp length="6"></am-input-otp>
+          </div>
+          <p class="demo-label">4-digit</p>
+          <div class="demo-row">
+            <am-input-otp length="4"></am-input-otp>
+          </div>
+
+          <am-divider></am-divider>
+
+          <!-- ============ DROPDOWN ============ -->
+
+          <h2>Dropdown</h2>
+          <div class="demo-row">
+            <am-dropdown>
+              <am-button variant="secondary">Options</am-button>
+              <am-menu slot="content">
+                <am-menu-item>Edit</am-menu-item>
+                <am-menu-item>Duplicate</am-menu-item>
+                <am-menu-divider></am-menu-divider>
+                <am-menu-item destructive>Delete</am-menu-item>
+              </am-menu>
+            </am-dropdown>
+          </div>
+
+          <am-divider></am-divider>
+
+          <!-- ============ CONTEXT MENU ============ -->
+
+          <h2>Context Menu</h2>
+          <am-context-menu>
+            <am-surface bordered style="--am-surface-padding: var(--am-space-6); text-align: center;">
+              <p class="card-content" style="color: var(--am-text-tertiary); margin: 0;">Right-click anywhere in this area</p>
+            </am-surface>
+            <am-menu slot="menu">
+              <am-menu-item>Cut</am-menu-item>
+              <am-menu-item>Copy</am-menu-item>
+              <am-menu-item>Paste</am-menu-item>
+              <am-menu-divider></am-menu-divider>
+              <am-menu-item>Select All</am-menu-item>
+            </am-menu>
+          </am-context-menu>
+
+          <am-divider></am-divider>
+
+          <!-- ============ TIMELINE ============ -->
+
+          <h2>Timeline</h2>
+          <am-surface bordered style="--am-surface-padding: var(--am-space-5); max-width: 28rem;">
+            <am-timeline>
+              <am-timeline-item variant="success">
+                <span slot="heading">Deployed to production</span>
+                <span slot="timestamp">2 hours ago</span>
+                Build #1234 deployed successfully to all regions.
+              </am-timeline-item>
+              <am-timeline-item variant="primary">
+                <span slot="heading">Build completed</span>
+                <span slot="timestamp">3 hours ago</span>
+                All tests passed. Artifacts uploaded.
+              </am-timeline-item>
+              <am-timeline-item variant="info">
+                <span slot="heading">PR merged</span>
+                <span slot="timestamp">4 hours ago</span>
+                Pull request #89 merged by Alice.
+              </am-timeline-item>
+              <am-timeline-item>
+                <span slot="heading">Code review approved</span>
+                <span slot="timestamp">Yesterday</span>
+              </am-timeline-item>
+            </am-timeline>
+          </am-surface>
+
+          <am-divider></am-divider>
+
+          <!-- ============ SPLIT VIEW ============ -->
+
+          <h2>Split View</h2>
+          <am-surface bordered style="--am-surface-padding: 0; height: 12rem;">
+            <am-split-view position="35" style="height: 100%;">
+              <div slot="start" style="padding: var(--am-space-4);">
+                <p class="card-content" style="margin: 0;"><strong>Left pane</strong></p>
+                <p class="card-content" style="margin: 0.5rem 0 0;">Drag the divider to resize.</p>
+              </div>
+              <div slot="end" style="padding: var(--am-space-4);">
+                <p class="card-content" style="margin: 0;"><strong>Right pane</strong></p>
+                <p class="card-content" style="margin: 0.5rem 0 0;">Content adjusts dynamically.</p>
+              </div>
+            </am-split-view>
+          </am-surface>
+
+          <am-divider></am-divider>
+
+          <!-- ============ APP SHELL ============ -->
+
+          <h2>App Shell</h2>
+          <am-surface bordered style="--am-surface-padding: 0; height: 20rem; overflow: hidden; border-radius: var(--am-radius-xl);">
+            <am-app-shell style="min-height: 100%; height: 100%;">
+              <am-nav-bar slot="header">
+                <span slot="brand" style="font-weight: 600;">MyApp</span>
+                <a href="#">Dashboard</a>
+                <a href="#">Projects</a>
+                <a href="#">Settings</a>
+              </am-nav-bar>
+              <am-side-nav slot="sidebar" style="width: 11rem;">
+                <span slot="header" style="padding: var(--am-space-3); font-weight: 600; font-size: var(--am-text-sm);">Navigation</span>
+                <am-side-nav-item active>Overview</am-side-nav-item>
+                <am-side-nav-item>Analytics</am-side-nav-item>
+                <am-side-nav-item>Reports</am-side-nav-item>
+                <am-side-nav-item>Members</am-side-nav-item>
+              </am-side-nav>
+              <div style="padding: var(--am-space-6);">
+                <h3 style="margin: 0 0 var(--am-space-2); font-family: var(--am-font-sans); font-size: var(--am-text-lg); font-weight: 600;">Welcome back</h3>
+                <p style="margin: 0; font-family: var(--am-font-sans); font-size: var(--am-text-sm); color: var(--am-text-secondary);">This is the main content area of the App Shell, with a nav bar header and side navigation.</p>
+              </div>
+            </am-app-shell>
+          </am-surface>
+
+          <am-divider></am-divider>
+
+          <!-- ============ DATA GRID ============ -->
+
+          <h2>Data Grid</h2>
+          <am-data-grid id="demo-data-grid" striped selectable></am-data-grid>
+          <script type="module">
+            const grid = document.getElementById('demo-data-grid');
+            grid.columns = [
+              { key: 'name', label: 'Name', sortable: true },
+              { key: 'email', label: 'Email' },
+              { key: 'role', label: 'Role', sortable: true },
+              { key: 'status', label: 'Status', sortable: true },
+            ];
+            grid.rows = [
+              { name: 'Alice Johnson', email: 'alice@acme.co', role: 'Engineer', status: 'Active' },
+              { name: 'Bob Smith', email: 'bob@acme.co', role: 'Designer', status: 'Away' },
+              { name: 'Carol Wang', email: 'carol@acme.co', role: 'PM', status: 'Active' },
+              { name: 'David Lee', email: 'david@acme.co', role: 'Engineer', status: 'Offline' },
+              { name: 'Eva Martinez', email: 'eva@acme.co', role: 'QA Lead', status: 'Active' },
+            ];
+          </script>
+
+          <am-divider></am-divider>
+
+          <!-- ============ COMMAND PALETTE ============ -->
+
+          <h2>Command Palette</h2>
+          <div class="demo-row">
+            <am-button variant="secondary" onclick="document.getElementById('demo-cmd').open = true">
+              Open Command Palette
+            </am-button>
+            <span style="font-size: var(--am-text-xs); color: var(--am-text-tertiary);">or press Ctrl+K / &#8984;K</span>
+          </div>
+          <am-command-palette id="demo-cmd"></am-command-palette>
+          <script type="module">
+            document.getElementById('demo-cmd').commands = [
+              { id: '1', label: 'New File', shortcut: '&#8984;N', group: 'File' },
+              { id: '2', label: 'Open File', shortcut: '&#8984;O', group: 'File' },
+              { id: '3', label: 'Save', shortcut: '&#8984;S', group: 'File' },
+              { id: '4', label: 'Toggle Theme', group: 'View' },
+              { id: '5', label: 'Zoom In', shortcut: '&#8984;+', group: 'View' },
+              { id: '6', label: 'Zoom Out', shortcut: '&#8984;-', group: 'View' },
+              { id: '7', label: 'Search', shortcut: '&#8984;F', group: 'Edit' },
+              { id: '8', label: 'Replace', shortcut: '&#8984;H', group: 'Edit' },
+            ];
+          </script>
+
+          <am-divider></am-divider>
+
+          <!-- ============ CALENDAR ============ -->
+
+          <h2>Calendar</h2>
+          <div class="demo-row">
+            <am-calendar value="2026-03-16"></am-calendar>
+          </div>
+          <div class="demo-row" style="margin-top: 1rem;">
+            <am-calendar size="sm" min="2026-03-01" max="2026-03-31"></am-calendar>
+          </div>
+
+          <am-divider></am-divider>
+
+          <!-- ============ DATE PICKER ============ -->
+
+          <h2>Date Picker</h2>
+          <div class="demo-row">
+            <am-date-picker label="Start date" value="2026-03-16"></am-date-picker>
+          </div>
+          <div class="demo-row" style="margin-top: 1rem;">
+            <am-date-picker label="Deadline" placeholder="Pick a date…" size="lg" min="2026-01-01" max="2026-12-31"></am-date-picker>
+          </div>
+
+          <am-divider></am-divider>
+
+          <!-- ============ TIME PICKER ============ -->
+
+          <h2>Time Picker</h2>
+          <div class="demo-row">
+            <am-time-picker label="Meeting time" value="14:30"></am-time-picker>
+          </div>
+          <div class="demo-row" style="margin-top: 1rem;">
+            <am-time-picker label="With seconds" value="09:15:30" show-seconds></am-time-picker>
+          </div>
+          <div class="demo-row" style="margin-top: 1rem;">
+            <am-time-picker label="12-hour format" value="14:30" use12-hour></am-time-picker>
+          </div>
+
+          <am-divider></am-divider>
+
+          <!-- ============ TREE VIEW ============ -->
+
+          <h2>Tree View</h2>
+          <div class="demo-row">
+            <am-tree-view style="width: 16rem;">
+              <am-tree-item label="src" value="src" open>
+                <am-tree-item label="components" value="components" open>
+                  <am-tree-item label="button.ts" value="button"></am-tree-item>
+                  <am-tree-item label="input.ts" value="input"></am-tree-item>
+                  <am-tree-item label="dialog.ts" value="dialog"></am-tree-item>
+                </am-tree-item>
+                <am-tree-item label="styles" value="styles">
+                  <am-tree-item label="reset.css.ts" value="reset"></am-tree-item>
+                  <am-tree-item label="corners.css.ts" value="corners"></am-tree-item>
+                </am-tree-item>
+                <am-tree-item label="index.ts" value="index"></am-tree-item>
+              </am-tree-item>
+              <am-tree-item label="package.json" value="pkg"></am-tree-item>
+              <am-tree-item label="tsconfig.json" value="tsconfig"></am-tree-item>
+            </am-tree-view>
+          </div>
+
+          <am-divider></am-divider>
+
+          <!-- ============ FILE UPLOAD ============ -->
+
+          <h2>File Upload</h2>
+          <div class="demo-row">
+            <am-file-upload
+              label="Attachments"
+              accept=".jpg,.png,.pdf"
+              max-size="5242880"
+              multiple
+            ></am-file-upload>
+          </div>
+
+          <am-divider></am-divider>
+
+          <!-- ============ RICH SELECT ============ -->
+
+          <h2>Rich Select</h2>
+          <div class="demo-row">
+            <am-rich-select id="demo-rich-select" label="Assign to" searchable></am-rich-select>
+          </div>
+          <script type="module">
+            document.getElementById('demo-rich-select').options = [
+              { value: 'alice', label: 'Alice Chen', description: 'Engineering', icon: '👩‍💻', group: 'Engineering' },
+              { value: 'bob', label: 'Bob Smith', description: 'Frontend Lead', icon: '👨‍💻', group: 'Engineering' },
+              { value: 'carol', label: 'Carol Wu', description: 'Product Designer', icon: '🎨', group: 'Design' },
+              { value: 'dave', label: 'Dave Johnson', description: 'UX Researcher', icon: '🔍', group: 'Design' },
+              { value: 'eva', label: 'Eva Martinez', description: 'QA Lead', icon: '✅', group: 'Quality' },
+            ];
+          </script>
+
+          <am-divider></am-divider>
+
+          <!-- ============ COLOR PICKER ============ -->
+
+          <h2>Color Picker</h2>
+          <div class="demo-row">
+            <am-color-picker id="demo-color" value="#6366f1" label="Primary color"></am-color-picker>
+          </div>
+          <div class="demo-row" style="margin-top: 1rem;">
+            <am-color-picker
+              value="#ff5733"
+              label="With swatches & alpha"
+              show-alpha
+            ></am-color-picker>
+          </div>
+          <script type="module">
+            document.querySelectorAll('am-color-picker').forEach(cp => {
+              if (!cp.swatches?.length) {
+                cp.swatches = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6', '#ec4899', '#000000'];
+              }
+            });
+          </script>
+
         </div>
       </am-surface>
     </am-theme-provider>
