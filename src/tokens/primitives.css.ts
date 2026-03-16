@@ -1,4 +1,4 @@
-import { css } from 'lit';
+import { css } from "lit";
 
 /**
  * Primitive design tokens — raw values that never change between themes.
@@ -137,11 +137,12 @@ export const primitiveTokens = css`
        TYPOGRAPHY — Font Families
        Apple-style system font stack
        ================================================================ */
-    --am-font-sans: -apple-system, BlinkMacSystemFont, 'SF Pro Display',
-      'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue',
-      sans-serif;
-    --am-font-mono: 'SF Mono', 'Fira Code', 'Fira Mono', 'Roboto Mono',
-      'Cascadia Code', Consolas, monospace;
+    --am-font-sans:
+      system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+      "Helvetica Neue", Arial, sans-serif;
+    --am-font-mono:
+      "SF Mono", "Fira Code", "Fira Mono", "Roboto Mono", "Cascadia Code",
+      Consolas, monospace;
 
     /* ================================================================
        TYPOGRAPHY — Font Sizes
@@ -228,14 +229,14 @@ export const primitiveTokens = css`
        SHADOWS — Apple-style subtle, layered depth
        ================================================================ */
     --am-shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.04);
-    --am-shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.08),
-      0 1px 2px -1px rgb(0 0 0 / 0.08);
-    --am-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.07),
-      0 2px 4px -2px rgb(0 0 0 / 0.07);
-    --am-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.08),
-      0 4px 6px -4px rgb(0 0 0 / 0.06);
-    --am-shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.08),
-      0 8px 10px -6px rgb(0 0 0 / 0.06);
+    --am-shadow-sm:
+      0 1px 3px 0 rgb(0 0 0 / 0.08), 0 1px 2px -1px rgb(0 0 0 / 0.08);
+    --am-shadow-md:
+      0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.07);
+    --am-shadow-lg:
+      0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.06);
+    --am-shadow-xl:
+      0 20px 25px -5px rgb(0 0 0 / 0.08), 0 8px 10px -6px rgb(0 0 0 / 0.06);
     --am-shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.2);
     --am-shadow-none: 0 0 0 0 transparent;
 
