@@ -6,6 +6,7 @@
   "main": "./dist/amris.js",
   "module": "./dist/amris.js",
   "types": "./dist/index.all.d.ts",
+  "customElements": "dist/custom-elements.json",
   "exports": {
     ".": {
       "types": "./dist/index.all.d.ts",
@@ -15,6 +16,7 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/amris-core.js"
     },
+    "./custom-elements.json": "./dist/custom-elements.json",
     "./package.json": "./package.json"
   },
   "files": [
@@ -27,7 +29,8 @@
   ],
   "scripts": {
     "dev": "vite --host",
-    "build": "tsc && vite build --mode core && vite build --mode all && tsc -p tsconfig.types.json",
+    "build": "tsc && vite build --mode core && vite build --mode all && tsc -p tsconfig.types.json && npm run build:manifest",
+    "build:manifest": "cem analyze --config custom-elements-manifest.config.js",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -35,6 +38,7 @@
     "lit": "^3.3.2"
   },
   "devDependencies": {
+    "@custom-elements-manifest/analyzer": "^0.11.0",
     "@lit-labs/rollup-plugin-minify-html-literals": "^0.1.1",
     "custom-elements-manifest": "^2.1.0",
     "terser": "^5.46.1",

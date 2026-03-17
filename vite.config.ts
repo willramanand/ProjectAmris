@@ -164,6 +164,7 @@ function createLibraryBuild(entry: string, fileName: string, emptyOutDir: boolea
       outDir: 'dist',
       emptyOutDir,
       minify: 'terser' as const,
+      sourcemap: true,
       lib: {
         entry: resolve(__dirname, entry),
         formats: ['es' as const],

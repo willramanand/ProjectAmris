@@ -3,21 +3,19 @@
 ## Must-Do Before Use
 
 ### Build Output
-- [ ] Set `declaration: true` and `declarationMap: true` in `tsconfig.json`
-- [ ] Configure `outDir` for compiled output
-- [ ] Remove `noEmit: true` from tsconfig (or add a separate tsconfig for declaration generation)
-- [ ] Verify `.d.ts` files are generated in `dist/`
-- [ ] Add source maps to build output
+- [x] Set `declaration: true` and `declarationMap: true` in `tsconfig.json`
+- [x] Configure `outDir` for compiled output
+- [x] Remove `noEmit: true` from tsconfig (or add a separate tsconfig for declaration generation)
+- [x] Verify `.d.ts` files are generated in `dist/`
+- [x] Add source maps to build output
 
 ### Package Configuration
-- [ ] Remove `"private": true` from `package.json`
 - [ ] Set a real version (e.g. `"0.1.0"`)
 - [ ] Add `"main"` field pointing to CJS entry (if needed)
-- [ ] Add `"module"` field pointing to ESM entry
-- [ ] Add `"types"` field pointing to generated declarations
-- [ ] Add `"exports"` map for modern resolution
-- [ ] Add `"files"` whitelist for npm publishing
-- [ ] Move `lit` from `dependencies` to `peerDependencies`
+- [x] Add `"module"` field pointing to ESM entry
+- [x] Add `"types"` field pointing to generated declarations
+- [x] Add `"exports"` map for modern resolution
+- [x] Add `"files"` whitelist for npm publishing
 - [ ] Add `"license"`, `"repository"`, `"keywords"` fields
 
 ### Testing
@@ -29,9 +27,9 @@
 - [ ] Add test script to `package.json`
 
 ### Custom Elements Manifest
-- [ ] Configure and run `custom-elements-manifest` analyzer (package already installed)
-- [ ] Add `"customElements"` field to `package.json` pointing to the manifest
-- [ ] Add manifest generation to the build script
+- [x] Configure and run `custom-elements-manifest` analyzer (package already installed)
+- [x] Add `"customElements"` field to `package.json` pointing to the manifest
+- [x] Add manifest generation to the build script
 
 ## Should-Do Soon
 
