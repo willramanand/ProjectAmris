@@ -56,11 +56,13 @@ export class AmBreadcrumbItem extends LitElement {
       .separator {
         color: var(--am-text-tertiary);
         user-select: none;
-        font-weight: normal;
+        display: inline-flex;
+        align-items: center;
       }
 
-      .separator::after {
-        content: var(--am-breadcrumb-separator, "/");
+      .separator svg {
+        width: 0.75rem;
+        height: 0.75rem;
       }
 
       :host([current]) .separator { display: none; }
@@ -78,7 +80,7 @@ export class AmBreadcrumbItem extends LitElement {
 
     return html`
       ${label}
-      <span class="separator" part="separator" aria-hidden="true"></span>
+      <span class="separator" part="separator" aria-hidden="true"><svg viewBox="0 0 256 256" fill="currentColor"><path d="M181.66,133.66l-80,80a8,8,0,0,1-11.32-11.32L164.69,128,90.34,53.66a8,8,0,0,1,11.32-11.32l80,80A8,8,0,0,1,181.66,133.66Z"/></svg></span>
     `;
   }
 }

@@ -66,7 +66,7 @@ export class AmFileUpload extends LitElement {
         justify-content: center;
         gap: var(--am-space-2);
         padding: var(--am-space-8) var(--am-space-4);
-        border: 2px dashed var(--am-border-strong);
+        border: 2px dashed var(--am-border);
         border-radius: var(--am-radius-xl);
         corner-shape: squircle;
         background: var(--am-surface-sunken);

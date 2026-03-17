@@ -1,6 +1,6 @@
 import { LitElement, css, html, nothing } from 'lit';
 import { customElement, property, query } from 'lit/decorators.js';
-import { computePosition, flip, shift, offset, arrow, type Placement } from '@floating-ui/dom';
+import { computePosition, autoUpdate, flip, shift, offset, arrow, type Placement } from '@floating-ui/dom';
 import { resetStyles } from '../../styles/reset.css.js';
 
 /**
@@ -43,6 +43,7 @@ export class AmTooltip extends LitElement {
   private _visible = false;
   private _showTimer?: ReturnType<typeof setTimeout>;
   private _hideTimer?: ReturnType<typeof setTimeout>;
+  private _cleanupAutoUpdate: (() => void) | null = null;
 
   static styles = [
     resetStyles,
@@ -93,6 +94,14 @@ export class AmTooltip extends LitElement {
     `,
   ];
 
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    clearTimeout(this._showTimer);
+    clearTimeout(this._hideTimer);
+    this._cleanupAutoUpdate?.();
+    this._cleanupAutoUpdate = null;
+  }
+
   private _handleEnter = () => {
     if (this.disabled || !this.content) return;
     clearTimeout(this._hideTimer);
@@ -100,7 +109,7 @@ export class AmTooltip extends LitElement {
       this._visible = true;
       this.setAttribute('visible', '');
       this.requestUpdate();
-      this._updatePosition();
+      this._startAutoUpdate();
     }, this.delay);
   };
 
@@ -110,8 +119,17 @@ export class AmTooltip extends LitElement {
       this._visible = false;
       this.removeAttribute('visible');
       this.requestUpdate();
+      this._cleanupAutoUpdate?.();
+      this._cleanupAutoUpdate = null;
     }, 100);
   };
+
+  private _startAutoUpdate() {
+    this._cleanupAutoUpdate?.();
+    const trigger = this.firstElementChild as HTMLElement;
+    if (!trigger || !this.tooltipEl) return;
+    this._cleanupAutoUpdate = autoUpdate(trigger, this.tooltipEl, () => this._updatePosition());
+  }
 
   private async _updatePosition() {
     if (!this._visible) return;

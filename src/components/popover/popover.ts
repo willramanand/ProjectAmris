@@ -1,6 +1,6 @@
 import { LitElement, css, html, nothing } from 'lit';
 import { customElement, property, query } from 'lit/decorators.js';
-import { computePosition, flip, shift, offset, arrow, type Placement } from '@floating-ui/dom';
+import { computePosition, autoUpdate, flip, shift, offset, arrow, type Placement } from '@floating-ui/dom';
 import { resetStyles } from '../../styles/reset.css.js';
 
 /**
@@ -46,6 +46,7 @@ export class AmPopover extends LitElement {
 
   private _showTimer?: ReturnType<typeof setTimeout>;
   private _hideTimer?: ReturnType<typeof setTimeout>;
+  private _cleanupAutoUpdate: (() => void) | null = null;
 
   static styles = [
     resetStyles,
@@ -108,6 +109,8 @@ export class AmPopover extends LitElement {
     document.removeEventListener('keydown', this._handleKeydown);
     clearTimeout(this._showTimer);
     clearTimeout(this._hideTimer);
+    this._cleanupAutoUpdate?.();
+    this._cleanupAutoUpdate = null;
   }
 
   private _handleTriggerClick = () => {
@@ -148,12 +151,21 @@ export class AmPopover extends LitElement {
   protected updated(changed: Map<string, unknown>) {
     if (changed.has('open')) {
       if (this.open) {
-        this._updatePosition();
+        this._startAutoUpdate();
         this.dispatchEvent(new CustomEvent('am-show', { bubbles: true, composed: true }));
       } else {
+        this._cleanupAutoUpdate?.();
+        this._cleanupAutoUpdate = null;
         this.dispatchEvent(new CustomEvent('am-hide', { bubbles: true, composed: true }));
       }
     }
+  }
+
+  private _startAutoUpdate() {
+    this._cleanupAutoUpdate?.();
+    const trigger = this.firstElementChild as HTMLElement;
+    if (!trigger || !this.popoverEl) return;
+    this._cleanupAutoUpdate = autoUpdate(trigger, this.popoverEl, () => this._updatePosition());
   }
 
   private async _updatePosition() {

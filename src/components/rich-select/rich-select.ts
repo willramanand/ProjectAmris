@@ -1,6 +1,6 @@
 import { LitElement, css, html, nothing, type PropertyValues } from 'lit';
 import { customElement, property, query, state } from 'lit/decorators.js';
-import { computePosition, flip, shift, offset, size as sizeMiddleware } from '@floating-ui/dom';
+import { computePosition, autoUpdate, flip, shift, offset, size as sizeMiddleware } from '@floating-ui/dom';
 import { resetStyles } from '../../styles/reset.css.js';
 
 export type RichSelectSize = 'sm' | 'md' | 'lg';
@@ -59,6 +59,7 @@ export class AmRichSelect extends LitElement {
   @query('.search-input') private _searchInput!: HTMLInputElement;
 
   private _internals: ElementInternals;
+  private _cleanupAutoUpdate: (() => void) | null = null;
 
   constructor() {
     super();
@@ -68,7 +69,7 @@ export class AmRichSelect extends LitElement {
   static styles = [
     resetStyles,
     css`
-      :host { display: block; font-family: var(--am-font-sans); }
+      :host { display: flex; flex-direction: column; font-family: var(--am-font-sans); }
 
       .label {
         display: block;
@@ -83,9 +84,8 @@ export class AmRichSelect extends LitElement {
         display: flex;
         align-items: center;
         gap: var(--am-space-2);
-        width: 100%;
         box-sizing: border-box;
-        border: var(--am-border-1) solid var(--am-border-strong);
+        border: var(--am-border-1) solid var(--am-border);
         border-radius: var(--am-radius-xl);
         corner-shape: squircle;
         background: var(--am-surface);
@@ -244,13 +244,28 @@ export class AmRichSelect extends LitElement {
   disconnectedCallback() {
     super.disconnectedCallback();
     document.removeEventListener('click', this._handleOutsideClick);
+    this._cleanupAutoUpdate?.();
+    this._cleanupAutoUpdate = null;
   }
 
   protected updated(changed: PropertyValues) {
     if (changed.has('value')) {
       this._internals.setFormValue(this.value);
     }
-    if (this._open) this._updatePosition();
+    if (changed.has('_open')) {
+      if (this._open) {
+        this._startAutoUpdate();
+      } else {
+        this._cleanupAutoUpdate?.();
+        this._cleanupAutoUpdate = null;
+      }
+    }
+  }
+
+  private _startAutoUpdate() {
+    this._cleanupAutoUpdate?.();
+    if (!this._trigger || !this._listbox) return;
+    this._cleanupAutoUpdate = autoUpdate(this._trigger, this._listbox, () => this._updatePosition());
   }
 
   private _handleOutsideClick = (e: MouseEvent) => {

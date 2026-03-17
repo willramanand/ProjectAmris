@@ -70,7 +70,7 @@ export class AmInput extends LitElement {
         display: flex;
         align-items: center;
         gap: var(--am-space-2);
-        border: var(--am-border-1) solid var(--am-border-strong);
+        border: var(--am-border-1) solid var(--am-border);
         border-radius: var(--am-input-radius, var(--am-radius-xl));
         corner-shape: squircle;
         background: var(--am-surface);
@@ -83,7 +83,7 @@ export class AmInput extends LitElement {
       }
 
       .wrapper:hover:not(.disabled) {
-        border-color: var(--am-text-tertiary);
+        border-color: var(--am-border-strong);
       }
 
       .wrapper.focused {
@@ -110,9 +110,9 @@ export class AmInput extends LitElement {
       :host([size='lg']) .wrapper:not(.has-label) { height: var(--am-size-lg); padding-inline: var(--am-space-4); font-size: var(--am-text-base); }
 
       /* ---- Sizes with floating label (taller to fit label + value) ---- */
-      :host([size='sm']) .wrapper.has-label { height: 2.75rem; padding-inline: var(--am-space-2-5); font-size: var(--am-text-sm); }
-      :host([size='md']) .wrapper.has-label, :host(:not([size])) .wrapper.has-label { height: 3.25rem; padding-inline: var(--am-space-3); font-size: var(--am-text-sm); }
-      :host([size='lg']) .wrapper.has-label { height: 3.5rem; padding-inline: var(--am-space-4); font-size: var(--am-text-base); }
+      :host([size='sm']) .wrapper.has-label { height: 3rem; padding-inline: var(--am-space-2-5); font-size: var(--am-text-sm); }
+      :host([size='md']) .wrapper.has-label, :host(:not([size])) .wrapper.has-label { height: 3.5rem; padding-inline: var(--am-space-3); font-size: var(--am-text-sm); }
+      :host([size='lg']) .wrapper.has-label { height: 3.75rem; padding-inline: var(--am-space-4); font-size: var(--am-text-base); }
 
       /* ---- Input field ---- */
 
@@ -129,7 +129,7 @@ export class AmInput extends LitElement {
       /* When label is floating, shift input down */
       .has-label .input-group {
         justify-content: flex-end;
-        padding-bottom: 0.5rem;
+        padding-bottom: 0.625rem;
       }
 
       input {
@@ -162,7 +162,7 @@ export class AmInput extends LitElement {
         transform: translateY(-50%);
         font-family: var(--am-font-sans);
         font-size: inherit;
-        color: var(--am-text-tertiary);
+        color: var(--am-text-secondary);
         pointer-events: none;
         transform-origin: left center;
         transition:
@@ -177,9 +177,9 @@ export class AmInput extends LitElement {
       }
 
       .floated .floating-label {
-        top: 0.35rem;
+        top: 0.4rem;
         transform: none;
-        font-size: 0.625rem;
+        font-size: 0.75rem;
         color: var(--am-text-secondary);
       }
 

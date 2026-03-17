@@ -2,7 +2,7 @@ import { LitElement, css, html, nothing } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { resetStyles, focusRingStyles } from '../../styles/reset.css.js';
 
-export type LinkButtonVariant = 'primary' | 'secondary' | 'ghost' | 'subtle' | 'danger';
+export type LinkButtonVariant = 'primary' | 'outlined' | 'link' | 'ghost' | 'subtle' | 'danger';
 export type LinkButtonSize = 'sm' | 'md' | 'lg';
 
 /**
@@ -23,7 +23,8 @@ export type LinkButtonSize = 'sm' | 'md' | 'lg';
  * @example
  * ```html
  * <am-link-button href="/signup">Get started</am-link-button>
- * <am-link-button href="/docs" variant="secondary">Documentation</am-link-button>
+ * <am-link-button href="/docs" variant="outlined">Documentation</am-link-button>
+ * <am-link-button href="/learn" variant="link">Learn more</am-link-button>
  * ```
  */
 @customElement('am-link-button')
@@ -76,10 +77,21 @@ export class AmLinkButton extends LitElement {
       :host([variant='primary']) a:hover, :host(:not([variant])) a:hover { background: var(--am-primary-hover); }
       :host([variant='primary']) a:active, :host(:not([variant])) a:active { background: var(--am-primary-active); transform: scale(0.98); }
 
-      /* Secondary */
-      :host([variant='secondary']) a { background: transparent; color: var(--am-text); border: var(--am-border-1) solid var(--am-border-strong); }
-      :host([variant='secondary']) a:hover { background: var(--am-hover-overlay); border-color: var(--am-text-secondary); }
-      :host([variant='secondary']) a:active { background: var(--am-active-overlay); transform: scale(0.98); }
+      /* Outlined */
+      :host([variant='outlined']) a { background: transparent; color: var(--am-text); border: var(--am-border-1) solid var(--am-border-strong); }
+      :host([variant='outlined']) a:hover { background: var(--am-hover-overlay); border-color: var(--am-text-secondary); }
+      :host([variant='outlined']) a:active { background: var(--am-active-overlay); transform: scale(0.98); }
+
+      /* Link — plain text link style, no button chrome */
+      :host([variant='link']) a {
+        background: transparent;
+        color: var(--am-text);
+        padding-inline: 0;
+        height: auto;
+        border-radius: 0;
+      }
+      :host([variant='link']) a:hover { color: var(--am-primary); text-decoration: underline; }
+      :host([variant='link']) a:active { color: var(--am-primary-active); text-decoration: underline; }
 
       /* Ghost */
       :host([variant='ghost']) a { background: transparent; color: var(--am-text); }
@@ -87,7 +99,7 @@ export class AmLinkButton extends LitElement {
       :host([variant='ghost']) a:active { background: var(--am-active-overlay); transform: scale(0.98); }
 
       /* Subtle */
-      :host([variant='subtle']) a { background: var(--am-primary-subtle); color: var(--am-primary); }
+      :host([variant='subtle']) a { background: var(--am-primary-subtle); color: var(--am-primary-subtle-text, var(--am-primary)); }
       :host([variant='subtle']) a:hover { background: var(--am-primary-subtle-hover); }
       :host([variant='subtle']) a:active { background: var(--am-primary-subtle-hover); transform: scale(0.98); }
 

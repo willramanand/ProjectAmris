@@ -105,7 +105,7 @@ export class AmDataGrid extends LitElement {
         display: inline-block;
         width: 0.75rem;
         height: 0.75rem;
-        vertical-align: middle;
+        vertical-align: -0.1em;
         margin-left: 0.25rem;
       }
 
@@ -187,12 +187,15 @@ export class AmDataGrid extends LitElement {
   private _renderSortIcon(col: DataGridColumn) {
     if (!col.sortable) return nothing;
     if (this._sortKey !== col.key || this._sortDir === 'none') {
-      return html`<svg class="sort-icon" viewBox="0 0 12 12" fill="none"><path d="M3 5l3-3 3 3M3 7l3 3 3-3" stroke="currentColor" stroke-width="1" stroke-linecap="round"/></svg>`;
+      // Both carets shown (unsorted)
+      return html`<svg class="sort-icon" viewBox="0 0 256 256" fill="currentColor"><path d="M181.66,170.34a8,8,0,0,1,0,11.32l-48,48a8,8,0,0,1-11.32,0l-48-48a8,8,0,0,1,11.32-11.32L128,212.69l42.34-42.35A8,8,0,0,1,181.66,170.34Zm-96-84.68L128,43.31l42.34,42.35a8,8,0,0,0,11.32-11.32l-48-48a8,8,0,0,0-11.32,0l-48,48A8,8,0,0,0,85.66,85.66Z"/></svg>`;
     }
     if (this._sortDir === 'asc') {
-      return html`<svg class="sort-icon" viewBox="0 0 12 12" fill="none"><path d="M3 7l3-3 3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>`;
+      // Up caret only
+      return html`<svg class="sort-icon" viewBox="0 0 256 256" fill="currentColor"><path d="M213.66,165.66a8,8,0,0,1-11.32,0L128,91.31,53.66,165.66a8,8,0,0,1-11.32-11.32l80-80a8,8,0,0,1,11.32,0l80,80A8,8,0,0,1,213.66,165.66Z"/></svg>`;
     }
-    return html`<svg class="sort-icon" viewBox="0 0 12 12" fill="none"><path d="M3 5l3 3 3-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>`;
+    // Down caret only
+    return html`<svg class="sort-icon" viewBox="0 0 256 256" fill="currentColor"><path d="M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,53.66,90.34L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z"/></svg>`;
   }
 
   render() {

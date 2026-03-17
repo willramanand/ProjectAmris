@@ -1,6 +1,6 @@
 import { LitElement, css, html } from 'lit';
 import { customElement, property, query } from 'lit/decorators.js';
-import { computePosition, flip, shift, offset, type Placement } from '@floating-ui/dom';
+import { computePosition, autoUpdate, flip, shift, offset, type Placement } from '@floating-ui/dom';
 import { resetStyles } from '../../styles/reset.css.js';
 
 /**
@@ -20,7 +20,7 @@ import { resetStyles } from '../../styles/reset.css.js';
  * @example
  * ```html
  * <am-dropdown>
- *   <am-button variant="secondary">Options</am-button>
+ *   <am-button variant="outlined">Options</am-button>
  *   <am-menu slot="content">
  *     <am-menu-item>Edit</am-menu-item>
  *     <am-menu-item>Duplicate</am-menu-item>
@@ -38,6 +38,8 @@ export class AmDropdown extends LitElement {
   @property({ type: Boolean, reflect: true }) disabled = false;
 
   @query('.panel') private _panel!: HTMLElement;
+
+  private _cleanupAutoUpdate: (() => void) | null = null;
 
   static styles = [
     resetStyles,
@@ -75,6 +77,8 @@ export class AmDropdown extends LitElement {
     super.disconnectedCallback();
     document.removeEventListener('click', this._handleOutsideClick);
     document.removeEventListener('keydown', this._handleKeydown);
+    this._cleanupAutoUpdate?.();
+    this._cleanupAutoUpdate = null;
   }
 
   private _handleTriggerClick = () => {
@@ -98,12 +102,21 @@ export class AmDropdown extends LitElement {
   protected updated(changed: Map<string, unknown>) {
     if (changed.has('open')) {
       if (this.open) {
-        this._updatePosition();
+        this._startAutoUpdate();
         this.dispatchEvent(new CustomEvent('am-show', { bubbles: true, composed: true }));
       } else {
+        this._cleanupAutoUpdate?.();
+        this._cleanupAutoUpdate = null;
         this.dispatchEvent(new CustomEvent('am-hide', { bubbles: true, composed: true }));
       }
     }
+  }
+
+  private _startAutoUpdate() {
+    this._cleanupAutoUpdate?.();
+    const trigger = this.firstElementChild as HTMLElement;
+    if (!trigger || !this._panel) return;
+    this._cleanupAutoUpdate = autoUpdate(trigger, this._panel, () => this._updatePosition());
   }
 
   private async _updatePosition() {

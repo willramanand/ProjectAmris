@@ -45,14 +45,15 @@ export const semanticTokens = css`
     --am-primary-active: var(--am-color-primary-800);
     --am-primary-subtle: var(--am-color-primary-50);
     --am-primary-subtle-hover: var(--am-color-primary-100);
+    --am-primary-subtle-text: var(--am-color-primary-600);
     --am-primary-text: var(--am-color-neutral-0);
 
     /* ================================================================
        SECONDARY
        ================================================================ */
-    --am-secondary: var(--am-color-secondary-600);
-    --am-secondary-hover: var(--am-color-secondary-700);
-    --am-secondary-active: var(--am-color-secondary-800);
+    --am-secondary: var(--am-color-secondary-700);
+    --am-secondary-hover: var(--am-color-secondary-800);
+    --am-secondary-active: var(--am-color-secondary-900);
     --am-secondary-subtle: var(--am-color-secondary-50);
     --am-secondary-subtle-hover: var(--am-color-secondary-100);
     --am-secondary-text: var(--am-color-neutral-0);

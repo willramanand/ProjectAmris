@@ -5,7 +5,7 @@ import { resetStyles, focusRingStyles } from '../../styles/reset.css.js';
 
 export type ButtonVariant =
   | 'primary'
-  | 'secondary'
+  | 'outlined'
   | 'ghost'
   | 'subtle'
   | 'danger';
@@ -29,7 +29,7 @@ export type ButtonSize = 'sm' | 'md' | 'lg';
  * @example
  * ```html
  * <qz-button variant="primary">Save changes</qz-button>
- * <qz-button variant="secondary" size="sm">Cancel</qz-button>
+ * <qz-button variant="outlined" size="sm">Cancel</qz-button>
  * <qz-button variant="ghost" loading>Processing</qz-button>
  * ```
  */
@@ -137,20 +137,20 @@ export class AmButton extends LitElement {
         transform: scale(0.98);
       }
 
-      /* ---- Secondary ---- */
+      /* ---- Outlined ---- */
 
-      :host([variant='secondary']) button {
+      :host([variant='outlined']) button {
         background: transparent;
         color: var(--am-text);
         border: var(--am-border-1) solid var(--am-border-strong);
       }
 
-      :host([variant='secondary']) button:hover {
+      :host([variant='outlined']) button:hover {
         background: var(--am-hover-overlay);
         border-color: var(--am-text-secondary);
       }
 
-      :host([variant='secondary']) button:active {
+      :host([variant='outlined']) button:active {
         background: var(--am-active-overlay);
         transform: scale(0.98);
       }
@@ -175,7 +175,7 @@ export class AmButton extends LitElement {
 
       :host([variant='subtle']) button {
         background: var(--am-primary-subtle);
-        color: var(--am-primary);
+        color: var(--am-primary-subtle-text, var(--am-primary));
       }
 
       :host([variant='subtle']) button:hover {

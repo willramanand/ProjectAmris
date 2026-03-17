@@ -61,7 +61,7 @@ export class AmInputOtp extends LitElement {
         font-size: var(--am-text-lg);
         font-weight: var(--am-weight-semibold);
         color: var(--am-text);
-        border: var(--am-border-1) solid var(--am-border-strong);
+        border: var(--am-border-1) solid var(--am-border);
         border-radius: var(--am-radius-lg);
         corner-shape: squircle;
         background: var(--am-surface);

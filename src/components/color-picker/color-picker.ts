@@ -71,7 +71,7 @@ export class AmColorPicker extends LitElement {
         display: flex;
         align-items: center;
         gap: var(--am-space-2);
-        border: var(--am-border-1) solid var(--am-border-strong);
+        border: var(--am-border-1) solid var(--am-border);
         border-radius: var(--am-radius-xl);
         corner-shape: squircle;
         background: var(--am-surface);
@@ -83,7 +83,7 @@ export class AmColorPicker extends LitElement {
       :host([size='md']) .trigger, :host(:not([size])) .trigger { height: var(--am-size-md); padding-inline: var(--am-space-2-5); font-size: var(--am-text-sm); }
       :host([size='lg']) .trigger { height: var(--am-size-lg); padding-inline: var(--am-space-3); font-size: var(--am-text-base); }
 
-      .trigger:hover { border-color: var(--am-text-tertiary); }
+      .trigger:hover { border-color: var(--am-border-strong); }
       .trigger.invalid { border-color: var(--am-danger); }
 
       .swatch {

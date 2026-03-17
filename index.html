@@ -116,7 +116,7 @@
     <am-theme-provider id="theme-root" theme="system">
       <div class="theme-toggle">
         <am-button
-          variant="secondary"
+          variant="outlined"
           size="sm"
           onclick="
             const tp = document.getElementById('theme-root');
@@ -152,7 +152,7 @@
             <div class="color-swatch" style="background: var(--am-color-neutral-950); color: #fff;">950</div>
           </div>
 
-          <p class="palette-label">Primary (default: purple)</p>
+          <p class="palette-label">Primary (vivid violet)</p>
           <div class="color-swatch-row">
             <div class="color-swatch" style="background: var(--am-color-primary-50); color: #555;">50</div>
             <div class="color-swatch" style="background: var(--am-color-primary-100); color: #555;">100</div>
@@ -167,7 +167,7 @@
             <div class="color-swatch" style="background: var(--am-color-primary-950); color: #fff;">950</div>
           </div>
 
-          <p class="palette-label">Secondary (default: blue)</p>
+          <p class="palette-label">Secondary (amber-orange)</p>
           <div class="color-swatch-row">
             <div class="color-swatch" style="background: var(--am-color-secondary-50); color: #555;">50</div>
             <div class="color-swatch" style="background: var(--am-color-secondary-100); color: #555;">100</div>
@@ -249,7 +249,7 @@
           <h2>Buttons — Variants</h2>
           <div class="demo-row">
             <am-button variant="primary">Primary</am-button>
-            <am-button variant="secondary">Secondary</am-button>
+            <am-button variant="outlined">Outlined</am-button>
             <am-button variant="ghost">Ghost</am-button>
             <am-button variant="subtle">Subtle</am-button>
             <am-button variant="danger">Danger</am-button>
@@ -266,7 +266,7 @@
           <div class="demo-row">
             <am-button disabled>Disabled</am-button>
             <am-button loading>Loading</am-button>
-            <am-button variant="secondary" loading>Loading</am-button>
+            <am-button variant="outlined" loading>Loading</am-button>
             <am-button variant="danger" disabled>Disabled</am-button>
           </div>
 
@@ -535,7 +535,7 @@
             <am-button onclick="document.getElementById('demo-dialog').open = true">
               Open Dialog
             </am-button>
-            <am-button variant="secondary" onclick="document.getElementById('demo-dialog-lg').open = true">
+            <am-button variant="outlined" onclick="document.getElementById('demo-dialog-lg').open = true">
               Open Large Dialog
             </am-button>
           </div>
@@ -566,16 +566,16 @@
           <h2>Tooltip</h2>
           <div class="demo-row">
             <am-tooltip content="This is a tooltip" placement="top">
-              <am-button variant="secondary">Hover me (top)</am-button>
+              <am-button variant="outlined">Hover me (top)</am-button>
             </am-tooltip>
             <am-tooltip content="Positioned to the right" placement="right">
-              <am-button variant="secondary">Right</am-button>
+              <am-button variant="outlined">Right</am-button>
             </am-tooltip>
             <am-tooltip content="Positioned below" placement="bottom">
-              <am-button variant="secondary">Bottom</am-button>
+              <am-button variant="outlined">Bottom</am-button>
             </am-tooltip>
             <am-tooltip content="Positioned left" placement="left">
-              <am-button variant="secondary">Left</am-button>
+              <am-button variant="outlined">Left</am-button>
             </am-tooltip>
           </div>
 
@@ -726,7 +726,7 @@
           <h2>Popover</h2>
           <div class="demo-row">
             <am-popover placement="bottom-start">
-              <am-button variant="secondary">Click me</am-button>
+              <am-button variant="outlined">Click me</am-button>
               <div slot="content" style="width: 14rem;">
                 <div class="card-content">
                   <h3>Popover Content</h3>
@@ -863,7 +863,7 @@
             <am-button variant="primary" onclick="document.getElementById('toast-region').toast({ message: 'Changes saved.', variant: 'success' })">
               Success Toast
             </am-button>
-            <am-button variant="secondary" onclick="document.getElementById('toast-region').toast({ message: 'New update available.', variant: 'info' })">
+            <am-button variant="outlined" onclick="document.getElementById('toast-region').toast({ message: 'New update available.', variant: 'info' })">
               Info Toast
             </am-button>
             <am-button variant="subtle" onclick="document.getElementById('toast-region').toast({ message: 'Disk space is running low.', variant: 'warning' })">
@@ -888,7 +888,7 @@
               </svg>
               <span slot="heading">No results found</span>
               Try adjusting your search or filter criteria to find what you're looking for.
-              <am-button slot="action" size="sm" variant="secondary">Clear filters</am-button>
+              <am-button slot="action" size="sm" variant="outlined">Clear filters</am-button>
             </am-empty-state>
           </am-surface>
 
@@ -913,6 +913,13 @@
             <am-pagination total="10" page="4"></am-pagination>
             <am-pagination total="50" page="25"></am-pagination>
             <am-pagination total="3" page="1"></am-pagination>
+          </div>
+
+          <h2>Pagination — Simple</h2>
+          <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+            <am-pagination total="50" page="25" variant="simple"></am-pagination>
+            <am-pagination total="10" page="1" variant="simple"></am-pagination>
+            <am-pagination total="100" page="100" variant="simple"></am-pagination>
           </div>
 
           <am-divider></am-divider>
@@ -959,10 +966,10 @@
 
           <h2>Drawer</h2>
           <div class="demo-row">
-            <am-button variant="secondary" onclick="document.getElementById('demo-drawer-end').open = true">
+            <am-button variant="outlined" onclick="document.getElementById('demo-drawer-end').open = true">
               Open Drawer (end)
             </am-button>
-            <am-button variant="secondary" onclick="document.getElementById('demo-drawer-start').open = true">
+            <am-button variant="outlined" onclick="document.getElementById('demo-drawer-start').open = true">
               Open Drawer (start)
             </am-button>
           </div>
@@ -995,18 +1002,18 @@
           <h2>Button Group</h2>
           <div class="demo-row">
             <am-button-group>
-              <am-button variant="secondary">Left</am-button>
-              <am-button variant="secondary">Center</am-button>
-              <am-button variant="secondary">Right</am-button>
+              <am-button variant="outlined">Left</am-button>
+              <am-button variant="outlined">Center</am-button>
+              <am-button variant="outlined">Right</am-button>
             </am-button-group>
           </div>
 
           <p class="demo-label">Vertical</p>
           <div class="demo-row">
             <am-button-group orientation="vertical">
-              <am-button variant="secondary" size="sm">Top</am-button>
-              <am-button variant="secondary" size="sm">Middle</am-button>
-              <am-button variant="secondary" size="sm">Bottom</am-button>
+              <am-button variant="outlined" size="sm">Top</am-button>
+              <am-button variant="outlined" size="sm">Middle</am-button>
+              <am-button variant="outlined" size="sm">Bottom</am-button>
             </am-button-group>
           </div>
 
@@ -1017,8 +1024,9 @@
           <h2>Link Button</h2>
           <div class="demo-row">
             <am-link-button href="#" variant="primary">Get Started</am-link-button>
-            <am-link-button href="#" variant="secondary">Documentation</am-link-button>
-            <am-link-button href="#" variant="ghost">Learn more</am-link-button>
+            <am-link-button href="#" variant="outlined">Documentation</am-link-button>
+            <am-link-button href="#" variant="link">Learn more</am-link-button>
+            <am-link-button href="#" variant="ghost">Ghost</am-link-button>
             <am-link-button href="#" variant="subtle">View details</am-link-button>
             <am-link-button href="#" variant="danger">Delete</am-link-button>
           </div>
@@ -1243,7 +1251,7 @@
           <h2>Dropdown</h2>
           <div class="demo-row">
             <am-dropdown>
-              <am-button variant="secondary">Options</am-button>
+              <am-button variant="outlined">Options</am-button>
               <am-menu slot="content">
                 <am-menu-item>Edit</am-menu-item>
                 <am-menu-item>Duplicate</am-menu-item>
@@ -1374,7 +1382,7 @@
 
           <h2>Command Palette</h2>
           <div class="demo-row">
-            <am-button variant="secondary" onclick="document.getElementById('demo-cmd').open = true">
+            <am-button variant="outlined" onclick="document.getElementById('demo-cmd').open = true">
               Open Command Palette
             </am-button>
             <span style="font-size: var(--am-text-xs); color: var(--am-text-tertiary);">or press Ctrl+K / &#8984;K</span>

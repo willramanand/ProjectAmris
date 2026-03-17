@@ -50,7 +50,7 @@ export class AmNumberField extends LitElement {
       .wrapper {
         display: flex;
         align-items: center;
-        border: var(--am-border-1) solid var(--am-border-strong);
+        border: var(--am-border-1) solid var(--am-border);
         border-radius: var(--am-radius-xl);
         corner-shape: squircle;
         background: var(--am-surface);

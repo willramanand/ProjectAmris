@@ -4,7 +4,7 @@ import { resetStyles, focusRingStyles } from '../../styles/reset.css.js';
 
 export type IconButtonVariant =
   | 'primary'
-  | 'secondary'
+  | 'outlined'
   | 'ghost'
   | 'subtle'
   | 'danger';
@@ -75,9 +75,9 @@ export class AmIconButton extends LitElement {
       :host([variant='primary']) button:active { background: var(--am-primary-active); transform: scale(0.92); }
 
       /* Secondary */
-      :host([variant='secondary']) button { background: transparent; color: var(--am-text); border: var(--am-border-1) solid var(--am-border-strong); }
-      :host([variant='secondary']) button:hover { background: var(--am-hover-overlay); }
-      :host([variant='secondary']) button:active { background: var(--am-active-overlay); transform: scale(0.92); }
+      :host([variant='outlined']) button { background: transparent; color: var(--am-text); border: var(--am-border-1) solid var(--am-border-strong); }
+      :host([variant='outlined']) button:hover { background: var(--am-hover-overlay); }
+      :host([variant='outlined']) button:active { background: var(--am-active-overlay); transform: scale(0.92); }
 
       /* Ghost */
       :host([variant='ghost']) button, :host(:not([variant])) button { background: transparent; color: var(--am-text-secondary); }
@@ -85,7 +85,7 @@ export class AmIconButton extends LitElement {
       :host([variant='ghost']) button:active, :host(:not([variant])) button:active { background: var(--am-active-overlay); transform: scale(0.92); }
 
       /* Subtle */
-      :host([variant='subtle']) button { background: var(--am-primary-subtle); color: var(--am-primary); }
+      :host([variant='subtle']) button { background: var(--am-primary-subtle); color: var(--am-primary-subtle-text, var(--am-primary)); }
       :host([variant='subtle']) button:hover { background: var(--am-primary-subtle-hover); }
       :host([variant='subtle']) button:active { transform: scale(0.92); }
 

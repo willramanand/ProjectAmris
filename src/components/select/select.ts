@@ -1,6 +1,6 @@
 import { LitElement, css, html, nothing, type PropertyValues } from 'lit';
 import { customElement, property, query, queryAssignedElements, state } from 'lit/decorators.js';
-import { computePosition, flip, shift, offset, size } from '@floating-ui/dom';
+import { computePosition, autoUpdate, flip, shift, offset, size } from '@floating-ui/dom';
 import { resetStyles } from '../../styles/reset.css.js';
 
 export type SelectSize = 'sm' | 'md' | 'lg';
@@ -31,6 +31,9 @@ export class AmOption extends LitElement {
   /** Whether this option is currently selected. */
   @property({ type: Boolean, reflect: true }) selected = false;
 
+  /** Whether this option is currently highlighted via keyboard. */
+  @property({ type: Boolean, reflect: true }) highlighted = false;
+
   static styles = css`
     :host {
       display: flex;
@@ -48,7 +51,8 @@ export class AmOption extends LitElement {
         color var(--am-duration-fast) var(--am-ease-default);
     }
 
-    :host(:hover) {
+    :host(:hover),
+    :host([highlighted]) {
       background: var(--am-hover-overlay);
       border-radius: var(--am-radius-md);
       corner-shape: squircle;
@@ -196,6 +200,7 @@ export class AmSelect extends LitElement {
 
   private internals: ElementInternals;
   private _documentClickHandler = this._handleDocumentClick.bind(this);
+  private _cleanupAutoUpdate: (() => void) | null = null;
 
   constructor() {
     super();
@@ -218,7 +223,7 @@ export class AmSelect extends LitElement {
         align-items: center;
         gap: var(--am-space-2);
         width: 100%;
-        border: var(--am-border-1) solid var(--am-border-strong);
+        border: var(--am-border-1) solid var(--am-border);
         border-radius: var(--am-input-radius, var(--am-radius-xl));
         corner-shape: squircle;
         background: var(--am-surface);
@@ -232,7 +237,7 @@ export class AmSelect extends LitElement {
       }
 
       .trigger:hover:not(.disabled) {
-        border-color: var(--am-text-tertiary);
+        border-color: var(--am-border-strong);
       }
 
       .trigger.focused {
@@ -259,9 +264,9 @@ export class AmSelect extends LitElement {
       :host([size='lg']) .trigger:not(.has-label) { height: var(--am-size-lg); padding-inline: var(--am-space-4); font-size: var(--am-text-base); }
 
       /* ---- Sizes with floating label (taller to fit label + value) ---- */
-      :host([size='sm']) .trigger.has-label { height: 2.75rem; padding-inline: var(--am-space-2-5); font-size: var(--am-text-sm); }
-      :host([size='md']) .trigger.has-label, :host(:not([size])) .trigger.has-label { height: 3.25rem; padding-inline: var(--am-space-3); font-size: var(--am-text-sm); }
-      :host([size='lg']) .trigger.has-label { height: 3.5rem; padding-inline: var(--am-space-4); font-size: var(--am-text-base); }
+      :host([size='sm']) .trigger.has-label { height: 3rem; padding-inline: var(--am-space-2-5); font-size: var(--am-text-sm); }
+      :host([size='md']) .trigger.has-label, :host(:not([size])) .trigger.has-label { height: 3.5rem; padding-inline: var(--am-space-3); font-size: var(--am-text-sm); }
+      :host([size='lg']) .trigger.has-label { height: 3.75rem; padding-inline: var(--am-space-4); font-size: var(--am-text-base); }
 
       /* ---- Input group (mirrors qz-input) ---- */
 
@@ -277,7 +282,7 @@ export class AmSelect extends LitElement {
 
       .has-label .input-group {
         justify-content: flex-end;
-        padding-bottom: 0.375rem;
+        padding-bottom: 0.5rem;
       }
 
       .display-value {
@@ -307,7 +312,7 @@ export class AmSelect extends LitElement {
         transform: translateY(-50%);
         font-family: var(--am-font-sans);
         font-size: inherit;
-        color: var(--am-text-tertiary);
+        color: var(--am-text-secondary);
         pointer-events: none;
         transform-origin: left center;
         transition:
@@ -322,9 +327,9 @@ export class AmSelect extends LitElement {
       }
 
       .floated .floating-label {
-        top: 0.35rem;
+        top: 0.4rem;
         transform: none;
-        font-size: 0.625rem;
+        font-size: 0.75rem;
         color: var(--am-text-secondary);
       }
 
@@ -432,6 +437,7 @@ export class AmSelect extends LitElement {
     super.disconnectedCallback();
     this.removeEventListener('am-select-option', this._handleOptionSelect as EventListener);
     document.removeEventListener('click', this._documentClickHandler);
+    this._cleanupAutoUpdate?.();
   }
 
   protected updated(changed: PropertyValues) {
@@ -439,9 +445,20 @@ export class AmSelect extends LitElement {
       this.internals.setFormValue(this.value);
       this._syncOptionSelected();
     }
-    if (changed.has('_open') && this._open) {
-      this._updatePosition();
+    if (changed.has('_open')) {
+      if (this._open) {
+        this._startAutoUpdate();
+      } else {
+        this._cleanupAutoUpdate?.();
+        this._cleanupAutoUpdate = null;
+      }
     }
+  }
+
+  private _startAutoUpdate() {
+    this._cleanupAutoUpdate?.();
+    if (!this.triggerEl || !this.listboxEl) return;
+    this._cleanupAutoUpdate = autoUpdate(this.triggerEl, this.listboxEl, () => this._updatePosition());
   }
 
   private _syncOptionSelected() {
@@ -492,6 +509,7 @@ export class AmSelect extends LitElement {
   private _close() {
     this._open = false;
     this._highlightedIndex = -1;
+    this._syncHighlight();
   }
 
   private _handleTriggerClick() {
@@ -550,6 +568,7 @@ export class AmSelect extends LitElement {
         if (!this._open) {
           this._open = true;
           this._highlightedIndex = 0;
+          requestAnimationFrame(() => this._syncHighlight(options));
         } else {
           this._moveHighlight(1, options);
         }
@@ -560,6 +579,7 @@ export class AmSelect extends LitElement {
         if (!this._open) {
           this._open = true;
           this._highlightedIndex = options.length - 1;
+          requestAnimationFrame(() => this._syncHighlight(options));
         } else {
           this._moveHighlight(-1, options);
         }
@@ -587,7 +607,15 @@ export class AmSelect extends LitElement {
     if (idx < 0) idx = options.length - 1;
     if (idx >= options.length) idx = 0;
     this._highlightedIndex = idx;
+    this._syncHighlight(options);
     this._scrollHighlightedIntoView(options[idx]);
+  }
+
+  private _syncHighlight(options?: AmOption[]) {
+    const navOptions = options ?? this._getNavigableOptions();
+    navOptions.forEach((opt, i) => {
+      opt.highlighted = i === this._highlightedIndex;
+    });
   }
 
   private _scrollHighlightedIntoView(option: AmOption) {

@@ -1,7 +1,7 @@
 import { LitElement, css, html, nothing, type PropertyValues } from 'lit';
 import { customElement, property, query, state } from 'lit/decorators.js';
 import { live } from 'lit/directives/live.js';
-import { computePosition, flip, shift, offset, size as sizeMiddleware } from '@floating-ui/dom';
+import { computePosition, autoUpdate, flip, shift, offset, size as sizeMiddleware } from '@floating-ui/dom';
 import { resetStyles } from '../../styles/reset.css.js';
 
 export type AutocompleteSize = 'sm' | 'md' | 'lg';
@@ -55,6 +55,8 @@ export class AmAutocomplete extends LitElement {
   @query('input') private _input!: HTMLInputElement;
   @query('.listbox') private _listbox!: HTMLElement;
 
+  private _cleanupAutoUpdate: (() => void) | null = null;
+
   static styles = [
     resetStyles,
     css`
@@ -64,7 +66,7 @@ export class AmAutocomplete extends LitElement {
         display: flex;
         align-items: center;
         gap: var(--am-space-2);
-        border: var(--am-border-1) solid var(--am-border-strong);
+        border: var(--am-border-1) solid var(--am-border);
         border-radius: var(--am-radius-xl);
         corner-shape: squircle;
         background: var(--am-surface);
@@ -168,6 +170,8 @@ export class AmAutocomplete extends LitElement {
   disconnectedCallback() {
     super.disconnectedCallback();
     document.removeEventListener('click', this._handleOutsideClick);
+    this._cleanupAutoUpdate?.();
+    this._cleanupAutoUpdate = null;
   }
 
   protected updated(changed: PropertyValues) {
@@ -175,7 +179,21 @@ export class AmAutocomplete extends LitElement {
       this._open = true;
       this._highlightedIndex = -1;
     }
-    if (this._open) this._updatePosition();
+    if (changed.has('_open')) {
+      if (this._open) {
+        this._startAutoUpdate();
+      } else {
+        this._cleanupAutoUpdate?.();
+        this._cleanupAutoUpdate = null;
+      }
+    }
+  }
+
+  private _startAutoUpdate() {
+    this._cleanupAutoUpdate?.();
+    const wrapper = this.shadowRoot?.querySelector('.wrapper') as HTMLElement;
+    if (!wrapper || !this._listbox) return;
+    this._cleanupAutoUpdate = autoUpdate(wrapper, this._listbox, () => this._updatePosition());
   }
 
   private _handleOutsideClick = (e: MouseEvent) => {

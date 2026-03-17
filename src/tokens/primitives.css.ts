@@ -8,8 +8,8 @@ import { css } from "lit";
  * any scale by redefining the CSS custom properties on their theme provider.
  *
  * Default palette based on Pegasus 1.8 Design System (WCAG 2.1 AA accessible
- * palette), desaturated ~15% for a refined, premium feel.
- * Blended with Apple HIG clarity and Rivian's earthy sophistication.
+ * palette). Primary uses a vivid, saturated violet; secondary uses a warm
+ * amber-orange complementary to blue. Blended with Apple HIG clarity.
  *
  * Naming: --am-{category}-{scale}
  */
@@ -37,37 +37,37 @@ export const primitiveTokens = css`
 
     /* ================================================================
        COLOR — Primary
-       Default: Pegasus-derived violet, slightly desaturated.
+       Vivid violet with full saturation for strong brand presence.
        Override this scale to change the brand identity.
        ================================================================ */
-    --am-color-primary-50: #f5f3ff;
-    --am-color-primary-100: #ede9fe;
-    --am-color-primary-200: #ddd6fe;
-    --am-color-primary-300: #c4b5fc;
-    --am-color-primary-400: #a78bf5;
-    --am-color-primary-500: #8b6ae5;
-    --am-color-primary-600: #7350cf;
-    --am-color-primary-700: #6040b5;
-    --am-color-primary-800: #4e349a;
-    --am-color-primary-900: #402c7c;
-    --am-color-primary-950: #291b52;
+    --am-color-primary-50: #f5f0ff;
+    --am-color-primary-100: #ece0ff;
+    --am-color-primary-200: #dbc4ff;
+    --am-color-primary-300: #c49dff;
+    --am-color-primary-400: #ab6fff;
+    --am-color-primary-500: #9445ff;
+    --am-color-primary-600: #8525f5;
+    --am-color-primary-700: #7216df;
+    --am-color-primary-800: #6015ba;
+    --am-color-primary-900: #4f1498;
+    --am-color-primary-950: #320966;
 
     /* ================================================================
        COLOR — Secondary
-       Default: Pegasus-derived blue, slightly desaturated.
+       Warm amber-orange, complementary to blue on the color wheel.
        Override this scale for secondary actions and accents.
        ================================================================ */
-    --am-color-secondary-50: #eff5ff;
-    --am-color-secondary-100: #ddeafe;
-    --am-color-secondary-200: #bdd8fd;
-    --am-color-secondary-300: #94bffc;
-    --am-color-secondary-400: #63a0f7;
-    --am-color-secondary-500: #4585ed;
-    --am-color-secondary-600: #3369d5;
-    --am-color-secondary-700: #2a55b8;
-    --am-color-secondary-800: #254798;
-    --am-color-secondary-900: #213d7c;
-    --am-color-secondary-950: #162650;
+    --am-color-secondary-50: #fff7ed;
+    --am-color-secondary-100: #ffedd5;
+    --am-color-secondary-200: #fdd8ab;
+    --am-color-secondary-300: #fbb975;
+    --am-color-secondary-400: #f9933d;
+    --am-color-secondary-500: #f77617;
+    --am-color-secondary-600: #e85d0d;
+    --am-color-secondary-700: #c0450d;
+    --am-color-secondary-800: #993813;
+    --am-color-secondary-900: #7b3012;
+    --am-color-secondary-950: #431507;
 
     /* ================================================================
        COLOR — Success
@@ -105,17 +105,17 @@ export const primitiveTokens = css`
        COLOR — Danger
        Default: Slightly desaturated red.
        ================================================================ */
-    --am-color-danger-50: #fef2f2;
-    --am-color-danger-100: #fde3e3;
-    --am-color-danger-200: #fccaca;
-    --am-color-danger-300: #f9a8a8;
-    --am-color-danger-400: #f47272;
-    --am-color-danger-500: #e94d4d;
-    --am-color-danger-600: #d43030;
-    --am-color-danger-700: #b52525;
-    --am-color-danger-800: #962222;
-    --am-color-danger-900: #7c2020;
-    --am-color-danger-950: #460e0e;
+    --am-color-danger-50: #fef5f4;
+    --am-color-danger-100: #fdeceb;
+    --am-color-danger-200: #fbd5d3;
+    --am-color-danger-300: #f7b5b1;
+    --am-color-danger-400: #f08b84;
+    --am-color-danger-500: #e5665d;
+    --am-color-danger-600: #cf4d45;
+    --am-color-danger-700: #ae3f39;
+    --am-color-danger-800: #903834;
+    --am-color-danger-900: #783331;
+    --am-color-danger-950: #401816;
 
     /* ================================================================
        COLOR — Info

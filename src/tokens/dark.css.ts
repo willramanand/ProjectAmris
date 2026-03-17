@@ -36,6 +36,7 @@ export const darkTokens = css`
     --am-primary-active: var(--am-color-primary-300);
     --am-primary-subtle: var(--am-color-primary-950);
     --am-primary-subtle-hover: var(--am-color-primary-900);
+    --am-primary-subtle-text: var(--am-color-primary-400);
     --am-primary-text: var(--am-color-neutral-0);
 
     /* Secondary */
@@ -44,7 +45,7 @@ export const darkTokens = css`
     --am-secondary-active: var(--am-color-secondary-300);
     --am-secondary-subtle: var(--am-color-secondary-950);
     --am-secondary-subtle-hover: var(--am-color-secondary-900);
-    --am-secondary-text: var(--am-color-neutral-0);
+    --am-secondary-text: var(--am-color-secondary-950);
 
     /* Success */
     --am-success: var(--am-color-success-500);
@@ -111,6 +112,7 @@ export const darkTokens = css`
       --am-primary-active: var(--am-color-primary-300);
       --am-primary-subtle: var(--am-color-primary-950);
       --am-primary-subtle-hover: var(--am-color-primary-900);
+      --am-primary-subtle-text: var(--am-color-primary-400);
       --am-primary-text: var(--am-color-neutral-0);
 
       /* Secondary */
@@ -119,7 +121,7 @@ export const darkTokens = css`
       --am-secondary-active: var(--am-color-secondary-300);
       --am-secondary-subtle: var(--am-color-secondary-950);
       --am-secondary-subtle-hover: var(--am-color-secondary-900);
-      --am-secondary-text: var(--am-color-neutral-0);
+      --am-secondary-text: var(--am-color-secondary-950);
 
       /* Success */
       --am-success: var(--am-color-success-500);

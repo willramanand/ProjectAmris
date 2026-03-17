@@ -53,8 +53,10 @@ export class AmProgress extends LitElement {
         width: 100%;
         overflow: hidden;
         background: var(--am-surface-sunken);
+        border: var(--am-border-1) solid var(--am-border);
         border-radius: var(--am-progress-radius, var(--am-radius-full));
         corner-shape: squircle;
+        box-sizing: border-box;
       }
 
       :host([size='sm']) .track { height: 0.25rem; }

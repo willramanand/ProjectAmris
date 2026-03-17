@@ -41,6 +41,8 @@ export class AmCalendar extends LitElement {
 
   @state() private _viewYear = new Date().getFullYear();
   @state() private _viewMonth = new Date().getMonth();
+  @state() private _pickerView: 'days' | 'months' | 'years' = 'days';
+  @state() private _yearRangeStart = Math.floor(new Date().getFullYear() / 12) * 12;
 
   static styles = [
     resetStyles,
@@ -73,9 +75,21 @@ export class AmCalendar extends LitElement {
       }
 
       .month-label {
+        all: unset;
         font-weight: var(--am-weight-semibold);
         font-size: inherit;
         color: var(--am-text);
+        cursor: pointer;
+        padding: var(--am-space-1) var(--am-space-2);
+        border-radius: var(--am-radius-md);
+        corner-shape: squircle;
+        transition: background var(--am-duration-fast) var(--am-ease-default);
+      }
+
+      .month-label:hover { background: var(--am-hover-overlay); }
+      .month-label:focus-visible {
+        outline: var(--am-focus-ring-width) solid var(--am-focus-ring);
+        outline-offset: var(--am-focus-ring-offset);
       }
 
       .nav-btn {
@@ -148,8 +162,65 @@ export class AmCalendar extends LitElement {
 
       .day[disabled] { opacity: var(--am-disabled-opacity); cursor: not-allowed; pointer-events: none; }
 
+      /* ---- Month / Year picker grid ---- */
+
+      .picker-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: var(--am-space-1);
+      }
+
+      .picker-cell {
+        all: unset;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: var(--am-space-2-5) var(--am-space-1);
+        border-radius: var(--am-radius-md);
+        corner-shape: squircle;
+        cursor: pointer;
+        font-size: inherit;
+        color: var(--am-text);
+        transition: background var(--am-duration-fast) var(--am-ease-default);
+      }
+
+      .picker-cell:hover:not(.selected) { background: var(--am-hover-overlay); }
+      .picker-cell:focus-visible {
+        outline: var(--am-focus-ring-width) solid var(--am-focus-ring);
+        outline-offset: var(--am-focus-ring-offset);
+      }
+
+      .picker-cell.selected {
+        background: var(--am-primary);
+        color: var(--am-primary-text);
+        font-weight: var(--am-weight-semibold);
+      }
+
+      .picker-cell.current {
+        font-weight: var(--am-weight-semibold);
+        color: var(--am-primary);
+      }
+
+      .year-label {
+        all: unset;
+        font-weight: var(--am-weight-semibold);
+        font-size: inherit;
+        color: var(--am-text);
+        cursor: pointer;
+        padding: var(--am-space-1) var(--am-space-2);
+        border-radius: var(--am-radius-md);
+        corner-shape: squircle;
+        transition: background var(--am-duration-fast) var(--am-ease-default);
+      }
+
+      .year-label:hover { background: var(--am-hover-overlay); }
+      .year-label:focus-visible {
+        outline: var(--am-focus-ring-width) solid var(--am-focus-ring);
+        outline-offset: var(--am-focus-ring-offset);
+      }
+
       @media (prefers-reduced-motion: reduce) {
-        .nav-btn, .day { transition: none; }
+        .nav-btn, .day, .picker-cell, .month-label, .year-label { transition: none; }
       }
     `,
   ];
@@ -173,6 +244,28 @@ export class AmCalendar extends LitElement {
   private _nextMonth() {
     if (this._viewMonth === 11) { this._viewMonth = 0; this._viewYear++; }
     else this._viewMonth++;
+  }
+
+  private _prevYear() { this._viewYear--; }
+  private _nextYear() { this._viewYear++; }
+  private _prevYearRange() { this._yearRangeStart -= 12; }
+  private _nextYearRange() { this._yearRangeStart += 12; }
+
+  private _showMonths() { this._pickerView = 'months'; }
+
+  private _showYears() {
+    this._yearRangeStart = Math.floor(this._viewYear / 12) * 12;
+    this._pickerView = 'years';
+  }
+
+  private _selectMonth(month: number) {
+    this._viewMonth = month;
+    this._pickerView = 'days';
+  }
+
+  private _selectYear(year: number) {
+    this._viewYear = year;
+    this._pickerView = 'months';
   }
 
   private _selectDate(dateStr: string) {
@@ -228,41 +321,114 @@ export class AmCalendar extends LitElement {
     return iso === this._toISO(now.getFullYear(), now.getMonth(), now.getDate());
   }
 
-  render() {
+  private _renderDaysView() {
     const days = this._getDays();
-    const monthLabel = `${MONTHS[this._viewMonth]} ${this._viewYear}`;
 
     return html`
+      <div class="header" part="header">
+        <button class="nav-btn" aria-label="Previous month" @click=${this._prevMonth}>
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M8.5 3.5L5 7l3.5 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <button class="month-label" @click=${this._showMonths}>
+          ${MONTHS[this._viewMonth]} ${this._viewYear}
+        </button>
+        <button class="nav-btn" aria-label="Next month" @click=${this._nextMonth}>
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M5.5 3.5L9 7l-3.5 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+      <div class="day-names">
+        ${DAYS.map(d => html`<span>${d}</span>`)}
+      </div>
+      <div class="grid" part="grid" role="grid">
+        ${days.map(day => {
+          const selected = day.iso === this.value;
+          const today = this._isToday(day.iso);
+          const disabled = this._isDisabled(day.iso);
+          return html`
+            <button class="day ${day.outside ? 'outside' : ''} ${selected ? 'selected' : ''} ${today ? 'today' : ''}"
+              part="day"
+              ?disabled=${disabled}
+              aria-label=${day.iso}
+              aria-selected=${selected ? 'true' : nothing}
+              @click=${() => this._selectDate(day.iso)}>
+              ${day.date}
+            </button>
+          `;
+        })}
+      </div>
+    `;
+  }
+
+  private _renderMonthsView() {
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+    const SHORT_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+    return html`
+      <div class="header" part="header">
+        <button class="nav-btn" aria-label="Previous year" @click=${this._prevYear}>
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M8.5 3.5L5 7l3.5 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <button class="year-label" @click=${this._showYears}>
+          ${this._viewYear}
+        </button>
+        <button class="nav-btn" aria-label="Next year" @click=${this._nextYear}>
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M5.5 3.5L9 7l-3.5 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+      <div class="picker-grid">
+        ${SHORT_MONTHS.map((name, i) => {
+          const selected = i === this._viewMonth && this._viewYear === currentYear;
+          const isCurrent = i === currentMonth && this._viewYear === currentYear;
+          return html`
+            <button class="picker-cell ${selected ? 'selected' : ''} ${isCurrent && !selected ? 'current' : ''}"
+              @click=${() => this._selectMonth(i)}>
+              ${name}
+            </button>
+          `;
+        })}
+      </div>
+    `;
+  }
+
+  private _renderYearsView() {
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const years = Array.from({ length: 12 }, (_, i) => this._yearRangeStart + i);
+    const rangeLabel = `${this._yearRangeStart} – ${this._yearRangeStart + 11}`;
+
+    return html`
+      <div class="header" part="header">
+        <button class="nav-btn" aria-label="Previous year range" @click=${this._prevYearRange}>
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M8.5 3.5L5 7l3.5 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <span class="month-label" style="cursor: default;">${rangeLabel}</span>
+        <button class="nav-btn" aria-label="Next year range" @click=${this._nextYearRange}>
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M5.5 3.5L9 7l-3.5 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+      <div class="picker-grid">
+        ${years.map(year => {
+          const selected = year === this._viewYear;
+          const isCurrent = year === currentYear;
+          return html`
+            <button class="picker-cell ${selected ? 'selected' : ''} ${isCurrent && !selected ? 'current' : ''}"
+              @click=${() => this._selectYear(year)}>
+              ${year}
+            </button>
+          `;
+        })}
+      </div>
+    `;
+  }
+
+  render() {
+    return html`
       <div class="calendar">
-        <div class="header" part="header">
-          <button class="nav-btn" aria-label="Previous month" @click=${this._prevMonth}>
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M8.5 3.5L5 7l3.5 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </button>
-          <span class="month-label">${monthLabel}</span>
-          <button class="nav-btn" aria-label="Next month" @click=${this._nextMonth}>
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M5.5 3.5L9 7l-3.5 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </button>
-        </div>
-        <div class="day-names">
-          ${DAYS.map(d => html`<span>${d}</span>`)}
-        </div>
-        <div class="grid" part="grid" role="grid">
-          ${days.map(day => {
-            const selected = day.iso === this.value;
-            const today = this._isToday(day.iso);
-            const disabled = this._isDisabled(day.iso);
-            return html`
-              <button class="day ${day.outside ? 'outside' : ''} ${selected ? 'selected' : ''} ${today ? 'today' : ''}"
-                part="day"
-                ?disabled=${disabled}
-                aria-label=${day.iso}
-                aria-selected=${selected ? 'true' : nothing}
-                @click=${() => this._selectDate(day.iso)}>
-                ${day.date}
-              </button>
-            `;
-          })}
-        </div>
+        ${this._pickerView === 'days' ? this._renderDaysView()
+        : this._pickerView === 'months' ? this._renderMonthsView()
+        : this._renderYearsView()}
       </div>
     `;
   }

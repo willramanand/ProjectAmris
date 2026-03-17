@@ -16,9 +16,9 @@ export type ButtonGroupOrientation = 'horizontal' | 'vertical';
  * @example
  * ```html
  * <am-button-group>
- *   <am-button variant="secondary">Left</am-button>
- *   <am-button variant="secondary">Center</am-button>
- *   <am-button variant="secondary">Right</am-button>
+ *   <am-button variant="outlined">Left</am-button>
+ *   <am-button variant="outlined">Center</am-button>
+ *   <am-button variant="outlined">Right</am-button>
  * </am-button-group>
  * ```
  */

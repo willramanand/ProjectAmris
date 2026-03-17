@@ -48,6 +48,8 @@ export class AmTimePicker extends LitElement {
   @state() private _activeSegment: 'hours' | 'minutes' | 'seconds' | 'period' = 'hours';
 
   private _internals: ElementInternals;
+  @state() private _inputBuffer = '';
+  private _bufferTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor() {
     super();
@@ -72,7 +74,7 @@ export class AmTimePicker extends LitElement {
         display: inline-flex;
         align-items: center;
         gap: var(--am-space-1);
-        border: var(--am-border-1) solid var(--am-border-strong);
+        border: var(--am-border-1) solid var(--am-border);
         border-radius: var(--am-radius-xl);
         corner-shape: squircle;
         background: var(--am-surface);
@@ -119,9 +121,28 @@ export class AmTimePicker extends LitElement {
 
       .segment:hover { background: var(--am-hover-overlay); }
       .segment.active { background: var(--am-primary-subtle); color: var(--am-primary); }
+      .segment.editing { background: var(--am-primary); color: var(--am-primary-text); }
       .segment:focus-visible {
         outline: var(--am-focus-ring-width) solid var(--am-focus-ring);
         outline-offset: var(--am-focus-ring-offset);
+      }
+
+      .seg-text { display: inline; }
+      .seg-placeholder { opacity: 0.4; }
+
+      .caret {
+        display: inline-block;
+        width: 1px;
+        height: 1em;
+        vertical-align: text-bottom;
+        margin-left: -1px;
+        background: currentColor;
+        animation: blink 1s step-end infinite;
+      }
+
+      @keyframes blink {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0; }
       }
 
       .separator { color: var(--am-text-tertiary); }
@@ -143,6 +164,7 @@ export class AmTimePicker extends LitElement {
 
       @media (prefers-reduced-motion: reduce) {
         .wrapper, .segment, .period { transition: none; }
+        .caret { animation: none; opacity: 1; }
       }
     `,
   ];
@@ -150,6 +172,11 @@ export class AmTimePicker extends LitElement {
   connectedCallback() {
     super.connectedCallback();
     this._parseValue();
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    if (this._bufferTimer) clearTimeout(this._bufferTimer);
   }
 
   protected updated(changed: PropertyValues) {
@@ -188,6 +215,20 @@ export class AmTimePicker extends LitElement {
     return String(this._hours).padStart(2, '0');
   }
 
+  private _isEditing(segment: 'hours' | 'minutes' | 'seconds'): boolean {
+    return this._activeSegment === segment && this._inputBuffer.length > 0;
+  }
+
+  private _renderSegmentContent(segment: 'hours' | 'minutes' | 'seconds') {
+    if (this._isEditing(segment)) {
+      const digit = this._inputBuffer;
+      return html`<span class="seg-text">${digit}</span><span class="seg-placeholder">–</span><span class="caret"></span>`;
+    }
+    if (segment === 'hours') return this._displayHours();
+    if (segment === 'minutes') return String(this._minutes).padStart(2, '0');
+    return String(this._seconds).padStart(2, '0');
+  }
+
   private _adjustSegment(segment: 'hours' | 'minutes' | 'seconds' | 'period', delta: number) {
     if (this.disabled || this.readonly) return;
 
@@ -206,25 +247,124 @@ export class AmTimePicker extends LitElement {
     this.dispatchEvent(new CustomEvent('am-change', { detail: { value: this.value }, bubbles: true, composed: true }));
   }
 
+  private _getSegmentOrder(): Array<'hours' | 'minutes' | 'seconds' | 'period'> {
+    const order: Array<'hours' | 'minutes' | 'seconds' | 'period'> = ['hours', 'minutes'];
+    if (this.showSeconds) order.push('seconds');
+    if (this.use12Hour) order.push('period');
+    return order;
+  }
+
+  private _advanceToNextSegment(segment: 'hours' | 'minutes' | 'seconds' | 'period') {
+    const order = this._getSegmentOrder();
+    const idx = order.indexOf(segment);
+    if (idx < order.length - 1) {
+      this._activeSegment = order[idx + 1];
+      this._focusSegment(order[idx + 1]);
+    }
+  }
+
+  private _clearBuffer() {
+    this._inputBuffer = '';
+    if (this._bufferTimer) { clearTimeout(this._bufferTimer); this._bufferTimer = null; }
+  }
+
+  private _resetBufferTimer() {
+    if (this._bufferTimer) clearTimeout(this._bufferTimer);
+    this._bufferTimer = setTimeout(() => { this._inputBuffer = ''; }, 1000);
+  }
+
+  private _handleDigitInput(segment: 'hours' | 'minutes' | 'seconds', digit: string) {
+    if (this.disabled || this.readonly) return;
+
+    this._inputBuffer += digit;
+    this._resetBufferTimer();
+
+    const maxFirst = segment === 'hours' ? (this.use12Hour ? 1 : 2) : 5;
+    const maxVal = segment === 'hours' ? (this.use12Hour ? 12 : 23) : 59;
+    const minVal = segment === 'hours' && this.use12Hour ? 1 : 0;
+
+    if (this._inputBuffer.length === 1) {
+      const d = parseInt(digit, 10);
+      if (d > maxFirst) {
+        // Single digit already exceeds what a valid first digit can be — commit immediately
+        const clamped = Math.max(minVal, Math.min(maxVal, d));
+        this._commitSegmentValue(segment, clamped);
+        this._clearBuffer();
+        this._advanceToNextSegment(segment);
+      }
+      // Otherwise wait for second digit
+    } else {
+      // Two digits — commit and advance
+      let val = parseInt(this._inputBuffer, 10);
+      val = Math.max(minVal, Math.min(maxVal, val));
+      this._commitSegmentValue(segment, val);
+      this._clearBuffer();
+      this._advanceToNextSegment(segment);
+    }
+  }
+
+  private _commitSegmentValue(segment: 'hours' | 'minutes' | 'seconds', val: number) {
+    if (segment === 'hours') {
+      if (this.use12Hour) {
+        // Convert 12-hour input to 24-hour internal
+        const wasPM = this._period === 'PM';
+        let h24 = val;
+        if (val === 12) h24 = wasPM ? 12 : 0;
+        else if (wasPM) h24 = val + 12;
+        this._hours = h24;
+      } else {
+        this._hours = val;
+      }
+    } else if (segment === 'minutes') {
+      this._minutes = val;
+    } else {
+      this._seconds = val;
+    }
+
+    this.value = this._formatValue();
+    this.dispatchEvent(new CustomEvent('am-change', { detail: { value: this.value }, bubbles: true, composed: true }));
+  }
+
   private _handleKeydown(segment: 'hours' | 'minutes' | 'seconds' | 'period', e: KeyboardEvent) {
-    if (e.key === 'ArrowUp') { e.preventDefault(); this._adjustSegment(segment, 1); }
-    if (e.key === 'ArrowDown') { e.preventDefault(); this._adjustSegment(segment, -1); }
+    if (e.key === 'ArrowUp') { e.preventDefault(); this._clearBuffer(); this._adjustSegment(segment, 1); return; }
+    if (e.key === 'ArrowDown') { e.preventDefault(); this._clearBuffer(); this._adjustSegment(segment, -1); return; }
+
+    // Digit input for numeric segments
+    if (/^[0-9]$/.test(e.key) && segment !== 'period') {
+      e.preventDefault();
+      this._handleDigitInput(segment, e.key);
+      return;
+    }
+
+    // AM/PM toggle via 'a' or 'p' keys
+    if (segment === 'period' && /^[aApP]$/.test(e.key)) {
+      e.preventDefault();
+      const target = e.key.toLowerCase() === 'a' ? 'AM' : 'PM';
+      if (this._period !== target) {
+        this._adjustSegment('period', 1);
+      }
+      return;
+    }
+
+    // Backspace clears the current segment to zero
+    if (e.key === 'Backspace' || e.key === 'Delete') {
+      e.preventDefault();
+      this._clearBuffer();
+      if (segment !== 'period') {
+        this._commitSegmentValue(segment, segment === 'hours' && this.use12Hour ? 12 : 0);
+      }
+      return;
+    }
+
     if (e.key === 'ArrowRight') {
       e.preventDefault();
-      const order: Array<'hours' | 'minutes' | 'seconds' | 'period'> = ['hours', 'minutes'];
-      if (this.showSeconds) order.push('seconds');
-      if (this.use12Hour) order.push('period');
-      const idx = order.indexOf(segment);
-      if (idx < order.length - 1) {
-        this._activeSegment = order[idx + 1];
-        this._focusSegment(order[idx + 1]);
-      }
+      this._clearBuffer();
+      this._advanceToNextSegment(segment);
     }
     if (e.key === 'ArrowLeft') {
       e.preventDefault();
-      const order: Array<'hours' | 'minutes' | 'seconds' | 'period'> = ['hours', 'minutes'];
-      if (this.showSeconds) order.push('seconds');
-      if (this.use12Hour) order.push('period');
+      this._clearBuffer();
+      const order = this._getSegmentOrder();
       const idx = order.indexOf(segment);
       if (idx > 0) {
         this._activeSegment = order[idx - 1];
@@ -247,45 +387,41 @@ export class AmTimePicker extends LitElement {
           <path d="M8 5v3l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
         </svg>
         <div class="segments">
-          <button class="segment ${this._activeSegment === 'hours' ? 'active' : ''}"
+          <button class="segment ${this._activeSegment === 'hours' ? (this._isEditing('hours') ? 'editing' : 'active') : ''}"
             data-segment="hours"
-            aria-label="Hours"
-            @focus=${() => { this._focused = true; this._activeSegment = 'hours'; }}
-            @blur=${() => { this._focused = false; }}
-            @keydown=${(e: KeyboardEvent) => this._handleKeydown('hours', e)}
-            @click=${() => this._adjustSegment('hours', 1)}>
-            ${this._displayHours()}
+            aria-label="Hours — type digits or use arrow keys"
+            @focus=${() => { this._focused = true; this._activeSegment = 'hours'; this._clearBuffer(); }}
+            @blur=${() => { this._focused = false; this._clearBuffer(); }}
+            @keydown=${(e: KeyboardEvent) => this._handleKeydown('hours', e)}>
+            ${this._renderSegmentContent('hours')}
           </button>
           <span class="separator">:</span>
-          <button class="segment ${this._activeSegment === 'minutes' ? 'active' : ''}"
+          <button class="segment ${this._activeSegment === 'minutes' ? (this._isEditing('minutes') ? 'editing' : 'active') : ''}"
             data-segment="minutes"
-            aria-label="Minutes"
-            @focus=${() => { this._focused = true; this._activeSegment = 'minutes'; }}
-            @blur=${() => { this._focused = false; }}
-            @keydown=${(e: KeyboardEvent) => this._handleKeydown('minutes', e)}
-            @click=${() => this._adjustSegment('minutes', 1)}>
-            ${String(this._minutes).padStart(2, '0')}
+            aria-label="Minutes — type digits or use arrow keys"
+            @focus=${() => { this._focused = true; this._activeSegment = 'minutes'; this._clearBuffer(); }}
+            @blur=${() => { this._focused = false; this._clearBuffer(); }}
+            @keydown=${(e: KeyboardEvent) => this._handleKeydown('minutes', e)}>
+            ${this._renderSegmentContent('minutes')}
           </button>
           ${this.showSeconds ? html`
             <span class="separator">:</span>
-            <button class="segment ${this._activeSegment === 'seconds' ? 'active' : ''}"
+            <button class="segment ${this._activeSegment === 'seconds' ? (this._isEditing('seconds') ? 'editing' : 'active') : ''}"
               data-segment="seconds"
-              aria-label="Seconds"
-              @focus=${() => { this._focused = true; this._activeSegment = 'seconds'; }}
-              @blur=${() => { this._focused = false; }}
-              @keydown=${(e: KeyboardEvent) => this._handleKeydown('seconds', e)}
-              @click=${() => this._adjustSegment('seconds', 1)}>
-              ${String(this._seconds).padStart(2, '0')}
+              aria-label="Seconds — type digits or use arrow keys"
+              @focus=${() => { this._focused = true; this._activeSegment = 'seconds'; this._clearBuffer(); }}
+              @blur=${() => { this._focused = false; this._clearBuffer(); }}
+              @keydown=${(e: KeyboardEvent) => this._handleKeydown('seconds', e)}>
+              ${this._renderSegmentContent('seconds')}
             </button>
           ` : nothing}
           ${this.use12Hour ? html`
             <button class="period ${this._activeSegment === 'period' ? 'active' : ''}"
               data-segment="period"
-              aria-label="AM/PM"
-              @focus=${() => { this._focused = true; this._activeSegment = 'period'; }}
-              @blur=${() => { this._focused = false; }}
-              @keydown=${(e: KeyboardEvent) => this._handleKeydown('period', e)}
-              @click=${() => this._adjustSegment('period', 1)}>
+              aria-label="AM/PM — press A or P to change"
+              @focus=${() => { this._focused = true; this._activeSegment = 'period'; this._clearBuffer(); }}
+              @blur=${() => { this._focused = false; this._clearBuffer(); }}
+              @keydown=${(e: KeyboardEvent) => this._handleKeydown('period', e)}>
               ${this._period}
             </button>
           ` : nothing}

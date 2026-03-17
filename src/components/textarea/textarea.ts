@@ -61,7 +61,7 @@ export class AmTextarea extends LitElement {
       .wrapper {
         display: flex;
         position: relative;
-        border: var(--am-border-1) solid var(--am-border-strong);
+        border: var(--am-border-1) solid var(--am-border);
         border-radius: var(--am-textarea-radius, var(--am-radius-xl));
         corner-shape: squircle;
         background: var(--am-surface);
@@ -71,7 +71,7 @@ export class AmTextarea extends LitElement {
         cursor: text;
       }
 
-      .wrapper:hover:not(.disabled) { border-color: var(--am-text-tertiary); }
+      .wrapper:hover:not(.disabled) { border-color: var(--am-border-strong); }
 
       .wrapper.focused {
         border-color: var(--am-primary);
@@ -106,7 +106,7 @@ export class AmTextarea extends LitElement {
 
       /* Add top padding when floating label is present */
       .has-label textarea {
-        padding-top: 1.5rem;
+        padding-top: 1.625rem;
       }
 
       /* Hide native placeholder when label is not floated */
@@ -128,7 +128,7 @@ export class AmTextarea extends LitElement {
         left: var(--am-space-3);
         font-family: var(--am-font-sans);
         font-size: var(--am-text-sm);
-        color: var(--am-text-tertiary);
+        color: var(--am-text-secondary);
         pointer-events: none;
         transform-origin: left center;
         transition:
@@ -142,8 +142,8 @@ export class AmTextarea extends LitElement {
       }
 
       .floated .floating-label {
-        top: 0.25rem;
-        font-size: 0.625rem;
+        top: 0.3rem;
+        font-size: 0.75rem;
         color: var(--am-text-secondary);
       }
 

@@ -45,7 +45,7 @@ export class AmSearchField extends LitElement {
         display: flex;
         align-items: center;
         gap: var(--am-space-2);
-        border: var(--am-border-1) solid var(--am-border-strong);
+        border: var(--am-border-1) solid var(--am-border);
         border-radius: var(--am-radius-xl);
         corner-shape: squircle;
         background: var(--am-surface);
@@ -57,7 +57,7 @@ export class AmSearchField extends LitElement {
       }
 
       .wrapper:hover:not(.disabled) {
-        border-color: var(--am-text-tertiary);
+        border-color: var(--am-border-strong);
       }
 
       .wrapper.focused {

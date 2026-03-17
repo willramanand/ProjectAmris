@@ -20,6 +20,8 @@ import { resetStyles } from '../../styles/reset.css.js';
  * <am-pagination total="50" page="3"></am-pagination>
  * ```
  */
+export type PaginationVariant = 'default' | 'simple';
+
 @customElement('am-pagination')
 export class AmPagination extends LitElement {
   /** Total number of pages. */
@@ -30,6 +32,9 @@ export class AmPagination extends LitElement {
 
   /** Maximum number of visible page buttons (excluding prev/next). */
   @property({ type: Number }) siblings = 1;
+
+  /** Variant: 'default' shows page numbers, 'simple' shows only first/prev/next/last icon buttons. */
+  @property({ reflect: true }) variant: PaginationVariant = 'default';
 
   static styles = [
     resetStyles,
@@ -99,6 +104,19 @@ export class AmPagination extends LitElement {
         height: 1rem;
       }
 
+      .page-indicator {
+        font-size: var(--am-text-sm);
+        color: var(--am-text-secondary);
+        padding: 0 var(--am-space-2);
+        user-select: none;
+        white-space: nowrap;
+      }
+
+      .page-indicator .current {
+        color: var(--am-text);
+        font-weight: var(--am-weight-semibold);
+      }
+
       @media (prefers-reduced-motion: reduce) {
         button { transition: none; }
       }
@@ -166,7 +184,7 @@ export class AmPagination extends LitElement {
     this.setAttribute('aria-label', 'Pagination');
   }
 
-  render() {
+  private _renderDefault() {
     const pages = this._getPageRange();
     const current = Math.max(1, Math.min(this.page, this.total));
 
@@ -205,6 +223,66 @@ export class AmPagination extends LitElement {
         </button>
       </nav>
     `;
+  }
+
+  private _renderSimple() {
+    const current = Math.max(1, Math.min(this.page, this.total));
+
+    return html`
+      <nav part="nav">
+        <button
+          part="button"
+          aria-label="First page"
+          ?disabled=${current <= 1}
+          @click=${() => this._setPage(1)}
+        >
+          <svg class="arrow-icon" viewBox="0 0 16 16" fill="none">
+            <path d="M11 4l-4 4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <line x1="5" y1="4" x2="5" y2="12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </button>
+        <button
+          part="button"
+          aria-label="Previous page"
+          ?disabled=${current <= 1}
+          @click=${() => this._setPage(current - 1)}
+        >
+          <svg class="arrow-icon" viewBox="0 0 16 16" fill="none">
+            <path d="M10 4l-4 4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+
+        <span class="page-indicator">
+          <span class="current">${current}</span> / ${this.total}
+        </span>
+
+        <button
+          part="button"
+          aria-label="Next page"
+          ?disabled=${current >= this.total}
+          @click=${() => this._setPage(current + 1)}
+        >
+          <svg class="arrow-icon" viewBox="0 0 16 16" fill="none">
+            <path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <button
+          part="button"
+          aria-label="Last page"
+          ?disabled=${current >= this.total}
+          @click=${() => this._setPage(this.total)}
+        >
+          <svg class="arrow-icon" viewBox="0 0 16 16" fill="none">
+            <path d="M5 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <line x1="11" y1="4" x2="11" y2="12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </nav>
+    `;
+  }
+
+  render() {
+    return this.variant === 'simple' ? this._renderSimple() : this._renderDefault();
   }
 }
 
