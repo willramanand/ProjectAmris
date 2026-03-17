@@ -31,7 +31,9 @@
     "dev": "vite --host",
     "build": "tsc && vite build --mode core && vite build --mode all && tsc -p tsconfig.types.json && npm run build:manifest",
     "build:manifest": "cem analyze --config custom-elements-manifest.config.js",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest",
+    "test:run": "vitest run"
   },
   "dependencies": {
     "@floating-ui/dom": "^1.7.6",
@@ -41,8 +43,10 @@
     "@custom-elements-manifest/analyzer": "^0.11.0",
     "@lit-labs/rollup-plugin-minify-html-literals": "^0.1.1",
     "custom-elements-manifest": "^2.1.0",
+    "jsdom": "^29.0.0",
     "terser": "^5.46.1",
     "typescript": "~5.9.3",
-    "vite": "^8.0.0"
+    "vite": "^8.0.0",
+    "vitest": "^4.1.0"
   }
 }
