@@ -13,7 +13,9 @@
     "lit": "^3.3.2"
   },
   "devDependencies": {
+    "@lit-labs/rollup-plugin-minify-html-literals": "^0.1.1",
     "custom-elements-manifest": "^2.1.0",
+    "terser": "^5.46.1",
     "typescript": "~5.9.3",
     "vite": "^8.0.0"
   }

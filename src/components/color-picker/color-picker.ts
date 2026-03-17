@@ -1,5 +1,6 @@
 import { LitElement, css, html, nothing, type PropertyValues } from 'lit';
 import { customElement, property, query, state } from 'lit/decorators.js';
+import { computePosition, flip, offset, shift } from '@floating-ui/dom';
 import { resetStyles } from '../../styles/reset.css.js';
 
 export type ColorPickerSize = 'sm' | 'md' | 'lg';
@@ -408,14 +409,13 @@ export class AmColorPicker extends LitElement {
   }
 
   private async _updatePosition() {
-    const { computePosition: cp, flip: f, shift: s, offset: o } = await import('@floating-ui/dom');
     const trigger = this.shadowRoot?.querySelector('.trigger') as HTMLElement;
     const panel = this.shadowRoot?.querySelector('.panel') as HTMLElement;
     if (!trigger || !panel) return;
-    const { x, y } = await cp(trigger, panel, {
+    const { x, y } = await computePosition(trigger, panel, {
       placement: 'bottom-start',
       strategy: 'fixed',
-      middleware: [o(4), f(), s({ padding: 8 })],
+      middleware: [offset(4), flip(), shift({ padding: 8 })],
     });
     Object.assign(panel.style, { left: `${x}px`, top: `${y}px` });
   }
@@ -425,6 +425,12 @@ export class AmColorPicker extends LitElement {
     const currentColor = `rgba(${r},${g},${b},${this._alpha})`;
     const hueColor = `hsl(${this._hue}, 100%, 50%)`;
     const alphaColor = `rgb(${r},${g},${b})`;
+    const panelStyle = `--_alpha-color: ${alphaColor}`;
+    const areaStyle = `background-color: ${hueColor}`;
+    const areaThumbStyle = `left: ${this._saturation}%; top: ${100 - this._brightness}%; background: ${currentColor}`;
+    const sliderPreviewStyle = `background: ${currentColor}`;
+    const hueThumbStyle = `left: ${(this._hue / 360) * 100}%; background: ${hueColor}`;
+    const alphaThumbStyle = `left: ${this._alpha * 100}%; background: ${currentColor}`;
 
     return html`
       ${this.label ? html`<span class="label">${this.label}</span>` : nothing}
@@ -433,21 +439,21 @@ export class AmColorPicker extends LitElement {
         <span class="trigger-value">${this._hexInput || this.value}</span>
       </div>
 
-      <div class="panel ${this._open ? 'open' : ''}" part="panel" style="--_alpha-color: ${alphaColor}">
-        <div class="area" style="background-color: ${hueColor}" @pointerdown=${this._handleAreaPointerDown}>
+      <div class="panel ${this._open ? 'open' : ''}" part="panel" style=${panelStyle}>
+        <div class="area" style=${areaStyle} @pointerdown=${this._handleAreaPointerDown}>
           <div class="area-gradient"></div>
-          <div class="area-thumb" style="left: ${this._saturation}%; top: ${100 - this._brightness}%; background: ${currentColor}"></div>
+          <div class="area-thumb" style=${areaThumbStyle}></div>
         </div>
 
         <div class="slider-row">
-          <div class="slider-preview" style="background: ${currentColor}"></div>
+          <div class="slider-preview" style=${sliderPreviewStyle}></div>
           <div class="sliders">
             <div class="hue-slider" @pointerdown=${this._handleHuePointerDown}>
-              <div class="slider-thumb" style="left: ${(this._hue / 360) * 100}%; background: ${hueColor}"></div>
+              <div class="slider-thumb" style=${hueThumbStyle}></div>
             </div>
             ${this.showAlpha ? html`
               <div class="alpha-slider" @pointerdown=${this._handleAlphaPointerDown}>
-                <div class="slider-thumb" style="left: ${this._alpha * 100}%; background: ${currentColor}"></div>
+                <div class="slider-thumb" style=${alphaThumbStyle}></div>
               </div>
             ` : nothing}
           </div>
