@@ -1,5 +1,3 @@
-// Core bundle: foundational, common layout, basic form, and common feedback components.
-
 // Tokens
 export { primitiveTokens, semanticTokens, darkTokens } from './tokens/index.js';
 
@@ -67,6 +65,17 @@ export { AmSwitch } from './components/switch/switch.js';
 
 export { AmRadioGroup, AmRadio } from './components/radio/radio.js';
 
+export { AmSelect, AmOption } from './components/select/select.js';
+export type { SelectSize } from './components/select/select.js';
+
+export { AmSlider } from './components/slider/slider.js';
+
+export { AmSearchField } from './components/search-field/search-field.js';
+export type { SearchFieldSize } from './components/search-field/search-field.js';
+
+export { AmCombobox } from './components/combobox/combobox.js';
+export type { ComboboxSize } from './components/combobox/combobox.js';
+
 export { AmLabel } from './components/label/label.js';
 
 export { AmHintText } from './components/hint-text/hint-text.js';
@@ -78,12 +87,23 @@ export { AmField } from './components/field/field.js';
 export { AmNumberField } from './components/number-field/number-field.js';
 export type { NumberFieldSize } from './components/number-field/number-field.js';
 
+export { AmInputOtp } from './components/input-otp/input-otp.js';
+
+export { AmAutocomplete } from './components/autocomplete/autocomplete.js';
+export type { AutocompleteSize } from './components/autocomplete/autocomplete.js';
+
 // Components — Navigation
 export { AmTabs, AmTab, AmTabPanel } from './components/tabs/tabs.js';
 
 export { AmAccordion, AmAccordionItem } from './components/accordion/accordion.js';
 
 export { AmBreadcrumb, AmBreadcrumbItem } from './components/breadcrumb/breadcrumb.js';
+
+export { AmPagination } from './components/pagination/pagination.js';
+
+export { AmNavBar } from './components/nav-bar/nav-bar.js';
+
+export { AmSideNav, AmSideNavItem } from './components/side-nav/side-nav.js';
 
 // Components — Feedback
 export { AmBadge } from './components/badge/badge.js';
@@ -97,6 +117,9 @@ export type { ProgressVariant, ProgressSize } from './components/progress/progre
 
 export { AmProgressRing } from './components/progress-ring/progress-ring.js';
 export type { ProgressRingVariant, ProgressRingSize } from './components/progress-ring/progress-ring.js';
+
+export { AmToast, AmToastRegion } from './components/toast/toast.js';
+export type { ToastVariant, ToastPlacement } from './components/toast/toast.js';
 
 // Components — Data Display
 export { AmAvatar } from './components/avatar/avatar.js';
@@ -112,9 +135,57 @@ export type { StatusDotVariant, StatusDotSize } from './components/status-dot/st
 
 export { AmList, AmListItem } from './components/list/list.js';
 
+export { AmTable } from './components/table/table.js';
+
 export { AmTag } from './components/tag/tag.js';
 export type { TagVariant, TagSize } from './components/tag/tag.js';
+
+export { AmStat } from './components/stat/stat.js';
+export type { StatTrend } from './components/stat/stat.js';
+
+export { AmTimeline, AmTimelineItem } from './components/timeline/timeline.js';
+export type { TimelineItemVariant } from './components/timeline/timeline.js';
+
+export { AmDataGrid } from './components/data-grid/data-grid.js';
+export type { DataGridColumn, SortDirection } from './components/data-grid/data-grid.js';
 
 // Components — Overlays
 export { AmDialog } from './components/dialog/dialog.js';
 export type { DialogSize } from './components/dialog/dialog.js';
+
+export { AmTooltip } from './components/tooltip/tooltip.js';
+
+export { AmPopover } from './components/popover/popover.js';
+
+export { AmMenu, AmMenuItem, AmMenuDivider } from './components/menu/menu.js';
+
+export { AmDrawer } from './components/drawer/drawer.js';
+export type { DrawerPlacement, DrawerSize } from './components/drawer/drawer.js';
+
+export { AmDropdown } from './components/dropdown/dropdown.js';
+
+export { AmContextMenu } from './components/context-menu/context-menu.js';
+
+export { AmCommandPalette } from './components/command-palette/command-palette.js';
+export type { CommandItem } from './components/command-palette/command-palette.js';
+
+// Components — Advanced
+export { AmCalendar } from './components/calendar/calendar.js';
+export type { CalendarSize } from './components/calendar/calendar.js';
+
+export { AmDatePicker } from './components/date-picker/date-picker.js';
+export type { DatePickerSize } from './components/date-picker/date-picker.js';
+
+export { AmTimePicker } from './components/time-picker/time-picker.js';
+export type { TimePickerSize } from './components/time-picker/time-picker.js';
+
+export { AmTreeView, AmTreeItem } from './components/tree-view/tree-view.js';
+
+export { AmFileUpload } from './components/file-upload/file-upload.js';
+export type { UploadFile } from './components/file-upload/file-upload.js';
+
+export { AmRichSelect } from './components/rich-select/rich-select.js';
+export type { RichSelectSize, RichOption } from './components/rich-select/rich-select.js';
+
+export { AmColorPicker } from './components/color-picker/color-picker.js';
+export type { ColorPickerSize } from './components/color-picker/color-picker.js';

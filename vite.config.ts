@@ -157,17 +157,27 @@ function stripLitCssComments(): Plugin {
   };
 }
 
-export default defineConfig({
-  plugins: [stripLitCssComments()],
-  build: {
-    minify: 'terser',
-    lib: {
-      entry: resolve(__dirname, 'src/index.ts'),
-      formats: ['es'],
-      fileName: 'amris',
+function createLibraryBuild(entry: string, fileName: string, emptyOutDir: boolean) {
+  return {
+    plugins: [stripLitCssComments()],
+    build: {
+      outDir: 'dist',
+      emptyOutDir,
+      minify: 'terser' as const,
+      lib: {
+        entry: resolve(__dirname, entry),
+        formats: ['es' as const],
+        fileName,
+      },
+      rollupOptions: {
+        plugins: [minifyHTML()],
+      },
     },
-    rollupOptions: {
-      plugins: [minifyHTML()],
-    },
-  },
-});
+  };
+}
+
+export default defineConfig(({ mode }) =>
+  mode === 'all'
+    ? createLibraryBuild('src/index.all.ts', 'amris', false)
+    : createLibraryBuild('src/index.ts', 'amris-core', true),
+);

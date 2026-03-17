@@ -3,9 +3,31 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "main": "./dist/amris.js",
+  "module": "./dist/amris.js",
+  "types": "./dist/index.all.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.all.d.ts",
+      "import": "./dist/amris.js"
+    },
+    "./core": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/amris-core.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "sideEffects": [
+    "./dist/amris.js",
+    "./dist/amris-core.js"
+  ],
   "scripts": {
     "dev": "vite --host",
-    "build": "tsc && vite build",
+    "build": "tsc && vite build --mode core && vite build --mode all && tsc -p tsconfig.types.json",
     "preview": "vite preview"
   },
   "dependencies": {
