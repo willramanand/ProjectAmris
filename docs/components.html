@@ -1,0 +1,870 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Component Catalog - Amris</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <script type="module" src="./docs.ts"></script>
+    <style>
+      .catalog-section { margin-bottom: 3rem; }
+    </style>
+  </head>
+  <body>
+    <am-theme-provider id="theme-root" theme="system">
+      <div class="docs-layout">
+        <!-- Sidebar -->
+        <aside class="docs-sidebar">
+          <div class="logo">Amris</div>
+          <nav>
+            <span class="nav-group">Docs</span>
+            <a href="./getting-started.html">Getting Started</a>
+            <a href="./theming.html">Theming</a>
+            <span class="nav-group">Library</span>
+            <a href="./components.html" class="active">Component Catalog</a>
+            <a href="../index.html">Full Demo</a>
+            <span class="nav-group">Components</span>
+            <a href="#foundations">Foundations</a>
+            <a href="#actions">Actions</a>
+            <a href="#form-inputs">Form Inputs</a>
+            <a href="#layout">Layout</a>
+            <a href="#navigation">Navigation</a>
+            <a href="#feedback">Feedback</a>
+            <a href="#data-display">Data Display</a>
+            <a href="#overlays">Overlays</a>
+            <a href="#advanced">Advanced</a>
+          </nav>
+          <div class="docs-theme-toggle">
+            <am-button
+              variant="outlined"
+              size="sm"
+              style="width: 100%"
+              onclick="
+                const tp = document.getElementById('theme-root');
+                const themes = ['system', 'light', 'dark'];
+                const i = (themes.indexOf(tp.theme) + 1) % themes.length;
+                tp.theme = themes[i];
+                this.textContent = 'Theme: ' + themes[i];
+              "
+            >
+              Theme: system
+            </am-button>
+          </div>
+        </aside>
+
+        <!-- Main -->
+        <main class="docs-main">
+          <div class="docs-content">
+            <h1>Component Catalog</h1>
+            <p class="subtitle">
+              Live previews of every Amris component. Toggle the theme to see light and dark mode.
+            </p>
+
+            <!-- ============================================================
+                 FOUNDATIONS
+                 ============================================================ -->
+            <h2 id="foundations">Foundations</h2>
+
+            <div class="catalog-section">
+              <h3>Theme Provider</h3>
+              <p>
+                <code>&lt;am-theme-provider&gt;</code> wraps your app and provides all
+                design tokens. Supports <code>light</code>, <code>dark</code>, and
+                <code>system</code> themes.
+              </p>
+              <pre><code class="language-html">&lt;am-theme-provider theme="system"&gt;
+  &lt;!-- your app --&gt;
+&lt;/am-theme-provider&gt;</code></pre>
+
+              <h3>Surface</h3>
+              <p>
+                <code>&lt;am-surface&gt;</code> — a container with themed background and
+                padding. Variants: <code>default</code>, <code>raised</code>, <code>sunken</code>.
+              </p>
+              <div class="demo-box">
+                <div class="demo-row">
+                  <am-surface style="padding: 1rem; min-width: 100px; text-align: center">Default</am-surface>
+                  <am-surface variant="raised" style="padding: 1rem; min-width: 100px; text-align: center">Raised</am-surface>
+                  <am-surface variant="sunken" style="padding: 1rem; min-width: 100px; text-align: center">Sunken</am-surface>
+                </div>
+              </div>
+
+              <h3>Divider</h3>
+              <p><code>&lt;am-divider&gt;</code> — a horizontal or vertical separator line.</p>
+              <div class="demo-box">
+                <p style="margin: 0 0 0.5rem; font-family: var(--am-font-sans); font-size: 0.875rem; color: var(--am-text-secondary)">Content above</p>
+                <am-divider></am-divider>
+                <p style="margin: 0.5rem 0 0; font-family: var(--am-font-sans); font-size: 0.875rem; color: var(--am-text-secondary)">Content below</p>
+              </div>
+
+              <h3>Spinner</h3>
+              <p><code>&lt;am-spinner&gt;</code> — loading indicator. Sizes: <code>sm</code>, <code>md</code>, <code>lg</code>.</p>
+              <div class="demo-box">
+                <div class="demo-row">
+                  <am-spinner size="sm"></am-spinner>
+                  <am-spinner size="md"></am-spinner>
+                  <am-spinner size="lg"></am-spinner>
+                </div>
+              </div>
+
+              <h3>Icon</h3>
+              <p>
+                <code>&lt;am-icon&gt;</code> — renders an SVG icon with consistent sizing.
+                Use the default slot for inline SVGs, or <code>name</code> + <code>src</code> for a sprite sheet.
+              </p>
+              <div class="demo-box">
+                <div class="demo-row">
+                  <am-icon label="Info" size="sm"><svg viewBox="0 0 256 256" fill="currentColor"><path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm16-40a8,8,0,0,1-8,8,16,16,0,0,1-16-16V128a8,8,0,0,1,0-16,16,16,0,0,1,16,16v40A8,8,0,0,1,144,176ZM112,84a12,12,0,1,1,12,12A12,12,0,0,1,112,84Z"/></svg></am-icon>
+                  <am-icon label="Check" size="md"><svg viewBox="0 0 256 256" fill="currentColor"><path d="M173.66,98.34a8,8,0,0,1,0,11.32l-56,56a8,8,0,0,1-11.32,0l-24-24a8,8,0,0,1,11.32-11.32L112,148.69l50.34-50.35A8,8,0,0,1,173.66,98.34ZM232,128A104,104,0,1,1,128,24,104.11,104.11,0,0,1,232,128Zm-16,0a88,88,0,1,0-88,88A88.1,88.1,0,0,0,216,128Z"/></svg></am-icon>
+                  <am-icon label="Warning" size="lg"><svg viewBox="0 0 256 256" fill="currentColor"><path d="M236.8,188.09,149.35,36.22h0a24.76,24.76,0,0,0-42.7,0L19.2,188.09a23.51,23.51,0,0,0,0,23.72A24.35,24.35,0,0,0,40.55,224h174.9a24.35,24.35,0,0,0,21.33-12.19A23.51,23.51,0,0,0,236.8,188.09ZM222.93,203.8a8.5,8.5,0,0,1-7.48,4.2H40.55a8.5,8.5,0,0,1-7.48-4.2,7.59,7.59,0,0,1,0-7.72L120.52,44.21a8.75,8.75,0,0,1,15,0l87.45,151.87A7.59,7.59,0,0,1,222.93,203.8ZM120,144V104a8,8,0,0,1,16,0v40a8,8,0,0,1-16,0Zm20,36a12,12,0,1,1-12-12A12,12,0,0,1,140,180Z"/></svg></am-icon>
+                </div>
+              </div>
+              <pre><code class="language-html">&lt;am-icon label="Check" size="md"&gt;
+  &lt;svg viewBox="0 0 256 256" fill="currentColor"&gt;...&lt;/svg&gt;
+&lt;/am-icon&gt;</code></pre>
+            </div>
+
+            <!-- ============================================================
+                 ACTIONS
+                 ============================================================ -->
+            <h2 id="actions">Actions</h2>
+            <div class="catalog-section">
+              <h3>Button</h3>
+              <p>
+                <code>&lt;am-button&gt;</code> — primary interactive element.
+                Variants: <code>primary</code>, <code>outlined</code>, <code>ghost</code>,
+                <code>subtle</code>, <code>danger</code>.
+                Sizes: <code>sm</code>, <code>md</code>, <code>lg</code>.
+              </p>
+              <div class="demo-box">
+                <p class="demo-label">Variants</p>
+                <div class="demo-row" style="margin-bottom: 1rem">
+                  <am-button variant="primary">Primary</am-button>
+                  <am-button variant="outlined">Outlined</am-button>
+                  <am-button variant="ghost">Ghost</am-button>
+                  <am-button variant="subtle">Subtle</am-button>
+                  <am-button variant="danger">Danger</am-button>
+                </div>
+                <p class="demo-label">Sizes</p>
+                <div class="demo-row" style="margin-bottom: 1rem">
+                  <am-button variant="primary" size="sm">Small</am-button>
+                  <am-button variant="primary" size="md">Medium</am-button>
+                  <am-button variant="primary" size="lg">Large</am-button>
+                </div>
+                <p class="demo-label">States</p>
+                <div class="demo-row">
+                  <am-button variant="primary" loading>Loading</am-button>
+                  <am-button variant="primary" disabled>Disabled</am-button>
+                </div>
+              </div>
+              <pre><code class="language-html">&lt;am-button variant="primary" size="md"&gt;Save&lt;/am-button&gt;
+&lt;am-button variant="danger"&gt;Delete&lt;/am-button&gt;
+&lt;am-button variant="primary" loading&gt;Saving...&lt;/am-button&gt;</code></pre>
+
+              <h3>Icon Button</h3>
+              <p><code>&lt;am-icon-button&gt;</code> — a button that contains only an icon. Requires <code>label</code> for accessibility.</p>
+              <div class="demo-box">
+                <div class="demo-row">
+                  <am-icon-button label="Settings" variant="subtle">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 10a2 2 0 100-4 2 2 0 000 4z" stroke="currentColor" stroke-width="1.25"/><path d="M13.5 8a5.5 5.5 0 11-11 0 5.5 5.5 0 0111 0z" stroke="currentColor" stroke-width="1.25"/></svg>
+                  </am-icon-button>
+                  <am-icon-button label="Edit" variant="ghost">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M11.5 2.5l2 2-8 8H3.5v-2l8-8z" stroke="currentColor" stroke-width="1.25" stroke-linejoin="round"/></svg>
+                  </am-icon-button>
+                </div>
+              </div>
+
+              <h3>Button Group</h3>
+              <p><code>&lt;am-button-group&gt;</code> — groups related buttons together.</p>
+              <div class="demo-box">
+                <am-button-group>
+                  <am-button variant="outlined">Left</am-button>
+                  <am-button variant="outlined">Center</am-button>
+                  <am-button variant="outlined">Right</am-button>
+                </am-button-group>
+              </div>
+
+              <h3>Link Button</h3>
+              <p><code>&lt;am-link-button&gt;</code> — styled as a button but renders as a link.</p>
+              <div class="demo-box">
+                <div class="demo-row">
+                  <am-link-button href="#" variant="primary">Link Primary</am-link-button>
+                  <am-link-button href="#" variant="ghost">Link Ghost</am-link-button>
+                </div>
+              </div>
+            </div>
+
+            <!-- ============================================================
+                 FORM INPUTS
+                 ============================================================ -->
+            <h2 id="form-inputs">Form Inputs</h2>
+            <div class="catalog-section">
+              <h3>Input</h3>
+              <p>
+                <code>&lt;am-input&gt;</code> — text input with floating label.
+                Supports <code>type</code>, <code>clearable</code>, <code>invalid</code>,
+                <code>readonly</code>, prefix/suffix slots.
+              </p>
+              <div class="demo-box">
+                <div class="demo-stack">
+                  <am-input label="Email address" type="email"></am-input>
+                  <am-input label="Search" clearable value="Query text"></am-input>
+                  <am-input label="Disabled" disabled value="Cannot edit"></am-input>
+                  <am-input label="Invalid" invalid value="bad@"></am-input>
+                </div>
+              </div>
+
+              <h3>Textarea</h3>
+              <p><code>&lt;am-textarea&gt;</code> — multi-line text input with floating label.</p>
+              <div class="demo-box">
+                <am-textarea label="Description" rows="3"></am-textarea>
+              </div>
+
+              <h3>Select</h3>
+              <p><code>&lt;am-select&gt;</code> with <code>&lt;am-option&gt;</code> children.</p>
+              <div class="demo-box">
+                <am-select label="Fruit" style="min-width: 200px">
+                  <am-option value="apple">Apple</am-option>
+                  <am-option value="banana">Banana</am-option>
+                  <am-option value="cherry">Cherry</am-option>
+                </am-select>
+              </div>
+
+              <h3>Checkbox</h3>
+              <p><code>&lt;am-checkbox&gt;</code> — boolean toggle with label.</p>
+              <div class="demo-box">
+                <div class="demo-stack">
+                  <am-checkbox>Accept terms and conditions</am-checkbox>
+                  <am-checkbox checked>Email notifications</am-checkbox>
+                  <am-checkbox disabled>Disabled option</am-checkbox>
+                </div>
+              </div>
+
+              <h3>Switch</h3>
+              <p><code>&lt;am-switch&gt;</code> — toggle switch for on/off states.</p>
+              <div class="demo-box">
+                <div class="demo-row">
+                  <am-switch>Wi-Fi</am-switch>
+                  <am-switch checked>Bluetooth</am-switch>
+                  <am-switch disabled>Disabled</am-switch>
+                </div>
+              </div>
+
+              <h3>Radio Group</h3>
+              <p><code>&lt;am-radio-group&gt;</code> with <code>&lt;am-radio&gt;</code> children.</p>
+              <div class="demo-box">
+                <am-radio-group label="Plan" value="pro">
+                  <am-radio value="free">Free</am-radio>
+                  <am-radio value="pro">Pro</am-radio>
+                  <am-radio value="enterprise">Enterprise</am-radio>
+                </am-radio-group>
+              </div>
+
+              <h3>Slider</h3>
+              <p><code>&lt;am-slider&gt;</code> — range input.</p>
+              <div class="demo-box">
+                <am-slider min="0" max="100" value="40" label="Volume"></am-slider>
+              </div>
+
+              <h3>Number Field</h3>
+              <p><code>&lt;am-number-field&gt;</code> — numeric input with increment/decrement buttons.</p>
+              <div class="demo-box">
+                <am-number-field label="Quantity" value="1" min="0" max="99"></am-number-field>
+              </div>
+
+              <h3>Search Field</h3>
+              <p><code>&lt;am-search-field&gt;</code> — search input with built-in icon and clear.</p>
+              <div class="demo-box">
+                <am-search-field label="Search" style="max-width: 300px"></am-search-field>
+              </div>
+
+              <h3>Combobox</h3>
+              <p><code>&lt;am-combobox&gt;</code> — searchable dropdown.</p>
+              <div class="demo-box">
+                <am-combobox label="Country" style="min-width: 200px">
+                  <am-option value="us">United States</am-option>
+                  <am-option value="uk">United Kingdom</am-option>
+                  <am-option value="ca">Canada</am-option>
+                  <am-option value="au">Australia</am-option>
+                </am-combobox>
+              </div>
+
+              <h3>Input OTP</h3>
+              <p><code>&lt;am-input-otp&gt;</code> — one-time password input with segmented fields.</p>
+              <div class="demo-box">
+                <am-input-otp length="6"></am-input-otp>
+              </div>
+
+              <h3>Field, Label, Hint Text, Error Text</h3>
+              <p>Compose form layouts with <code>&lt;am-field&gt;</code>, <code>&lt;am-label&gt;</code>,
+                <code>&lt;am-hint-text&gt;</code>, and <code>&lt;am-error-text&gt;</code>.</p>
+              <div class="demo-box">
+                <am-field>
+                  <am-label>Full Name</am-label>
+                  <am-input label="Full Name"></am-input>
+                  <am-hint-text>As it appears on your ID.</am-hint-text>
+                </am-field>
+              </div>
+            </div>
+
+            <!-- ============================================================
+                 LAYOUT
+                 ============================================================ -->
+            <h2 id="layout">Layout</h2>
+            <div class="catalog-section">
+              <h3>Card</h3>
+              <p><code>&lt;am-card&gt;</code> — a bordered, elevated container for grouped content.</p>
+              <div class="demo-box">
+                <am-card style="max-width: 320px">
+                  <h4 style="margin: 0 0 0.5rem; font-family: var(--am-font-sans); color: var(--am-text)">Card Title</h4>
+                  <p style="margin: 0; font-family: var(--am-font-sans); font-size: 0.875rem; color: var(--am-text-secondary)">
+                    Cards group related content and actions together.
+                  </p>
+                </am-card>
+              </div>
+
+              <h3>Stack</h3>
+              <p><code>&lt;am-stack&gt;</code> — flexible vertical or horizontal layout with spacing.</p>
+              <div class="demo-box">
+                <am-stack direction="horizontal" gap="3">
+                  <am-badge variant="primary">One</am-badge>
+                  <am-badge variant="success">Two</am-badge>
+                  <am-badge variant="info">Three</am-badge>
+                </am-stack>
+              </div>
+
+              <h3>Grid</h3>
+              <p><code>&lt;am-grid&gt;</code> — CSS grid wrapper with responsive columns.</p>
+              <pre><code class="language-html">&lt;am-grid columns="3" gap="4"&gt;
+  &lt;am-card&gt;...&lt;/am-card&gt;
+  &lt;am-card&gt;...&lt;/am-card&gt;
+  &lt;am-card&gt;...&lt;/am-card&gt;
+&lt;/am-grid&gt;</code></pre>
+
+              <h3>Panel</h3>
+              <p><code>&lt;am-panel&gt;</code> — a container with optional header and padding.</p>
+
+              <h3>Split View</h3>
+              <p><code>&lt;am-split-view&gt;</code> — resizable two-pane layout.</p>
+
+              <h3>App Shell</h3>
+              <p><code>&lt;am-app-shell&gt;</code> — full-page layout with header, sidebar, and main content slots.</p>
+            </div>
+
+            <!-- ============================================================
+                 NAVIGATION
+                 ============================================================ -->
+            <h2 id="navigation">Navigation</h2>
+            <div class="catalog-section">
+              <h3>Tabs</h3>
+              <p>
+                <code>&lt;am-tabs&gt;</code> with <code>&lt;am-tab&gt;</code> and
+                <code>&lt;am-tab-panel&gt;</code>. Variants: <code>underline</code>,
+                <code>pill</code>, <code>enclosed</code>.
+              </p>
+              <div class="demo-box">
+                <am-tabs>
+                  <am-tab slot="nav" panel="overview">Overview</am-tab>
+                  <am-tab slot="nav" panel="settings">Settings</am-tab>
+                  <am-tab slot="nav" panel="activity">Activity</am-tab>
+                  <am-tab-panel name="overview">Overview content goes here.</am-tab-panel>
+                  <am-tab-panel name="settings">Settings content goes here.</am-tab-panel>
+                  <am-tab-panel name="activity">Activity content goes here.</am-tab-panel>
+                </am-tabs>
+              </div>
+
+              <h3>Accordion</h3>
+              <p><code>&lt;am-accordion&gt;</code> with <code>&lt;am-accordion-item&gt;</code>.</p>
+              <div class="demo-box">
+                <am-accordion>
+                  <am-accordion-item open>
+                    <span slot="header">What is Amris?</span>
+                    A framework-agnostic web component library built with Lit.
+                  </am-accordion-item>
+                  <am-accordion-item>
+                    <span slot="header">How do I install it?</span>
+                    Run <code>npm install amris</code> and wrap your app in a theme provider.
+                  </am-accordion-item>
+                  <am-accordion-item>
+                    <span slot="header">Is it accessible?</span>
+                    Yes. All components follow WAI-ARIA patterns with keyboard support.
+                  </am-accordion-item>
+                </am-accordion>
+              </div>
+
+              <h3>Breadcrumb</h3>
+              <p><code>&lt;am-breadcrumb&gt;</code> with <code>&lt;am-breadcrumb-item&gt;</code>.</p>
+              <div class="demo-box">
+                <am-breadcrumb>
+                  <am-breadcrumb-item href="#">Home</am-breadcrumb-item>
+                  <am-breadcrumb-item href="#">Products</am-breadcrumb-item>
+                  <am-breadcrumb-item>Widget</am-breadcrumb-item>
+                </am-breadcrumb>
+              </div>
+
+              <h3>Pagination</h3>
+              <p><code>&lt;am-pagination&gt;</code> — page navigation with numbered or simple modes.</p>
+              <div class="demo-box">
+                <am-pagination total="50" current="3"></am-pagination>
+              </div>
+
+              <h3>Nav Bar</h3>
+              <p><code>&lt;am-nav-bar&gt;</code> — a horizontal navigation bar.</p>
+
+              <h3>Side Nav</h3>
+              <p><code>&lt;am-side-nav&gt;</code> with <code>&lt;am-side-nav-item&gt;</code> — vertical sidebar navigation.</p>
+            </div>
+
+            <!-- ============================================================
+                 FEEDBACK
+                 ============================================================ -->
+            <h2 id="feedback">Feedback</h2>
+            <div class="catalog-section">
+              <h3>Badge</h3>
+              <p>
+                <code>&lt;am-badge&gt;</code> — status label. Variants: <code>neutral</code>,
+                <code>primary</code>, <code>secondary</code>, <code>success</code>,
+                <code>warning</code>, <code>danger</code>, <code>info</code>.
+              </p>
+              <div class="demo-box">
+                <div class="demo-row">
+                  <am-badge variant="neutral">Neutral</am-badge>
+                  <am-badge variant="primary">Primary</am-badge>
+                  <am-badge variant="secondary">Secondary</am-badge>
+                  <am-badge variant="success">Success</am-badge>
+                  <am-badge variant="warning">Warning</am-badge>
+                  <am-badge variant="danger">Danger</am-badge>
+                  <am-badge variant="info">Info</am-badge>
+                </div>
+                <div class="demo-row" style="margin-top: 0.75rem">
+                  <am-badge variant="primary" removable>Removable</am-badge>
+                  <am-badge variant="success" size="sm">Small</am-badge>
+                  <am-badge variant="info" size="lg">Large</am-badge>
+                </div>
+              </div>
+
+              <h3>Alert</h3>
+              <p>
+                <code>&lt;am-alert&gt;</code> — prominent message. Variants:
+                <code>info</code>, <code>success</code>, <code>warning</code>, <code>danger</code>.
+              </p>
+              <div class="demo-box">
+                <div class="demo-stack">
+                  <am-alert variant="info">This is an informational message.</am-alert>
+                  <am-alert variant="success">Operation completed successfully.</am-alert>
+                  <am-alert variant="warning">Proceed with caution.</am-alert>
+                  <am-alert variant="danger">Something went wrong.</am-alert>
+                </div>
+              </div>
+
+              <h3>Toast</h3>
+              <p>
+                <code>&lt;am-toast&gt;</code> — auto-dismissing notification.
+                Use <code>AmToastRegion.show()</code> to create programmatically.
+              </p>
+              <div class="demo-box">
+                <div class="demo-row">
+                  <am-button variant="primary" onclick="
+                    customElements.get('am-toast-region').show({ message: 'Changes saved!', variant: 'success', duration: 3000 });
+                  ">Show Success Toast</am-button>
+                  <am-button variant="outlined" onclick="
+                    customElements.get('am-toast-region').show({ message: 'Something went wrong.', variant: 'danger', duration: 3000 });
+                  ">Show Danger Toast</am-button>
+                </div>
+              </div>
+              <pre><code class="language-javascript">// Programmatic usage
+AmToastRegion.show({
+  message: 'Changes saved!',
+  variant: 'success',
+  duration: 3000
+});</code></pre>
+
+              <h3>Progress</h3>
+              <p><code>&lt;am-progress&gt;</code> — linear progress bar.</p>
+              <div class="demo-box">
+                <div class="demo-stack">
+                  <am-progress value="65" max="100"></am-progress>
+                  <am-progress value="30" max="100" variant="success"></am-progress>
+                </div>
+              </div>
+
+              <h3>Progress Ring</h3>
+              <p><code>&lt;am-progress-ring&gt;</code> — circular progress indicator.</p>
+              <div class="demo-box">
+                <div class="demo-row">
+                  <am-progress-ring value="75" size="sm"></am-progress-ring>
+                  <am-progress-ring value="45" size="md"></am-progress-ring>
+                  <am-progress-ring value="90" size="lg" variant="success"></am-progress-ring>
+                </div>
+              </div>
+
+              <h3>Status Dot</h3>
+              <p><code>&lt;am-status-dot&gt;</code> — small colored indicator.</p>
+              <div class="demo-box">
+                <div class="demo-row">
+                  <am-status-dot variant="success"></am-status-dot>
+                  <am-status-dot variant="warning"></am-status-dot>
+                  <am-status-dot variant="danger"></am-status-dot>
+                  <am-status-dot variant="info"></am-status-dot>
+                </div>
+              </div>
+
+              <h3>Skeleton</h3>
+              <p><code>&lt;am-skeleton&gt;</code> — placeholder loading shape.</p>
+              <div class="demo-box">
+                <div class="demo-stack">
+                  <am-skeleton variant="text" style="width: 200px"></am-skeleton>
+                  <am-skeleton variant="text" style="width: 160px"></am-skeleton>
+                  <am-skeleton variant="circle" style="width: 40px; height: 40px"></am-skeleton>
+                </div>
+              </div>
+            </div>
+
+            <!-- ============================================================
+                 DATA DISPLAY
+                 ============================================================ -->
+            <h2 id="data-display">Data Display</h2>
+            <div class="catalog-section">
+              <h3>Avatar</h3>
+              <p><code>&lt;am-avatar&gt;</code> — user photo or initials. Shapes: <code>circle</code>, <code>square</code>.</p>
+              <div class="demo-box">
+                <div class="demo-row">
+                  <am-avatar initials="AB" size="sm"></am-avatar>
+                  <am-avatar initials="CD" size="md"></am-avatar>
+                  <am-avatar initials="EF" size="lg"></am-avatar>
+                  <am-avatar initials="GH" size="md" shape="square"></am-avatar>
+                </div>
+              </div>
+
+              <h3>Stat</h3>
+              <p><code>&lt;am-stat&gt;</code> — display a metric with label and trend.</p>
+              <div class="demo-box">
+                <div class="demo-row">
+                  <am-stat label="Revenue" value="$12,345" trend="up" change="+12%"></am-stat>
+                  <am-stat label="Users" value="1,024" trend="down" change="-3%"></am-stat>
+                </div>
+              </div>
+
+              <h3>Empty State</h3>
+              <p><code>&lt;am-empty-state&gt;</code> — placeholder for empty content areas.</p>
+              <div class="demo-box">
+                <am-empty-state>
+                  <span slot="title">No results found</span>
+                  <span slot="description">Try adjusting your search or filters.</span>
+                </am-empty-state>
+              </div>
+
+              <h3>Timeline</h3>
+              <p><code>&lt;am-timeline&gt;</code> with <code>&lt;am-timeline-item&gt;</code>.</p>
+              <div class="demo-box">
+                <am-timeline>
+                  <am-timeline-item variant="success">
+                    <span slot="label">Deployed</span>
+                    Production release v2.1.0
+                  </am-timeline-item>
+                  <am-timeline-item variant="info">
+                    <span slot="label">Review</span>
+                    Code review completed
+                  </am-timeline-item>
+                  <am-timeline-item>
+                    <span slot="label">Created</span>
+                    Pull request opened
+                  </am-timeline-item>
+                </am-timeline>
+              </div>
+
+              <h3>Table</h3>
+              <p><code>&lt;am-table&gt;</code> — styled table wrapper. Supports <code>striped</code>, <code>hoverable</code>, <code>compact</code>, and <code>bordered</code>.</p>
+              <div class="demo-box">
+                <am-table striped hoverable>
+                  <table>
+                    <thead>
+                      <tr><th>Name</th><th>Role</th><th>Status</th></tr>
+                    </thead>
+                    <tbody>
+                      <tr><td>Alice</td><td>Engineer</td><td>Active</td></tr>
+                      <tr><td>Bob</td><td>Designer</td><td>Active</td></tr>
+                      <tr><td>Carol</td><td>Product Manager</td><td>Away</td></tr>
+                      <tr><td>Dave</td><td>Marketing</td><td>Offline</td></tr>
+                    </tbody>
+                  </table>
+                </am-table>
+              </div>
+
+              <h3>List</h3>
+              <p><code>&lt;am-list&gt;</code> with <code>&lt;am-list-item&gt;</code> — styled list with prefix/suffix slots for rich content.</p>
+              <div class="demo-box">
+                <am-list dividers>
+                  <am-list-item interactive>
+                    <am-avatar slot="prefix" initials="AL" size="sm"></am-avatar>
+                    Alice
+                    <span slot="description">alice@example.com</span>
+                    <am-badge slot="suffix" variant="success" size="sm">Active</am-badge>
+                  </am-list-item>
+                  <am-list-item interactive>
+                    <am-avatar slot="prefix" initials="BO" size="sm"></am-avatar>
+                    Bob
+                    <span slot="description">bob@example.com</span>
+                    <am-badge slot="suffix" variant="warning" size="sm">Away</am-badge>
+                  </am-list-item>
+                  <am-list-item interactive disabled>
+                    <am-avatar slot="prefix" initials="CA" size="sm"></am-avatar>
+                    Carol
+                    <span slot="description">carol@example.com</span>
+                    <am-badge slot="suffix" variant="neutral" size="sm">Offline</am-badge>
+                  </am-list-item>
+                </am-list>
+              </div>
+
+              <h3>Data Grid</h3>
+              <p><code>&lt;am-data-grid&gt;</code> — sortable, scrollable data table. Set <code>columns</code> and <code>rows</code> via JavaScript.</p>
+              <div class="demo-box">
+                <am-data-grid id="demo-data-grid" striped hoverable></am-data-grid>
+              </div>
+              <script type="module">
+                const grid = document.getElementById('demo-data-grid');
+                if (grid) {
+                  grid.columns = [
+                    { key: 'name', label: 'Name', sortable: true },
+                    { key: 'email', label: 'Email' },
+                    { key: 'role', label: 'Role', sortable: true },
+                    { key: 'status', label: 'Status' },
+                  ];
+                  grid.rows = [
+                    { name: 'Alice', email: 'alice@example.com', role: 'Engineer', status: 'Active' },
+                    { name: 'Bob', email: 'bob@example.com', role: 'Designer', status: 'Active' },
+                    { name: 'Carol', email: 'carol@example.com', role: 'Product', status: 'Away' },
+                    { name: 'Dave', email: 'dave@example.com', role: 'Marketing', status: 'Offline' },
+                    { name: 'Eve', email: 'eve@example.com', role: 'Engineer', status: 'Active' },
+                  ];
+                }
+              </script>
+            </div>
+
+            <!-- ============================================================
+                 OVERLAYS
+                 ============================================================ -->
+            <h2 id="overlays">Overlays</h2>
+            <div class="catalog-section">
+              <h3>Dialog</h3>
+              <p>
+                <code>&lt;am-dialog&gt;</code> — modal dialog with focus trapping.
+                Sizes: <code>sm</code>, <code>md</code>, <code>lg</code>, <code>xl</code>.
+              </p>
+              <div class="demo-box">
+                <am-button variant="primary" onclick="this.nextElementSibling.open = true">Open Dialog</am-button>
+                <am-dialog label="Confirm Action" size="sm">
+                  <p style="margin: 0; font-family: var(--am-font-sans); font-size: 0.875rem; color: var(--am-text-secondary)">
+                    Are you sure you want to proceed? This action cannot be undone.
+                  </p>
+                  <div slot="footer" style="display: flex; gap: 0.5rem; justify-content: flex-end">
+                    <am-button variant="ghost" onclick="this.closest('am-dialog').open = false">Cancel</am-button>
+                    <am-button variant="primary" onclick="this.closest('am-dialog').open = false">Confirm</am-button>
+                  </div>
+                </am-dialog>
+              </div>
+
+              <h3>Drawer</h3>
+              <p>
+                <code>&lt;am-drawer&gt;</code> — slide-out panel.
+                Placement: <code>start</code>, <code>end</code>, <code>top</code>, <code>bottom</code>.
+              </p>
+              <div class="demo-box">
+                <div class="demo-row">
+                  <am-button variant="outlined" onclick="this.parentElement.querySelector('#demo-drawer').open = true">Open Drawer</am-button>
+                  <am-drawer id="demo-drawer" label="Settings" placement="end" size="sm">
+                    <p style="font-family: var(--am-font-sans); font-size: 0.875rem; color: var(--am-text-secondary); margin: 0">
+                      Drawer content goes here. It slides in from the edge of the screen.
+                    </p>
+                    <div slot="footer">
+                      <am-button variant="primary" onclick="this.closest('am-drawer').open = false">Done</am-button>
+                    </div>
+                  </am-drawer>
+                </div>
+              </div>
+
+              <h3>Tooltip</h3>
+              <p><code>&lt;am-tooltip&gt;</code> — hover/focus tooltip anchored to a trigger element.</p>
+              <div class="demo-box">
+                <am-tooltip content="This is a tooltip">
+                  <am-button variant="outlined">Hover me</am-button>
+                </am-tooltip>
+              </div>
+
+              <h3>Popover</h3>
+              <p><code>&lt;am-popover&gt;</code> — click-triggered floating content panel. Supports <code>placement</code>, <code>arrow</code>, and <code>trigger</code> modes.</p>
+              <div class="demo-box">
+                <div class="demo-row">
+                  <am-popover>
+                    <am-button variant="outlined">Click me</am-button>
+                    <div slot="content" style="padding: 0.75rem; font-family: var(--am-font-sans); font-size: 0.875rem; color: var(--am-text-secondary); max-width: 200px">
+                      This is popover content. It floats next to the trigger.
+                    </div>
+                  </am-popover>
+                </div>
+              </div>
+
+              <h3>Dropdown</h3>
+              <p><code>&lt;am-dropdown&gt;</code> — a trigger + floating panel combo, typically paired with <code>&lt;am-menu&gt;</code>.</p>
+              <div class="demo-box">
+                <div class="demo-row">
+                  <am-dropdown>
+                    <am-button variant="outlined">Options</am-button>
+                    <am-menu slot="content">
+                      <am-menu-item>Edit</am-menu-item>
+                      <am-menu-item>Duplicate</am-menu-item>
+                      <am-menu-divider></am-menu-divider>
+                      <am-menu-item destructive>Delete</am-menu-item>
+                    </am-menu>
+                  </am-dropdown>
+                </div>
+              </div>
+
+              <h3>Menu</h3>
+              <p><code>&lt;am-menu&gt;</code> with <code>&lt;am-menu-item&gt;</code> — keyboard-navigable action menu. Items support <code>prefix</code>/<code>suffix</code> slots, <code>selected</code>, and <code>destructive</code>.</p>
+              <div class="demo-box">
+                <am-dropdown>
+                  <am-button variant="outlined">File menu</am-button>
+                  <am-menu slot="content">
+                    <am-menu-item><span slot="suffix" style="font-size: 0.75rem; color: var(--am-text-tertiary)">Ctrl+N</span>New File</am-menu-item>
+                    <am-menu-item><span slot="suffix" style="font-size: 0.75rem; color: var(--am-text-tertiary)">Ctrl+O</span>Open</am-menu-item>
+                    <am-menu-item><span slot="suffix" style="font-size: 0.75rem; color: var(--am-text-tertiary)">Ctrl+S</span>Save</am-menu-item>
+                    <am-menu-divider></am-menu-divider>
+                    <am-menu-item disabled>Export PDF</am-menu-item>
+                    <am-menu-divider></am-menu-divider>
+                    <am-menu-item destructive>Delete Project</am-menu-item>
+                  </am-menu>
+                </am-dropdown>
+              </div>
+
+              <h3>Context Menu</h3>
+              <p><code>&lt;am-context-menu&gt;</code> — right-click to open a menu at the cursor position.</p>
+              <div class="demo-box">
+                <am-context-menu>
+                  <div style="padding: 2rem; border: 1px dashed var(--am-border-strong); border-radius: 0.5rem; text-align: center; font-family: var(--am-font-sans); font-size: 0.875rem; color: var(--am-text-tertiary)">
+                    Right-click in this area
+                  </div>
+                  <am-menu slot="menu">
+                    <am-menu-item>Cut</am-menu-item>
+                    <am-menu-item>Copy</am-menu-item>
+                    <am-menu-item>Paste</am-menu-item>
+                    <am-menu-divider></am-menu-divider>
+                    <am-menu-item>Select All</am-menu-item>
+                  </am-menu>
+                </am-context-menu>
+              </div>
+
+              <h3>Command Palette</h3>
+              <p><code>&lt;am-command-palette&gt;</code> — searchable command launcher (Cmd+K / Ctrl+K). Set <code>commands</code> via JavaScript.</p>
+              <div class="demo-box">
+                <div class="demo-row">
+                  <am-button variant="outlined" onclick="document.getElementById('demo-cmd').open = true">Open Command Palette</am-button>
+                  <am-command-palette id="demo-cmd"></am-command-palette>
+                </div>
+              </div>
+              <script type="module">
+                const cp = document.getElementById('demo-cmd');
+                if (cp) {
+                  cp.commands = [
+                    { id: 'new', label: 'New File', group: 'File', shortcut: 'Ctrl+N' },
+                    { id: 'open', label: 'Open File', group: 'File', shortcut: 'Ctrl+O' },
+                    { id: 'save', label: 'Save', group: 'File', shortcut: 'Ctrl+S' },
+                    { id: 'theme', label: 'Toggle Theme', group: 'View' },
+                    { id: 'search', label: 'Search', group: 'Edit', shortcut: 'Ctrl+F' },
+                    { id: 'replace', label: 'Find and Replace', group: 'Edit', shortcut: 'Ctrl+H' },
+                  ];
+                }
+              </script>
+            </div>
+
+            <!-- ============================================================
+                 ADVANCED
+                 ============================================================ -->
+            <h2 id="advanced">Advanced</h2>
+            <div class="catalog-section">
+              <h3>Calendar</h3>
+              <p><code>&lt;am-calendar&gt;</code> — standalone calendar picker.</p>
+              <div class="demo-box">
+                <am-calendar></am-calendar>
+              </div>
+
+              <h3>Date Picker</h3>
+              <p><code>&lt;am-date-picker&gt;</code> — input with calendar dropdown.</p>
+              <div class="demo-box">
+                <am-date-picker label="Start date"></am-date-picker>
+              </div>
+
+              <h3>Time Picker</h3>
+              <p><code>&lt;am-time-picker&gt;</code> — time input with dropdown.</p>
+              <div class="demo-box">
+                <am-time-picker label="Meeting time"></am-time-picker>
+              </div>
+
+              <h3>Tree View</h3>
+              <p><code>&lt;am-tree-view&gt;</code> with <code>&lt;am-tree-item&gt;</code> — hierarchical navigation.</p>
+              <div class="demo-box">
+                <am-tree-view>
+                  <am-tree-item label="src">
+                    <am-tree-item label="index.ts"></am-tree-item>
+                    <am-tree-item label="components">
+                      <am-tree-item label="button.ts"></am-tree-item>
+                      <am-tree-item label="input.ts"></am-tree-item>
+                    </am-tree-item>
+                  </am-tree-item>
+                  <am-tree-item label="package.json"></am-tree-item>
+                </am-tree-view>
+              </div>
+
+              <h3>File Upload</h3>
+              <p><code>&lt;am-file-upload&gt;</code> — drag-and-drop file upload zone.</p>
+              <div class="demo-box">
+                <am-file-upload label="Upload files" accept="image/*"></am-file-upload>
+              </div>
+
+              <h3>Color Picker</h3>
+              <p><code>&lt;am-color-picker&gt;</code> — visual color selection.</p>
+              <div class="demo-box">
+                <am-color-picker label="Accent color" value="#8525f5"></am-color-picker>
+              </div>
+
+              <h3>Rich Select</h3>
+              <p><code>&lt;am-rich-select&gt;</code> — select with rich option rendering including descriptions and icons. Set <code>options</code> via JavaScript.</p>
+              <div class="demo-box">
+                <am-rich-select id="demo-rich-select" label="Assignee" style="min-width: 240px"></am-rich-select>
+              </div>
+              <script type="module">
+                const rs = document.getElementById('demo-rich-select');
+                if (rs) {
+                  rs.options = [
+                    { value: 'alice', label: 'Alice', description: 'Engineering' },
+                    { value: 'bob', label: 'Bob', description: 'Design' },
+                    { value: 'carol', label: 'Carol', description: 'Product' },
+                    { value: 'dave', label: 'Dave', description: 'Marketing' },
+                  ];
+                }
+              </script>
+
+              <h3>Autocomplete</h3>
+              <p><code>&lt;am-autocomplete&gt;</code> — input with async suggestion list. Listen for <code>am-search</code> and set <code>results</code>.</p>
+              <div class="demo-box">
+                <am-autocomplete id="demo-autocomplete" label="Search fruits" placeholder="Try typing apple..." style="min-width: 240px"></am-autocomplete>
+              </div>
+              <script type="module">
+                const ac = document.getElementById('demo-autocomplete');
+                if (ac) {
+                  const fruits = ['Apple', 'Apricot', 'Avocado', 'Banana', 'Blueberry', 'Cherry', 'Date', 'Fig', 'Grape', 'Kiwi', 'Lemon', 'Mango', 'Orange', 'Peach', 'Pear', 'Plum', 'Raspberry', 'Strawberry'];
+                  ac.addEventListener('am-search', (e) => {
+                    const q = e.detail.query.toLowerCase();
+                    ac.results = fruits.filter(f => f.toLowerCase().includes(q));
+                  });
+                }
+              </script>
+            </div>
+
+          </div>
+        </main>
+      </div>
+    </am-theme-provider>
+  </body>
+</html>

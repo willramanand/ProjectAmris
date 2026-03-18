@@ -102,6 +102,7 @@ export class AmBadge extends LitElement {
   private _handleRemove() {
     if (this.disabled) return;
     this.dispatchEvent(new CustomEvent('am-remove', { bubbles: true, composed: true }));
+    this.remove();
   }
 
   render() {

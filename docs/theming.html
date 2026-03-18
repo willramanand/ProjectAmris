@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Theming - Amris</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <script type="module" src="./docs.ts"></script>
+  </head>
+  <body>
+    <am-theme-provider id="theme-root" theme="system">
+      <div class="docs-layout">
+        <!-- Sidebar -->
+        <aside class="docs-sidebar">
+          <div class="logo">Amris</div>
+          <nav>
+            <span class="nav-group">Docs</span>
+            <a href="./getting-started.html">Getting Started</a>
+            <a href="./theming.html" class="active">Theming</a>
+            <span class="nav-group">Library</span>
+            <a href="./components.html">Component Catalog</a>
+            <a href="../index.html">Full Demo</a>
+          </nav>
+          <div class="docs-theme-toggle">
+            <am-button
+              variant="outlined"
+              size="sm"
+              style="width: 100%"
+              onclick="
+                const tp = document.getElementById('theme-root');
+                const themes = ['system', 'light', 'dark'];
+                const i = (themes.indexOf(tp.theme) + 1) % themes.length;
+                tp.theme = themes[i];
+                this.textContent = 'Theme: ' + themes[i];
+              "
+            >
+              Theme: system
+            </am-button>
+          </div>
+        </aside>
+
+        <!-- Main -->
+        <main class="docs-main">
+          <div class="docs-content">
+            <h1>Theming</h1>
+            <p class="subtitle">
+              Customize colors, typography, spacing, and more using CSS custom properties.
+            </p>
+
+            <h2>How Theming Works</h2>
+            <p>
+              Amris uses a three-layer token architecture. Each layer builds on the one below it:
+            </p>
+            <ol>
+              <li><strong>Primitive tokens</strong> — raw values (hex colors, rem sizes, pixel values). These never change between themes.</li>
+              <li><strong>Semantic tokens</strong> — meaningful names (<code>--am-text</code>, <code>--am-primary</code>) that map to primitives. Light theme is the default.</li>
+              <li><strong>Dark overrides</strong> — the dark theme remaps semantic tokens to different primitives (e.g., <code>--am-text</code> changes from near-black to near-white).</li>
+            </ol>
+            <p>
+              Components only reference semantic tokens, so switching themes is automatic.
+              You can also override any token at any level to create your own brand theme.
+            </p>
+
+            <h2>Light and Dark Mode</h2>
+            <p>Set the theme on <code>&lt;am-theme-provider&gt;</code>:</p>
+            <pre><code class="language-html">&lt;!-- Follow OS preference --&gt;
+&lt;am-theme-provider theme="system"&gt;...&lt;/am-theme-provider&gt;
+
+&lt;!-- Force light --&gt;
+&lt;am-theme-provider theme="light"&gt;...&lt;/am-theme-provider&gt;
+
+&lt;!-- Force dark --&gt;
+&lt;am-theme-provider theme="dark"&gt;...&lt;/am-theme-provider&gt;</code></pre>
+
+            <p>Toggle dynamically with JavaScript:</p>
+            <pre><code class="language-javascript">const provider = document.querySelector('am-theme-provider');
+provider.theme = 'dark';  // 'light' | 'dark' | 'system'</code></pre>
+
+            <div class="demo-box">
+              <div class="demo-row">
+                <am-button variant="primary" onclick="document.getElementById('theme-root').theme = 'light'">Light</am-button>
+                <am-button variant="primary" onclick="document.getElementById('theme-root').theme = 'dark'">Dark</am-button>
+                <am-button variant="outlined" onclick="document.getElementById('theme-root').theme = 'system'">System</am-button>
+              </div>
+            </div>
+
+            <h2>Customizing the Brand Palette</h2>
+            <p>
+              Override the primary color scale to change the brand identity across all components.
+              Set these on the theme provider or any ancestor element:
+            </p>
+            <pre><code class="language-html">&lt;am-theme-provider style="
+  --am-color-primary-50:  #eff6ff;
+  --am-color-primary-100: #dbeafe;
+  --am-color-primary-200: #bfdbfe;
+  --am-color-primary-300: #93c5fd;
+  --am-color-primary-400: #60a5fa;
+  --am-color-primary-500: #3b82f6;
+  --am-color-primary-600: #2563eb;
+  --am-color-primary-700: #1d4ed8;
+  --am-color-primary-800: #1e40af;
+  --am-color-primary-900: #1e3a8a;
+  --am-color-primary-950: #172554;
+"&gt;
+  &lt;!-- All components now use blue as the primary color --&gt;
+&lt;/am-theme-provider&gt;</code></pre>
+
+            <div class="demo-box">
+              <p class="demo-label">Default primary (violet)</p>
+              <div class="demo-row" style="margin-bottom: 1rem">
+                <am-button variant="primary">Primary</am-button>
+                <am-badge variant="primary">Badge</am-badge>
+                <am-switch checked></am-switch>
+              </div>
+              <p class="demo-label">Custom primary (blue override)</p>
+              <am-theme-provider style="
+                --am-color-primary-50:  #eff6ff;
+                --am-color-primary-100: #dbeafe;
+                --am-color-primary-200: #bfdbfe;
+                --am-color-primary-300: #93c5fd;
+                --am-color-primary-400: #60a5fa;
+                --am-color-primary-500: #3b82f6;
+                --am-color-primary-600: #2563eb;
+                --am-color-primary-700: #1d4ed8;
+                --am-color-primary-800: #1e40af;
+                --am-color-primary-900: #1e3a8a;
+                --am-color-primary-950: #172554;
+              ">
+                <div class="demo-row">
+                  <am-button variant="primary">Primary</am-button>
+                  <am-badge variant="primary">Badge</am-badge>
+                  <am-switch checked></am-switch>
+                </div>
+              </am-theme-provider>
+            </div>
+
+            <p>
+              The same approach works for the secondary, success, warning, danger,
+              and info palettes — just override <code>--am-color-{role}-{step}</code>.
+            </p>
+
+            <h2>Color Token Reference</h2>
+
+            <h3>Semantic Colors</h3>
+            <p>These are the tokens components use. Override these for targeted changes.</p>
+            <table class="token-table">
+              <thead>
+                <tr><th>Token</th><th>Purpose</th><th>Light default</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><code>--am-surface</code></td><td>Default background</td><td><span class="token-swatch" style="background: #ffffff"></span>white</td></tr>
+                <tr><td><code>--am-surface-raised</code></td><td>Cards, elevated elements</td><td><span class="token-swatch" style="background: #ffffff"></span>white</td></tr>
+                <tr><td><code>--am-surface-sunken</code></td><td>Recessed areas, page bg</td><td><span class="token-swatch" style="background: #fafafa"></span>neutral-50</td></tr>
+                <tr><td><code>--am-text</code></td><td>Primary text</td><td><span class="token-swatch" style="background: #1a1a1f"></span>neutral-900</td></tr>
+                <tr><td><code>--am-text-secondary</code></td><td>Secondary text</td><td><span class="token-swatch" style="background: #52525c"></span>neutral-600</td></tr>
+                <tr><td><code>--am-text-tertiary</code></td><td>Tertiary/muted text</td><td><span class="token-swatch" style="background: #70707b"></span>neutral-500</td></tr>
+                <tr><td><code>--am-border</code></td><td>Default borders</td><td><span class="token-swatch" style="background: #e4e4e7"></span>neutral-200</td></tr>
+                <tr><td><code>--am-primary</code></td><td>Primary action color</td><td><span class="token-swatch" style="background: #8525f5"></span>primary-600</td></tr>
+                <tr><td><code>--am-primary-subtle</code></td><td>Light primary background</td><td><span class="token-swatch" style="background: #f5f0ff"></span>primary-50</td></tr>
+                <tr><td><code>--am-danger</code></td><td>Destructive actions</td><td><span class="token-swatch" style="background: #c44840"></span>danger-600</td></tr>
+                <tr><td><code>--am-success</code></td><td>Success states</td><td><span class="token-swatch" style="background: #278750"></span>success-600</td></tr>
+                <tr><td><code>--am-warning</code></td><td>Warning states</td><td><span class="token-swatch" style="background: #e0a80e"></span>warning-500</td></tr>
+                <tr><td><code>--am-info</code></td><td>Informational states</td><td><span class="token-swatch" style="background: #3369d5"></span>info-600</td></tr>
+                <tr><td><code>--am-focus-ring</code></td><td>Focus indicator color</td><td><span class="token-swatch" style="background: #9445ff"></span>primary-500</td></tr>
+              </tbody>
+            </table>
+
+            <h2>Typography Tokens</h2>
+            <table class="token-table">
+              <thead>
+                <tr><th>Token</th><th>Default</th><th>Usage</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><code>--am-font-sans</code></td><td>system-ui, -apple-system, ...</td><td>All UI text</td></tr>
+                <tr><td><code>--am-font-mono</code></td><td>"SF Mono", "Fira Code", ...</td><td>Code, monospace</td></tr>
+                <tr><td><code>--am-text-xs</code></td><td>0.75rem</td><td>12px</td></tr>
+                <tr><td><code>--am-text-sm</code></td><td>0.875rem</td><td>14px</td></tr>
+                <tr><td><code>--am-text-base</code></td><td>1rem</td><td>16px</td></tr>
+                <tr><td><code>--am-text-lg</code></td><td>1.125rem</td><td>18px</td></tr>
+                <tr><td><code>--am-text-xl</code></td><td>1.25rem</td><td>20px</td></tr>
+                <tr><td><code>--am-text-2xl</code></td><td>1.5rem</td><td>24px</td></tr>
+                <tr><td><code>--am-weight-regular</code></td><td>400</td><td>Body text</td></tr>
+                <tr><td><code>--am-weight-medium</code></td><td>500</td><td>Labels, buttons</td></tr>
+                <tr><td><code>--am-weight-semibold</code></td><td>600</td><td>Headings</td></tr>
+                <tr><td><code>--am-weight-bold</code></td><td>700</td><td>Strong emphasis</td></tr>
+              </tbody>
+            </table>
+
+            <h2>Spacing Tokens</h2>
+            <p>
+              Spacing uses a 4px base unit. Use these tokens for consistent spacing
+              throughout your application:
+            </p>
+            <table class="token-table">
+              <thead>
+                <tr><th>Token</th><th>Value</th><th>Pixels</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><code>--am-space-0-5</code></td><td>0.125rem</td><td>2px</td></tr>
+                <tr><td><code>--am-space-1</code></td><td>0.25rem</td><td>4px</td></tr>
+                <tr><td><code>--am-space-2</code></td><td>0.5rem</td><td>8px</td></tr>
+                <tr><td><code>--am-space-3</code></td><td>0.75rem</td><td>12px</td></tr>
+                <tr><td><code>--am-space-4</code></td><td>1rem</td><td>16px</td></tr>
+                <tr><td><code>--am-space-5</code></td><td>1.25rem</td><td>20px</td></tr>
+                <tr><td><code>--am-space-6</code></td><td>1.5rem</td><td>24px</td></tr>
+                <tr><td><code>--am-space-8</code></td><td>2rem</td><td>32px</td></tr>
+                <tr><td><code>--am-space-10</code></td><td>2.5rem</td><td>40px</td></tr>
+                <tr><td><code>--am-space-12</code></td><td>3rem</td><td>48px</td></tr>
+                <tr><td><code>--am-space-16</code></td><td>4rem</td><td>64px</td></tr>
+              </tbody>
+            </table>
+
+            <h2>Radius Tokens</h2>
+            <table class="token-table">
+              <thead>
+                <tr><th>Token</th><th>Value</th><th>Usage</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><code>--am-radius-none</code></td><td>0</td><td>Square corners</td></tr>
+                <tr><td><code>--am-radius-sm</code></td><td>0.25rem</td><td>Small elements</td></tr>
+                <tr><td><code>--am-radius-md</code></td><td>0.375rem</td><td>Inputs, badges</td></tr>
+                <tr><td><code>--am-radius-lg</code></td><td>0.5rem</td><td>Buttons, cards</td></tr>
+                <tr><td><code>--am-radius-xl</code></td><td>0.75rem</td><td>Dialogs, large cards</td></tr>
+                <tr><td><code>--am-radius-2xl</code></td><td>1rem</td><td>Large surfaces</td></tr>
+                <tr><td><code>--am-radius-full</code></td><td>9999px</td><td>Pills, avatars</td></tr>
+              </tbody>
+            </table>
+
+            <h2>Shadow Tokens</h2>
+            <table class="token-table">
+              <thead>
+                <tr><th>Token</th><th>Usage</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><code>--am-shadow-xs</code></td><td>Subtle depth hint</td></tr>
+                <tr><td><code>--am-shadow-sm</code></td><td>Cards, raised surfaces</td></tr>
+                <tr><td><code>--am-shadow-md</code></td><td>Dropdowns, popovers</td></tr>
+                <tr><td><code>--am-shadow-lg</code></td><td>Dialogs, overlays</td></tr>
+                <tr><td><code>--am-shadow-xl</code></td><td>Drawers, large modals</td></tr>
+                <tr><td><code>--am-shadow-2xl</code></td><td>Maximum elevation</td></tr>
+              </tbody>
+            </table>
+
+            <h2>Motion Tokens</h2>
+            <table class="token-table">
+              <thead>
+                <tr><th>Token</th><th>Value</th><th>Usage</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><code>--am-duration-instant</code></td><td>50ms</td><td>Micro-interactions</td></tr>
+                <tr><td><code>--am-duration-fast</code></td><td>100ms</td><td>Hovers, toggles</td></tr>
+                <tr><td><code>--am-duration-normal</code></td><td>200ms</td><td>Most transitions</td></tr>
+                <tr><td><code>--am-duration-slow</code></td><td>300ms</td><td>Overlays opening</td></tr>
+                <tr><td><code>--am-duration-slower</code></td><td>500ms</td><td>Complex animations</td></tr>
+                <tr><td><code>--am-ease-default</code></td><td>cubic-bezier(0.25, 0.1, 0.25, 1)</td><td>General purpose</td></tr>
+                <tr><td><code>--am-ease-spring</code></td><td>cubic-bezier(0.22, 1, 0.36, 1)</td><td>Bouncy, natural feel</td></tr>
+              </tbody>
+            </table>
+
+            <h2>Per-Component Overrides</h2>
+            <p>
+              Many components expose their own CSS custom properties for fine-grained control.
+              These are documented with <code>@cssprop</code> in each component's source:
+            </p>
+            <pre><code class="language-html">&lt;!-- Override a specific component's radius --&gt;
+&lt;am-button style="--am-button-radius: 9999px"&gt;Pill Button&lt;/am-button&gt;
+
+&lt;!-- Override all inputs in a section --&gt;
+&lt;div style="--am-input-radius: 0"&gt;
+  &lt;am-input label="Square corners"&gt;&lt;/am-input&gt;
+&lt;/div&gt;</code></pre>
+
+            <h2>Styling with <code>::part</code></h2>
+            <p>
+              Every component exposes CSS parts for deeper styling without
+              piercing the shadow DOM:
+            </p>
+            <pre><code class="language-html">&lt;style&gt;
+  /* Style the native button inside am-button */
+  am-button::part(button) {
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  /* Style the input element inside am-input */
+  am-input::part(input) {
+    font-family: 'Georgia', serif;
+  }
+
+  /* Style the dialog panel */
+  am-dialog::part(dialog) {
+    border: 2px solid var(--am-primary);
+  }
+&lt;/style&gt;</code></pre>
+
+            <h2>Z-Index Scale</h2>
+            <p>
+              Amris provides a layering scale to keep overlays stacking correctly:
+            </p>
+            <table class="token-table">
+              <thead>
+                <tr><th>Token</th><th>Value</th><th>Used by</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><code>--am-z-base</code></td><td>0</td><td>Normal flow</td></tr>
+                <tr><td><code>--am-z-dropdown</code></td><td>1000</td><td>Dropdowns, selects</td></tr>
+                <tr><td><code>--am-z-sticky</code></td><td>1100</td><td>Sticky headers</td></tr>
+                <tr><td><code>--am-z-overlay</code></td><td>1200</td><td>Overlays</td></tr>
+                <tr><td><code>--am-z-modal</code></td><td>1300</td><td>Dialogs, drawers</td></tr>
+                <tr><td><code>--am-z-popover</code></td><td>1400</td><td>Popovers</td></tr>
+                <tr><td><code>--am-z-tooltip</code></td><td>1500</td><td>Tooltips, toasts</td></tr>
+              </tbody>
+            </table>
+
+          </div>
+        </main>
+      </div>
+    </am-theme-provider>
+  </body>
+</html>

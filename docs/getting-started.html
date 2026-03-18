@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Getting Started - Amris</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <script type="module" src="./docs.ts"></script>
+  </head>
+  <body>
+    <am-theme-provider id="theme-root" theme="system">
+      <div class="docs-layout">
+        <!-- Sidebar -->
+        <aside class="docs-sidebar">
+          <div class="logo">Amris</div>
+          <nav>
+            <span class="nav-group">Docs</span>
+            <a href="./getting-started.html" class="active">Getting Started</a>
+            <a href="./theming.html">Theming</a>
+            <span class="nav-group">Library</span>
+            <a href="./components.html">Component Catalog</a>
+            <a href="../index.html">Full Demo</a>
+          </nav>
+          <div class="docs-theme-toggle">
+            <am-button
+              variant="outlined"
+              size="sm"
+              style="width: 100%"
+              onclick="
+                const tp = document.getElementById('theme-root');
+                const themes = ['system', 'light', 'dark'];
+                const i = (themes.indexOf(tp.theme) + 1) % themes.length;
+                tp.theme = themes[i];
+                this.textContent = 'Theme: ' + themes[i];
+              "
+            >
+              Theme: system
+            </am-button>
+          </div>
+        </aside>
+
+        <!-- Main -->
+        <main class="docs-main">
+          <div class="docs-content">
+            <h1>Getting Started</h1>
+            <p class="subtitle">
+              Add Amris to your project and start using components in minutes.
+            </p>
+
+            <h2>Installation</h2>
+            <p>Install the package from npm:</p>
+            <pre><code class="language-bash">npm install amris</code></pre>
+
+            <h2>Setup</h2>
+            <p>
+              Wrap your application in <code>&lt;am-theme-provider&gt;</code>.
+              This element provides all design tokens (colors, spacing, typography, etc.)
+              as CSS custom properties that cascade into every Amris component.
+            </p>
+            <pre><code class="language-html">&lt;!-- index.html --&gt;
+&lt;script type="module" src="node_modules/amris/dist/amris.js"&gt;&lt;/script&gt;
+
+&lt;am-theme-provider theme="system"&gt;
+  &lt;!-- Your app content goes here --&gt;
+&lt;/am-theme-provider&gt;</code></pre>
+
+            <p>
+              The <code>theme</code> attribute controls the color scheme:
+            </p>
+            <ul>
+              <li><code>"system"</code> — follows the user's OS preference (default)</li>
+              <li><code>"light"</code> — forces light mode</li>
+              <li><code>"dark"</code> — forces dark mode</li>
+            </ul>
+
+            <h2>Using Components</h2>
+
+            <h3>Plain HTML</h3>
+            <p>
+              Import the full bundle and use any component as a custom element.
+              No build step required.
+            </p>
+            <pre><code class="language-html">&lt;script type="module"&gt;
+  import 'amris';
+&lt;/script&gt;
+
+&lt;am-theme-provider&gt;
+  &lt;am-button variant="primary"&gt;Save Changes&lt;/am-button&gt;
+  &lt;am-input label="Email address" type="email"&gt;&lt;/am-input&gt;
+  &lt;am-badge variant="success"&gt;Active&lt;/am-badge&gt;
+&lt;/am-theme-provider&gt;</code></pre>
+
+            <div class="demo-box">
+              <div class="demo-row">
+                <am-button variant="primary">Save Changes</am-button>
+                <am-input label="Email address" type="email"></am-input>
+                <am-badge variant="success">Active</am-badge>
+              </div>
+            </div>
+
+            <h3>ES Module Imports</h3>
+            <p>
+              For tree-shaking, import only the components you need.
+              Each component self-registers its custom element tag on import.
+            </p>
+            <pre><code class="language-javascript">// Import specific components
+import 'amris/core';                         // foundations + common components
+import { AmButton } from 'amris';            // individual class
+
+// Or import everything
+import 'amris';</code></pre>
+
+            <h3>Framework Usage</h3>
+            <p>
+              Amris components are standard web components. They work in any
+              framework that supports custom elements.
+            </p>
+
+            <pre><code class="language-html">&lt;!-- Svelte --&gt;
+&lt;script&gt;
+  import 'amris';
+  let name = '';
+&lt;/script&gt;
+
+&lt;am-theme-provider&gt;
+  &lt;am-input label="Name" on:am-input={(e) =&gt; name = e.detail.value}&gt;&lt;/am-input&gt;
+  &lt;am-button variant="primary" on:click={handleSave}&gt;Save&lt;/am-button&gt;
+&lt;/am-theme-provider&gt;</code></pre>
+
+            <pre><code class="language-javascript">// React (with ref or wrapper)
+import 'amris';
+
+function App() {
+  return (
+    &lt;am-theme-provider&gt;
+      &lt;am-button variant="primary"&gt;Save&lt;/am-button&gt;
+    &lt;/am-theme-provider&gt;
+  );
+}</code></pre>
+
+            <h2>Core vs Full Bundle</h2>
+            <p>Amris ships two entry points:</p>
+            <ul>
+              <li>
+                <code>amris</code> — the full bundle with all 50+ components
+              </li>
+              <li>
+                <code>amris/core</code> — a smaller bundle with foundations, actions,
+                layout, and common form inputs
+              </li>
+            </ul>
+            <p>
+              Use the core bundle for smaller apps, then switch to the full bundle
+              as you need more components.
+            </p>
+
+            <h2>Your First Page</h2>
+            <p>Here's a minimal page to verify everything works:</p>
+            <pre><code class="language-html">&lt;!doctype html&gt;
+&lt;html lang="en"&gt;
+  &lt;head&gt;
+    &lt;meta charset="UTF-8" /&gt;
+    &lt;meta name="viewport" content="width=device-width, initial-scale=1.0" /&gt;
+    &lt;title&gt;My App&lt;/title&gt;
+    &lt;script type="module" src="node_modules/amris/dist/amris.js"&gt;&lt;/script&gt;
+    &lt;style&gt;
+      body { margin: 0; }
+    &lt;/style&gt;
+  &lt;/head&gt;
+  &lt;body&gt;
+    &lt;am-theme-provider theme="system"&gt;
+      &lt;am-surface variant="sunken" flush style="min-height: 100vh; padding: 2rem"&gt;
+        &lt;am-card style="max-width: 400px; margin: 2rem auto"&gt;
+          &lt;h2 style="margin: 0 0 1rem; font-family: var(--am-font-sans); color: var(--am-text)"&gt;
+            Welcome
+          &lt;/h2&gt;
+          &lt;am-input label="Username"&gt;&lt;/am-input&gt;
+          &lt;am-input label="Password" type="password" style="margin-top: 0.75rem"&gt;&lt;/am-input&gt;
+          &lt;am-button variant="primary" style="margin-top: 1rem; width: 100%"&gt;
+            Sign In
+          &lt;/am-button&gt;
+        &lt;/am-card&gt;
+      &lt;/am-surface&gt;
+    &lt;/am-theme-provider&gt;
+  &lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+            <div class="demo-box">
+              <am-card style="max-width: 360px; margin: 0 auto">
+                <h3 style="margin: 0 0 1rem; font-family: var(--am-font-sans); color: var(--am-text); font-size: 1.125rem">
+                  Welcome
+                </h3>
+                <am-input label="Username"></am-input>
+                <am-input label="Password" type="password" style="margin-top: 0.75rem"></am-input>
+                <am-button variant="primary" style="margin-top: 1rem; width: 100%">
+                  Sign In
+                </am-button>
+              </am-card>
+            </div>
+
+            <h2>Browser Support</h2>
+            <p>
+              Amris targets modern evergreen browsers. It requires native support for:
+            </p>
+            <ul>
+              <li>Custom Elements v1</li>
+              <li>Shadow DOM v1</li>
+              <li>CSS Custom Properties</li>
+              <li>ES Modules</li>
+              <li>ElementInternals (for form-associated components)</li>
+            </ul>
+            <p>
+              This means Chrome/Edge 90+, Firefox 90+, and Safari 16.4+.
+            </p>
+
+            <h2>Next Steps</h2>
+            <ul>
+              <li>Browse the <a href="./components.html">Component Catalog</a> to see all available components</li>
+              <li>Read the <a href="./theming.html">Theming Guide</a> to learn how to customize colors, spacing, and typography</li>
+            </ul>
+          </div>
+        </main>
+      </div>
+    </am-theme-provider>
+  </body>
+</html>

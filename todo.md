@@ -19,7 +19,7 @@
 
 ### Testing
 - [x] Set up test runner (Vitest + happy-dom)
-- [x] Unit tests for component logic (properties, events, state) — 259 tests across 32 files
+- [x] Unit tests for component logic (properties, events, state) — 294 tests across 33 files
 - [x] Keyboard interaction tests for form inputs, selects, dropdowns, dialogs
 - [x] Basic a11y smoke tests with axe-core — 35 tests across all components
 - [x] Form association tests (ElementInternals, form submission)
@@ -34,17 +34,18 @@
 ## Should-Do Soon
 
 ### Documentation
-- [ ] Create an installation / getting-started guide
-- [ ] Set up Storybook or a dedicated docs site
+- [x] Create an installation / getting-started guide (`docs/getting-started.html`)
+- [x] Set up a dedicated docs site with sidebar nav (`docs/` directory, served via Vite)
 - [ ] Auto-generate API docs from JSDoc comments and Custom Elements Manifest
-- [ ] Document all CSS custom properties / design tokens
-- [ ] Add usage examples for each component
+- [x] Document all CSS custom properties / design tokens (`docs/theming.html`)
+- [x] Add usage examples for each component (`docs/components.html` — live demos for all 50+ components)
+- [x] Add syntax highlighting to code examples (highlight.js)
 
 ### Accessibility
 - [ ] Systematic WCAG 2.1 AA audit across all components
 - [ ] Screen reader testing (NVDA, VoiceOver)
 - [ ] Verify `prefers-reduced-motion` support across all animated components
-- [ ] Verify color contrast in both light and dark themes
+- [x] Fix color contrast issues in light mode (tertiary text, danger color, badge tokens)
 - [ ] Document keyboard interaction patterns for each component
 
 ### Project Hygiene
@@ -53,6 +54,15 @@
 - [ ] Add a CONTRIBUTING guide
 - [ ] Set up CI (lint, type-check, test on push/PR)
 - [ ] Add visual regression tests (Playwright screenshots or Chromatic)
+
+### Component Fixes
+- [x] Badge: fix color contrast — use `--am-text` for all variants, add `--am-neutral-subtle` semantic token
+- [x] Badge: removable badges self-remove on click (event still fires for listeners)
+- [x] Accordion: remove border-bottom on last item (`:host(:last-of-type)`)
+- [x] Toast: fix squished layout on mobile (`width: min(28rem, 100%)`, responsive region centering)
+- [x] Toast: vertically center icon to first line of text
+- [x] Toast region: `show()` appends to nearest theme provider instead of `document.body`
+- [x] Drawer: fix full-height issue (`inset: auto` to reset UA dialog defaults)
 
 ## Nice-to-Have
 

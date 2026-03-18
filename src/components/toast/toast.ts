@@ -365,7 +365,8 @@ export class AmToastRegion extends LitElement {
     let region = document.querySelector('am-toast-region') as AmToastRegion | null;
     if (!region) {
       region = document.createElement('am-toast-region') as AmToastRegion;
-      document.body.appendChild(region);
+      const themeProvider = document.querySelector('am-theme-provider');
+      (themeProvider ?? document.body).appendChild(region);
     }
     return region.toast(options);
   }
