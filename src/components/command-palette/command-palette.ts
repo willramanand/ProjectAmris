@@ -151,6 +151,9 @@ export class AmCommandPalette extends LitElement {
       }
 
       .item-shortcut {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.125rem;
         font-family: var(--am-font-mono, monospace);
         font-size: var(--am-text-xs);
         color: var(--am-text-tertiary);
@@ -158,6 +161,11 @@ export class AmCommandPalette extends LitElement {
         padding: 0.125rem 0.375rem;
         border-radius: var(--am-radius-sm);
         flex-shrink: 0;
+      }
+
+      .item-shortcut .cmd-icon {
+        width: 0.75rem;
+        height: 0.75rem;
       }
 
       .empty {
@@ -276,6 +284,14 @@ export class AmCommandPalette extends LitElement {
     }
   }
 
+  private _cmdIcon = html`<svg class="cmd-icon" viewBox="0 0 256 256" fill="currentColor"><path d="M180,144H160V112h20a36,36,0,1,0-36-36V96H112V76a36,36,0,1,0-36,36H96v32H76a36,36,0,1,0,36,36V160h32v20a36,36,0,1,0,36-36ZM160,76a20,20,0,1,1,20,20H160ZM56,76a20,20,0,0,1,40,0V96H76A20,20,0,0,1,56,76ZM96,180a20,20,0,1,1-20-20H96Zm16-68h32v32H112Zm68,88a20,20,0,0,1-20-20V160h20a20,20,0,0,1,0,40Z"/></svg>`;
+
+  private _renderShortcut(shortcut: string) {
+    const parts = shortcut.split('⌘');
+    if (parts.length === 1) return shortcut;
+    return parts.map((part, i) => html`${i > 0 ? this._cmdIcon : nothing}${part}`);
+  }
+
   private _selectCommand(cmd: CommandItem) {
     this.open = false;
     cmd.action?.();
@@ -333,7 +349,7 @@ export class AmCommandPalette extends LitElement {
                         <div class="item-label">${cmd.label}</div>
                         ${cmd.description ? html`<div class="item-description">${cmd.description}</div>` : nothing}
                       </div>
-                      ${cmd.shortcut ? html`<span class="item-shortcut">${cmd.shortcut}</span>` : nothing}
+                      ${cmd.shortcut ? html`<span class="item-shortcut">${this._renderShortcut(cmd.shortcut)}</span>` : nothing}
                     </div>
                   `;
                 })}

@@ -48,6 +48,7 @@ export class AmToast extends LitElement {
       }
 
       .toast {
+        position: relative;
         display: flex;
         align-items: flex-start;
         gap: var(--am-space-3);
@@ -65,12 +66,23 @@ export class AmToast extends LitElement {
         animation: toast-in var(--am-duration-normal) var(--am-ease-spring);
       }
 
-      /* Variants - left accent bar approach */
-      :host([variant='info']) .toast { border-left: 3px solid var(--am-info); }
-      :host([variant='success']) .toast { border-left: 3px solid var(--am-success); }
-      :host([variant='warning']) .toast { border-left: 3px solid var(--am-warning); }
-      :host([variant='danger']) .toast { border-left: 3px solid var(--am-danger); }
-      :host([variant='neutral']) .toast, :host(:not([variant])) .toast { border-left: 3px solid var(--am-border-strong); }
+      /* Variants - left accent bar with rounded ends */
+      .toast::before {
+        content: '';
+        position: absolute;
+        left: 0.375rem;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 3px;
+        height: 60%;
+        border-radius: var(--am-radius-full);
+      }
+
+      :host([variant='info']) .toast::before { background: var(--am-info); }
+      :host([variant='success']) .toast::before { background: var(--am-success); }
+      :host([variant='warning']) .toast::before { background: var(--am-warning); }
+      :host([variant='danger']) .toast::before { background: var(--am-danger); }
+      :host([variant='neutral']) .toast::before, :host(:not([variant])) .toast::before { background: var(--am-border-strong); }
 
       .icon {
         flex-shrink: 0;
@@ -333,7 +345,31 @@ export class AmToastRegion extends LitElement {
   `;
 
   /**
-   * Programmatically show a toast.
+   * Static helper — show a toast without needing a reference to the region.
+   * Auto-finds the first `<am-toast-region>` in the DOM, or creates one if none exists.
+   *
+   * @example
+   * ```ts
+   * import { AmToastRegion } from 'amris';
+   * AmToastRegion.show({ message: 'Saved!', variant: 'success' });
+   * ```
+   */
+  static show(options: {
+    message: string;
+    variant?: ToastVariant;
+    duration?: number;
+    closable?: boolean;
+  }): AmToast {
+    let region = document.querySelector('am-toast-region') as AmToastRegion | null;
+    if (!region) {
+      region = document.createElement('am-toast-region') as AmToastRegion;
+      document.body.appendChild(region);
+    }
+    return region.toast(options);
+  }
+
+  /**
+   * Programmatically show a toast on this region instance.
    * Returns the created `AmToast` element.
    */
   toast(options: {

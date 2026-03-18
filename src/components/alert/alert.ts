@@ -31,6 +31,7 @@ export class AmAlert extends LitElement {
   @property({ reflect: true }) variant: AlertVariant = 'info';
   @property({ type: Boolean, reflect: true }) closable = false;
   @property({ type: Boolean, reflect: true }) open = true;
+  @property({ type: Boolean, reflect: true }) banner = false;
 
   static styles = [
     resetStyles,
@@ -56,7 +57,7 @@ export class AmAlert extends LitElement {
       :host([variant='success']) .alert { background: var(--am-success-subtle); color: var(--am-success-text); border-color: color-mix(in srgb, var(--am-success) 20%, transparent); }
       :host([variant='warning']) .alert { background: var(--am-warning-subtle); color: var(--am-warning-text); border-color: color-mix(in srgb, var(--am-warning) 20%, transparent); }
       :host([variant='danger']) .alert { background: var(--am-danger-subtle); color: var(--am-danger-text); border-color: color-mix(in srgb, var(--am-danger) 20%, transparent); }
-      :host([variant='neutral']) .alert { background: var(--am-color-neutral-100); color: var(--am-text-secondary); border-color: var(--am-border); }
+      :host([variant='neutral']) .alert { background: var(--am-color-neutral-100); color: var(--am-color-neutral-900); border-color: var(--am-border); }
 
       .icon { flex-shrink: 0; display: flex; padding-top: 0.0625rem; }
       .content { flex: 1; min-width: 0; }
@@ -81,6 +82,23 @@ export class AmAlert extends LitElement {
         outline: var(--am-focus-ring-width) solid var(--am-focus-ring);
         outline-offset: var(--am-focus-ring-offset);
       }
+
+      /* ---- Banner variant ---- */
+
+      :host([banner]) .alert {
+        align-items: center;
+        border-radius: var(--am-radius-xl) var(--am-radius-xl) 0 0;
+        corner-shape: squircle;
+        border: none;
+        border-bottom: var(--am-border-1) solid transparent;
+        padding: var(--am-space-3) var(--am-space-5);
+      }
+
+      :host([banner][variant='info']) .alert { border-bottom-color: color-mix(in srgb, var(--am-info) 20%, transparent); }
+      :host([banner][variant='success']) .alert { border-bottom-color: color-mix(in srgb, var(--am-success) 20%, transparent); }
+      :host([banner][variant='warning']) .alert { border-bottom-color: color-mix(in srgb, var(--am-warning) 20%, transparent); }
+      :host([banner][variant='danger']) .alert { border-bottom-color: color-mix(in srgb, var(--am-danger) 20%, transparent); }
+      :host([banner][variant='neutral']) .alert { border-bottom-color: var(--am-border); }
 
       @media (prefers-reduced-motion: reduce) {
         .close-btn { transition: none; }

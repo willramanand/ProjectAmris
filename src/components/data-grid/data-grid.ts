@@ -1,6 +1,7 @@
 import { LitElement, css, html, nothing } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { resetStyles } from '../../styles/reset.css.js';
+import '../checkbox/checkbox.js';
 
 export interface DataGridColumn {
   key: string;
@@ -125,9 +126,8 @@ export class AmDataGrid extends LitElement {
 
       .checkbox-cell { width: 2.5rem; text-align: center; }
 
-      input[type='checkbox'] {
-        accent-color: var(--am-primary);
-        cursor: pointer;
+      am-checkbox {
+        pointer-events: none;
       }
 
       .align-center { text-align: center; }
@@ -224,7 +224,7 @@ export class AmDataGrid extends LitElement {
               <tr part="row" class=${selected ? 'selected' : ''}
                 @click=${() => this._handleRowClick(originalIndex)}>
                 ${this.selectable ? html`<td class="checkbox-cell">
-                  <input type="checkbox" .checked=${selected} tabindex="-1" aria-label="Select row" />
+                  <am-checkbox .checked=${selected} aria-label="Select row"></am-checkbox>
                 </td>` : nothing}
                 ${this.columns.map(col => html`
                   <td part="cell" class=${col.align === 'center' ? 'align-center' : col.align === 'end' ? 'align-end' : ''}>

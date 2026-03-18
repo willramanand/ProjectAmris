@@ -143,6 +143,7 @@ export class AmRichSelect extends LitElement {
         corner-shape: squircle;
         box-shadow: var(--am-shadow-lg);
         padding: var(--am-space-1);
+        width: max-content;
         max-height: 20rem;
         overflow-y: auto;
         opacity: 0;
@@ -353,7 +354,7 @@ export class AmRichSelect extends LitElement {
       strategy: 'fixed',
       middleware: [
         offset(4), flip(), shift({ padding: 8 }),
-        sizeMiddleware({ apply({ rects, elements }) { elements.floating.style.width = `${rects.reference.width}px`; } }),
+        sizeMiddleware({ apply({ rects, elements }) { elements.floating.style.minWidth = `${rects.reference.width}px`; } }),
       ],
     });
     Object.assign(this._listbox.style, { left: `${x}px`, top: `${y}px` });

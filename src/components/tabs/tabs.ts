@@ -2,6 +2,8 @@ import { LitElement, css, html } from 'lit';
 import { customElement, property, queryAssignedElements } from 'lit/decorators.js';
 import { resetStyles } from '../../styles/reset.css.js';
 
+export type TabVariant = 'underline' | 'pill' | 'vertical';
+
 /* ================================================================
    AmTab — individual tab trigger
    ================================================================ */
@@ -22,6 +24,9 @@ export class AmTab extends LitElement {
 
   /** Whether this tab is disabled. */
   @property({ type: Boolean, reflect: true }) disabled = false;
+
+  /** Visual variant. Managed by am-tabs. */
+  @property({ reflect: true }) variant: TabVariant = 'underline';
 
   static styles = css`
     :host { display: inline-flex; }
@@ -61,6 +66,78 @@ export class AmTab extends LitElement {
       outline: var(--am-focus-ring-width) solid var(--am-focus-ring);
       outline-offset: calc(-1 * var(--am-focus-ring-width));
       border-radius: var(--am-radius-sm);
+    }
+
+    /* ---- Pill variant ---- */
+
+    :host([variant='pill']) button {
+      border-bottom: none;
+      border-radius: var(--am-radius-lg);
+      corner-shape: squircle;
+      padding: var(--am-space-2) var(--am-space-4);
+      transition:
+        color var(--am-duration-fast) var(--am-ease-default),
+        background var(--am-duration-fast) var(--am-ease-default),
+        box-shadow var(--am-duration-fast) var(--am-ease-default);
+    }
+
+    :host([variant='pill'][selected]) button {
+      color: var(--am-text);
+      font-weight: var(--am-weight-semibold);
+      background: var(--am-surface-raised);
+      box-shadow: var(--am-shadow-xs);
+    }
+
+    :host([variant='pill']) button:focus-visible {
+      border-radius: var(--am-radius-lg);
+      corner-shape: squircle;
+    }
+
+    /* ---- Vertical variant ---- */
+
+    :host([variant='vertical']) { display: flex; }
+
+    :host([variant='vertical']) button {
+      position: relative;
+      width: 100%;
+      border-bottom: none;
+      border-radius: var(--am-radius-lg);
+      corner-shape: squircle;
+      padding: var(--am-space-3) var(--am-space-4);
+      transition:
+        color var(--am-duration-fast) var(--am-ease-default),
+        background var(--am-duration-fast) var(--am-ease-default);
+    }
+
+    :host([variant='vertical']) button::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%) scaleY(0);
+      width: 2px;
+      height: 60%;
+      border-radius: var(--am-radius-full);
+      background: var(--am-primary);
+      transition: transform var(--am-duration-fast) var(--am-ease-spring);
+    }
+
+    :host([variant='vertical']) button:hover {
+      background: var(--am-hover-overlay);
+    }
+
+    :host([variant='vertical'][selected]) button {
+      color: var(--am-primary);
+      background: var(--am-hover-overlay);
+    }
+
+    :host([variant='vertical'][selected]) button::before {
+      transform: translateY(-50%) scaleY(1);
+    }
+
+    :host([variant='vertical']) button:focus-visible {
+      border-radius: var(--am-radius-lg);
+      corner-shape: squircle;
     }
 
     @media (prefers-reduced-motion: reduce) { button { transition: none; } }
@@ -143,6 +220,9 @@ export class AmTabs extends LitElement {
   /** The currently active panel name. */
   @property({ reflect: true, attribute: 'active-panel' }) activePanel = '';
 
+  /** Visual variant of the tab group. */
+  @property({ reflect: true }) variant: TabVariant = 'underline';
+
   @queryAssignedElements({ slot: 'nav', selector: 'am-tab' })
   private _tabs!: AmTab[];
 
@@ -153,7 +233,7 @@ export class AmTabs extends LitElement {
 
       .nav {
         display: flex;
-        border-bottom: var(--am-border-1) solid var(--am-border);
+
         overflow-x: auto;
         scrollbar-width: none;
       }
@@ -162,6 +242,41 @@ export class AmTabs extends LitElement {
 
       .panels {
         padding-top: var(--am-space-4);
+      }
+
+      /* ---- Pill variant ---- */
+
+      :host([variant='pill']) .nav {
+        display: inline-flex;
+        border-bottom: none;
+        background: var(--am-surface-sunken);
+        border: var(--am-border-1) solid var(--am-border-subtle);
+        border-radius: var(--am-radius-xl);
+        corner-shape: squircle;
+        padding: var(--am-space-1);
+        gap: var(--am-space-1);
+      }
+
+      /* ---- Vertical variant ---- */
+
+      :host([variant='vertical']) {
+        display: flex;
+        flex-direction: row;
+      }
+
+      :host([variant='vertical']) .nav {
+        flex-direction: column;
+        flex-shrink: 0;
+        overflow-x: visible;
+        overflow-y: auto;
+        min-width: 12rem;
+      }
+
+      :host([variant='vertical']) .panels {
+        padding-top: 0;
+        padding-left: var(--am-space-4);
+        flex: 1;
+        min-width: 0;
       }
     `,
   ];
@@ -178,7 +293,8 @@ export class AmTabs extends LitElement {
     this.removeEventListener('keydown', this._handleKeyDown);
   }
 
-  protected firstUpdated() {
+  protected async firstUpdated() {
+    await this.updateComplete;
     this._syncTabs();
   }
 
@@ -193,6 +309,7 @@ export class AmTabs extends LitElement {
 
     tabs.forEach(tab => {
       tab.selected = tab.panel === this.activePanel;
+      tab.variant = this.variant;
     });
 
     panels.forEach(panel => {
@@ -218,8 +335,12 @@ export class AmTabs extends LitElement {
     const idx = tabs.indexOf(tab);
     let next: AmTab | undefined;
 
-    if (e.key === 'ArrowRight') next = tabs[(idx + 1) % tabs.length];
-    else if (e.key === 'ArrowLeft') next = tabs[(idx - 1 + tabs.length) % tabs.length];
+    const isVertical = this.variant === 'vertical';
+    const fwd = isVertical ? 'ArrowDown' : 'ArrowRight';
+    const bwd = isVertical ? 'ArrowUp' : 'ArrowLeft';
+
+    if (e.key === fwd) next = tabs[(idx + 1) % tabs.length];
+    else if (e.key === bwd) next = tabs[(idx - 1 + tabs.length) % tabs.length];
     else if (e.key === 'Home') next = tabs[0];
     else if (e.key === 'End') next = tabs[tabs.length - 1];
 
@@ -243,7 +364,7 @@ export class AmTabs extends LitElement {
 
   render() {
     return html`
-      <div class="nav" part="nav" role="tablist">
+      <div class="nav" part="nav" role="tablist" aria-orientation=${this.variant === 'vertical' ? 'vertical' : 'horizontal'}>
         <slot name="nav" @slotchange=${this._handleSlotChange}></slot>
       </div>
       <div class="panels">

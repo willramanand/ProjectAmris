@@ -94,6 +94,7 @@ export type { AutocompleteSize } from './components/autocomplete/autocomplete.js
 
 // Components — Navigation
 export { AmTabs, AmTab, AmTabPanel } from './components/tabs/tabs.js';
+export type { TabVariant } from './components/tabs/tabs.js';
 
 export { AmAccordion, AmAccordionItem } from './components/accordion/accordion.js';
 
@@ -137,8 +138,6 @@ export { AmList, AmListItem } from './components/list/list.js';
 
 export { AmTable } from './components/table/table.js';
 
-export { AmTag } from './components/tag/tag.js';
-export type { TagVariant, TagSize } from './components/tag/tag.js';
 
 export { AmStat } from './components/stat/stat.js';
 export type { StatTrend } from './components/stat/stat.js';

@@ -80,6 +80,7 @@ export type { NumberFieldSize } from './components/number-field/number-field.js'
 
 // Components — Navigation
 export { AmTabs, AmTab, AmTabPanel } from './components/tabs/tabs.js';
+export type { TabVariant } from './components/tabs/tabs.js';
 
 export { AmAccordion, AmAccordionItem } from './components/accordion/accordion.js';
 
@@ -112,8 +113,6 @@ export type { StatusDotVariant, StatusDotSize } from './components/status-dot/st
 
 export { AmList, AmListItem } from './components/list/list.js';
 
-export { AmTag } from './components/tag/tag.js';
-export type { TagVariant, TagSize } from './components/tag/tag.js';
 
 // Components — Overlays
 export { AmDialog } from './components/dialog/dialog.js';
