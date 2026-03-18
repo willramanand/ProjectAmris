@@ -107,6 +107,34 @@ export class AmTimePicker extends LitElement {
         font-variant-numeric: tabular-nums;
       }
 
+      .segment-col {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .stepper {
+        all: unset;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        width: 1.75rem;
+        height: 1.25rem;
+        color: var(--am-text-tertiary);
+        cursor: pointer;
+        border-radius: var(--am-radius-sm);
+        corner-shape: squircle;
+        transition: color var(--am-duration-fast) var(--am-ease-default),
+                    background var(--am-duration-fast) var(--am-ease-default);
+        -webkit-tap-highlight-color: transparent;
+        touch-action: manipulation;
+      }
+
+      .stepper:hover { color: var(--am-text); background: var(--am-hover-overlay); }
+      .stepper:active { background: var(--am-primary-subtle); }
+
+      .stepper svg { width: 0.75rem; height: 0.75rem; }
+
       .segment {
         all: unset;
         width: 1.5em;
@@ -117,6 +145,8 @@ export class AmTimePicker extends LitElement {
         cursor: pointer;
         color: var(--am-text);
         transition: background var(--am-duration-fast) var(--am-ease-default);
+        -webkit-tap-highlight-color: transparent;
+        touch-action: none;
       }
 
       .segment:hover { background: var(--am-hover-overlay); }
@@ -147,6 +177,12 @@ export class AmTimePicker extends LitElement {
 
       .separator { color: var(--am-text-tertiary); }
 
+      .period-col {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
       .period {
         all: unset;
         padding: var(--am-space-0-5) var(--am-space-1);
@@ -157,13 +193,29 @@ export class AmTimePicker extends LitElement {
         font-weight: var(--am-weight-medium);
         color: var(--am-text-secondary);
         transition: background var(--am-duration-fast) var(--am-ease-default);
+        -webkit-tap-highlight-color: transparent;
+        touch-action: none;
       }
 
       .period:hover { background: var(--am-hover-overlay); }
       .period.active { background: var(--am-primary-subtle); color: var(--am-primary); }
 
+      @media (pointer: coarse) {
+        .stepper { display: flex; }
+
+        .segment {
+          width: 2em;
+          padding: var(--am-space-1) 0;
+          font-size: 1.125em;
+        }
+
+        .period {
+          padding: var(--am-space-1) var(--am-space-2);
+        }
+      }
+
       @media (prefers-reduced-motion: reduce) {
-        .wrapper, .segment, .period { transition: none; }
+        .wrapper, .segment, .period, .stepper { transition: none; }
         .caret { animation: none; opacity: 1; }
       }
     `,
@@ -378,6 +430,58 @@ export class AmTimePicker extends LitElement {
     el?.focus();
   }
 
+  /* ---- Touch / swipe support ---- */
+  private _touchStartY = 0;
+  private _touchSegment: 'hours' | 'minutes' | 'seconds' | 'period' | null = null;
+  private _handleTouchStart(segment: 'hours' | 'minutes' | 'seconds' | 'period', e: TouchEvent) {
+    this._touchStartY = e.touches[0].clientY;
+    this._touchSegment = segment;
+  }
+
+  private _handleTouchMove(e: TouchEvent) {
+    if (!this._touchSegment) return;
+    const dy = this._touchStartY - e.touches[0].clientY;
+    const threshold = 20;
+    if (Math.abs(dy) >= threshold) {
+      // Swipe up = increment, swipe down = decrement
+      this._adjustSegment(this._touchSegment, dy > 0 ? 1 : -1);
+      this._touchStartY = e.touches[0].clientY;
+    }
+  }
+
+  private _handleTouchEnd() {
+    this._touchSegment = null;
+  }
+
+  private _chevronUp = html`<svg viewBox="0 0 12 12" fill="none"><path d="M3 7.5 6 4.5 9 7.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  private _chevronDown = html`<svg viewBox="0 0 12 12" fill="none"><path d="M3 4.5 6 7.5 9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+
+  private _renderSegmentCol(segment: 'hours' | 'minutes' | 'seconds') {
+    return html`
+      <div class="segment-col">
+        <button class="stepper" tabindex="-1" aria-hidden="true"
+          @click=${() => this._adjustSegment(segment, 1)}>
+          ${this._chevronUp}
+        </button>
+        <button class="segment ${this._activeSegment === segment ? (this._isEditing(segment) ? 'editing' : 'active') : ''}"
+          data-segment=${segment}
+          aria-label="${segment === 'hours' ? 'Hours' : segment === 'minutes' ? 'Minutes' : 'Seconds'} — type digits or use arrow keys"
+          @focus=${() => { this._focused = true; this._activeSegment = segment; this._clearBuffer(); }}
+          @blur=${() => { this._focused = false; this._clearBuffer(); }}
+          @keydown=${(e: KeyboardEvent) => this._handleKeydown(segment, e)}
+          @touchstart=${(e: TouchEvent) => this._handleTouchStart(segment, e)}
+          @touchmove=${this._handleTouchMove}
+          @touchend=${this._handleTouchEnd}>
+          ${this._renderSegmentContent(segment)}
+        </button>
+        <button class="stepper" tabindex="-1" aria-hidden="true"
+          @click=${() => this._adjustSegment(segment, -1)}>
+          ${this._chevronDown}
+        </button>
+      </div>
+    `;
+  }
+
   render() {
     return html`
       ${this.label ? html`<span class="label">${this.label}</span>` : nothing}
@@ -387,43 +491,35 @@ export class AmTimePicker extends LitElement {
           <path d="M8 5v3l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
         </svg>
         <div class="segments">
-          <button class="segment ${this._activeSegment === 'hours' ? (this._isEditing('hours') ? 'editing' : 'active') : ''}"
-            data-segment="hours"
-            aria-label="Hours — type digits or use arrow keys"
-            @focus=${() => { this._focused = true; this._activeSegment = 'hours'; this._clearBuffer(); }}
-            @blur=${() => { this._focused = false; this._clearBuffer(); }}
-            @keydown=${(e: KeyboardEvent) => this._handleKeydown('hours', e)}>
-            ${this._renderSegmentContent('hours')}
-          </button>
+          ${this._renderSegmentCol('hours')}
           <span class="separator">:</span>
-          <button class="segment ${this._activeSegment === 'minutes' ? (this._isEditing('minutes') ? 'editing' : 'active') : ''}"
-            data-segment="minutes"
-            aria-label="Minutes — type digits or use arrow keys"
-            @focus=${() => { this._focused = true; this._activeSegment = 'minutes'; this._clearBuffer(); }}
-            @blur=${() => { this._focused = false; this._clearBuffer(); }}
-            @keydown=${(e: KeyboardEvent) => this._handleKeydown('minutes', e)}>
-            ${this._renderSegmentContent('minutes')}
-          </button>
+          ${this._renderSegmentCol('minutes')}
           ${this.showSeconds ? html`
             <span class="separator">:</span>
-            <button class="segment ${this._activeSegment === 'seconds' ? (this._isEditing('seconds') ? 'editing' : 'active') : ''}"
-              data-segment="seconds"
-              aria-label="Seconds — type digits or use arrow keys"
-              @focus=${() => { this._focused = true; this._activeSegment = 'seconds'; this._clearBuffer(); }}
-              @blur=${() => { this._focused = false; this._clearBuffer(); }}
-              @keydown=${(e: KeyboardEvent) => this._handleKeydown('seconds', e)}>
-              ${this._renderSegmentContent('seconds')}
-            </button>
+            ${this._renderSegmentCol('seconds')}
           ` : nothing}
           ${this.use12Hour ? html`
-            <button class="period ${this._activeSegment === 'period' ? 'active' : ''}"
-              data-segment="period"
-              aria-label="AM/PM — press A or P to change"
-              @focus=${() => { this._focused = true; this._activeSegment = 'period'; this._clearBuffer(); }}
-              @blur=${() => { this._focused = false; this._clearBuffer(); }}
-              @keydown=${(e: KeyboardEvent) => this._handleKeydown('period', e)}>
-              ${this._period}
-            </button>
+            <div class="period-col">
+              <button class="stepper" tabindex="-1" aria-hidden="true"
+                @click=${() => this._adjustSegment('period', 1)}>
+                ${this._chevronUp}
+              </button>
+              <button class="period ${this._activeSegment === 'period' ? 'active' : ''}"
+                data-segment="period"
+                aria-label="AM/PM — press A or P to change"
+                @focus=${() => { this._focused = true; this._activeSegment = 'period'; this._clearBuffer(); }}
+                @blur=${() => { this._focused = false; this._clearBuffer(); }}
+                @keydown=${(e: KeyboardEvent) => this._handleKeydown('period', e)}
+                @touchstart=${(e: TouchEvent) => this._handleTouchStart('period', e)}
+                @touchmove=${this._handleTouchMove}
+                @touchend=${this._handleTouchEnd}>
+                ${this._period}
+              </button>
+              <button class="stepper" tabindex="-1" aria-hidden="true"
+                @click=${() => this._adjustSegment('period', 1)}>
+                ${this._chevronDown}
+              </button>
+            </div>
           ` : nothing}
         </div>
       </div>

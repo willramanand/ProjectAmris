@@ -27,6 +27,7 @@ export class AmSwitch extends LitElement {
   @property({ type: Boolean, reflect: true }) loading = false;
   @property() name = '';
   @property() value = 'on';
+  @property({ attribute: 'aria-label' }) override ariaLabel: string | null = null;
 
   private internals: ElementInternals;
 
@@ -168,13 +169,15 @@ export class AmSwitch extends LitElement {
         tabindex=${this.disabled ? nothing : '0'}
         aria-checked=${String(this.checked)}
         aria-disabled=${this.disabled ? 'true' : nothing}
+        aria-label=${this.ariaLabel || nothing}
+        aria-labelledby=${this.ariaLabel ? nothing : 'label'}
         @keydown=${this._handleKeyDown}
       >
         <div class="thumb" part="thumb">
           ${this.loading ? html`<span class="loading-spinner" aria-hidden="true"></span>` : nothing}
         </div>
       </div>
-      <span class="label" part="label">
+      <span class="label" part="label" id="label">
         <slot></slot>
       </span>
     `;

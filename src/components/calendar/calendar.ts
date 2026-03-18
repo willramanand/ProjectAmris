@@ -1,4 +1,4 @@
-import { LitElement, css, html, nothing } from 'lit';
+import { LitElement, css, html } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { resetStyles } from '../../styles/reset.css.js';
 
@@ -127,6 +127,11 @@ export class AmCalendar extends LitElement {
 
       .grid {
         display: grid;
+        gap: 1px;
+      }
+
+      .week-row {
+        display: grid;
         grid-template-columns: repeat(7, 1fr);
         gap: 1px;
       }
@@ -214,6 +219,8 @@ export class AmCalendar extends LitElement {
       }
 
       .year-label:hover { background: var(--am-hover-overlay); }
+      .year-label.no-action { cursor: default; }
+      .year-label.no-action:hover { background: none; }
       .year-label:focus-visible {
         outline: var(--am-focus-ring-width) solid var(--am-focus-ring);
         outline-offset: var(--am-focus-ring-offset);
@@ -316,6 +323,33 @@ export class AmCalendar extends LitElement {
     return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
   }
 
+  private _renderWeekRows(days: Array<{ date: number; month: number; year: number; iso: string; outside: boolean }>) {
+    const weeks: typeof days[] = [];
+    for (let i = 0; i < days.length; i += 7) {
+      weeks.push(days.slice(i, i + 7));
+    }
+    return weeks.map(week => html`
+      <div class="week-row" role="row">
+        ${week.map(day => {
+          const selected = day.iso === this.value;
+          const today = this._isToday(day.iso);
+          const disabled = this._isDisabled(day.iso);
+          return html`
+            <button class="day ${day.outside ? 'outside' : ''} ${selected ? 'selected' : ''} ${today ? 'today' : ''}"
+              part="day"
+              role="gridcell"
+              ?disabled=${disabled}
+              aria-label=${day.iso}
+              aria-selected=${selected ? 'true' : 'false'}
+              @click=${() => this._selectDate(day.iso)}>
+              ${day.date}
+            </button>
+          `;
+        })}
+      </div>
+    `);
+  }
+
   private _isToday(iso: string): boolean {
     const now = new Date();
     return iso === this._toISO(now.getFullYear(), now.getMonth(), now.getDate());
@@ -340,21 +374,7 @@ export class AmCalendar extends LitElement {
         ${DAYS.map(d => html`<span>${d}</span>`)}
       </div>
       <div class="grid" part="grid" role="grid">
-        ${days.map(day => {
-          const selected = day.iso === this.value;
-          const today = this._isToday(day.iso);
-          const disabled = this._isDisabled(day.iso);
-          return html`
-            <button class="day ${day.outside ? 'outside' : ''} ${selected ? 'selected' : ''} ${today ? 'today' : ''}"
-              part="day"
-              ?disabled=${disabled}
-              aria-label=${day.iso}
-              aria-selected=${selected ? 'true' : nothing}
-              @click=${() => this._selectDate(day.iso)}>
-              ${day.date}
-            </button>
-          `;
-        })}
+        ${this._renderWeekRows(days)}
       </div>
     `;
   }
@@ -403,7 +423,7 @@ export class AmCalendar extends LitElement {
         <button class="nav-btn" aria-label="Previous year range" @click=${this._prevYearRange}>
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M8.5 3.5L5 7l3.5 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
-        <span class="month-label" style="cursor: default;">${rangeLabel}</span>
+        <span class="month-label no-action">${rangeLabel}</span>
         <button class="nav-btn" aria-label="Next year range" @click=${this._nextYearRange}>
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M5.5 3.5L9 7l-3.5 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>

@@ -117,7 +117,6 @@ export class AmInputOtp extends LitElement {
     if (char && this._isValid(char)) {
       this._values = [...this._values];
       this._values[index] = char;
-      this.requestUpdate();
       this._emitChange();
 
       // Advance to next cell
@@ -144,12 +143,10 @@ export class AmInputOtp extends LitElement {
       if (this._values[index]) {
         this._values = [...this._values];
         this._values[index] = '';
-        this.requestUpdate();
         this._emitChange();
       } else if (index > 0) {
         this._values = [...this._values];
         this._values[index - 1] = '';
-        this.requestUpdate();
         this._emitChange();
         this._inputs[index - 1]?.focus();
       }
@@ -169,7 +166,6 @@ export class AmInputOtp extends LitElement {
 
     this._values = Array(this.length).fill('');
     chars.forEach((c, i) => { this._values[i] = c; });
-    this.requestUpdate();
     this._emitChange();
 
     const focusIndex = Math.min(chars.length, this.length - 1);

@@ -28,6 +28,7 @@ export class AmCheckbox extends LitElement {
   @property({ type: Boolean, reflect: true }) required = false;
   @property() name = '';
   @property() value = 'on';
+  @property({ attribute: 'aria-label' }) ariaLabel: string | null = null;
 
   private internals: ElementInternals;
 
@@ -173,13 +174,15 @@ export class AmCheckbox extends LitElement {
         aria-checked=${this.indeterminate ? 'mixed' : String(this.checked)}
         aria-disabled=${this.disabled ? 'true' : nothing}
         aria-required=${this.required ? 'true' : nothing}
+        aria-label=${this.ariaLabel || nothing}
+        aria-labelledby=${this.ariaLabel ? nothing : 'label'}
         @keydown=${this._handleKeyDown}
       >
         ${this.indeterminate
           ? html`<svg class="check-icon" viewBox="0 0 12 12" fill="none"><line x1="2" y1="6" x2="10" y2="6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`
           : html`<svg class="check-icon" viewBox="0 0 12 12" fill="none"><polyline points="2,6 5,9 10,3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`}
       </div>
-      <span class="label" part="label">
+      <span class="label" part="label" id="label">
         <slot></slot>
       </span>
     `;

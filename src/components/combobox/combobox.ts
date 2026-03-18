@@ -255,6 +255,10 @@ export class AmCombobox extends LitElement {
 
       /* ---- Select mode ---- */
 
+      .wrapper.select-mode {
+        cursor: pointer;
+      }
+
       .select-display {
         white-space: nowrap;
         overflow: hidden;
@@ -559,7 +563,7 @@ export class AmCombobox extends LitElement {
           <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </div>
-      <div class="listbox ${this._open ? 'open' : ''}" part="listbox" role="listbox">
+      <div class="listbox ${this._open ? 'open' : ''}" part="listbox" role="listbox" tabindex="0" aria-label=${this.label || 'Options'}>
         ${filteredOptions.length > 0
           ? filteredOptions.map(
               (option, i) => html`
@@ -571,7 +575,7 @@ export class AmCombobox extends LitElement {
                 >${option}</div>
               `
             )
-          : html`<div class="empty">No results</div>`}
+          : html`<div class="empty" role="option" aria-disabled="true">No results</div>`}
       </div>
       <div class="options-slot"><slot @slotchange=${this._handleOptionsSlotChange}></slot></div>
     `;
@@ -592,8 +596,7 @@ export class AmCombobox extends LitElement {
     ].filter(Boolean).join(' ');
 
     return html`
-      <div class=${wrapperClasses} @click=${this._handleWrapperClick}
-        style="cursor:pointer"
+      <div class="${wrapperClasses} select-mode" @click=${this._handleWrapperClick}
         role="combobox"
         aria-expanded=${this._open ? 'true' : 'false'}
         aria-haspopup="listbox"
@@ -617,25 +620,28 @@ export class AmCombobox extends LitElement {
           <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </div>
-      <div class="listbox ${this._open ? 'open' : ''}" part="listbox" role="listbox">
+      <div class="listbox ${this._open ? 'open' : ''}" part="listbox">
         <div class="dropdown-search-wrapper">
           <input class="dropdown-search" type="text" placeholder="Search…"
+            aria-label="Filter options"
             .value=${this._dropdownQuery}
             @input=${this._handleDropdownSearch}
             @keydown=${this._handleDropdownSearchKeydown} />
         </div>
-        ${filtered.length > 0
-          ? filtered.map(
-              (option, i) => html`
-                <div
-                  class="option ${i === this._highlightedIndex ? 'highlighted' : ''}"
-                  role="option"
-                  aria-selected=${this.value === option ? 'true' : 'false'}
-                  @click=${() => this._selectOption(option)}
-                >${option}</div>
-              `
-            )
-          : html`<div class="empty">No results</div>`}
+        <div role="listbox" tabindex="0" aria-label=${this.label || 'Options'}>
+          ${filtered.length > 0
+            ? filtered.map(
+                (option, i) => html`
+                  <div
+                    class="option ${i === this._highlightedIndex ? 'highlighted' : ''}"
+                    role="option"
+                    aria-selected=${this.value === option ? 'true' : 'false'}
+                    @click=${() => this._selectOption(option)}
+                  >${option}</div>
+                `
+              )
+            : html`<div class="empty" role="option" aria-disabled="true">No results</div>`}
+        </div>
       </div>
       <div class="options-slot"><slot @slotchange=${this._handleOptionsSlotChange}></slot></div>
     `;

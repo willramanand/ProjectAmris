@@ -1,5 +1,5 @@
 import { LitElement, css, html, nothing } from 'lit';
-import { customElement, property, query } from 'lit/decorators.js';
+import { customElement, property, query, state } from 'lit/decorators.js';
 import { resetStyles } from '../../styles/reset.css.js';
 
 export type SearchFieldSize = 'sm' | 'md' | 'lg';
@@ -159,7 +159,7 @@ export class AmSearchField extends LitElement {
     `,
   ];
 
-  private _focused = false;
+  @state() private _focused = false;
 
   private _handleInput(e: Event) {
     const input = e.target as HTMLInputElement;
@@ -185,12 +185,10 @@ export class AmSearchField extends LitElement {
 
   private _handleFocus() {
     this._focused = true;
-    this.requestUpdate();
   }
 
   private _handleBlur() {
     this._focused = false;
-    this.requestUpdate();
   }
 
   private _handleKeydown(e: KeyboardEvent) {

@@ -1,5 +1,6 @@
 import { LitElement, css, html, nothing } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
+import { styleMap } from 'lit/directives/style-map.js';
 import { resetStyles } from '../../styles/reset.css.js';
 import '../checkbox/checkbox.js';
 
@@ -91,6 +92,7 @@ export class AmDataGrid extends LitElement {
         text-transform: uppercase;
         letter-spacing: 0.03em;
         user-select: none;
+        width: var(--_col-width, auto);
       }
 
       :host([compact]) th { padding: var(--am-space-2) var(--am-space-3); }
@@ -209,7 +211,7 @@ export class AmDataGrid extends LitElement {
             ${this.columns.map(col => html`
               <th part="header-cell"
                 class="${col.sortable ? 'sortable' : ''} ${col.align === 'center' ? 'align-center' : col.align === 'end' ? 'align-end' : ''}"
-                style=${col.width ? `width: ${col.width}` : ''}
+                style=${col.width ? styleMap({'--_col-width': col.width}) : ''}
                 @click=${() => this._handleSort(col)}>
                 ${col.label}${this._renderSortIcon(col)}
               </th>

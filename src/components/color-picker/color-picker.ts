@@ -1,5 +1,6 @@
 import { LitElement, css, html, nothing, type PropertyValues } from 'lit';
 import { customElement, property, query, state } from 'lit/decorators.js';
+import { styleMap } from 'lit/directives/style-map.js';
 import { computePosition, flip, offset, shift } from '@floating-ui/dom';
 import { resetStyles } from '../../styles/reset.css.js';
 
@@ -43,6 +44,10 @@ export class AmColorPicker extends LitElement {
   @state() private _hexInput = '';
 
   @query('.area') private _area!: HTMLElement;
+  @query('.hue-slider') private _hueSlider!: HTMLElement;
+  @query('.alpha-slider') private _alphaSlider!: HTMLElement;
+  @query('.trigger') private _trigger!: HTMLElement;
+  @query('.panel') private _panel!: HTMLElement;
 
   private _internals: ElementInternals;
   private _draggingArea = false;
@@ -93,6 +98,7 @@ export class AmColorPicker extends LitElement {
         corner-shape: squircle;
         border: var(--am-border-1) solid var(--am-border);
         flex-shrink: 0;
+        background: var(--_swatch-bg);
       }
 
       .trigger-value {
@@ -127,6 +133,7 @@ export class AmColorPicker extends LitElement {
         cursor: crosshair;
         overflow: hidden;
         margin-bottom: var(--am-space-3);
+        background-color: var(--_area-bg);
       }
 
       .area-gradient {
@@ -145,6 +152,9 @@ export class AmColorPicker extends LitElement {
         box-shadow: 0 0 2px rgba(0,0,0,0.5);
         transform: translate(-50%, -50%);
         pointer-events: none;
+        left: var(--_thumb-x);
+        top: var(--_thumb-y);
+        background: var(--_thumb-bg);
       }
 
       .slider-row {
@@ -160,6 +170,7 @@ export class AmColorPicker extends LitElement {
         corner-shape: squircle;
         border: var(--am-border-1) solid var(--am-border);
         flex-shrink: 0;
+        background: var(--_preview-bg);
       }
 
       .sliders { flex: 1; display: flex; flex-direction: column; gap: var(--am-space-1-5); }
@@ -191,6 +202,8 @@ export class AmColorPicker extends LitElement {
         box-shadow: 0 0 2px rgba(0,0,0,0.4);
         transform: translate(-50%, -50%);
         pointer-events: none;
+        left: var(--_slider-pos);
+        background: var(--_slider-bg);
       }
 
       .hex-row {
@@ -226,6 +239,7 @@ export class AmColorPicker extends LitElement {
         border: var(--am-border-1) solid var(--am-border);
         cursor: pointer;
         transition: transform var(--am-duration-fast) var(--am-ease-default);
+        background: var(--_swatch-bg);
       }
 
       .swatch-btn:hover { transform: scale(1.15); }
@@ -376,18 +390,16 @@ export class AmColorPicker extends LitElement {
   }
 
   private _updateHueFromPointer(e: PointerEvent) {
-    const slider = this.shadowRoot?.querySelector('.hue-slider') as HTMLElement;
-    if (!slider) return;
-    const rect = slider.getBoundingClientRect();
+    if (!this._hueSlider) return;
+    const rect = this._hueSlider.getBoundingClientRect();
     const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
     this._hue = x * 360;
     this._emitChange();
   }
 
   private _updateAlphaFromPointer(e: PointerEvent) {
-    const slider = this.shadowRoot?.querySelector('.alpha-slider') as HTMLElement;
-    if (!slider) return;
-    const rect = slider.getBoundingClientRect();
+    if (!this._alphaSlider) return;
+    const rect = this._alphaSlider.getBoundingClientRect();
     const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
     this._alpha = Math.round(x * 100) / 100;
     this._emitChange();
@@ -409,15 +421,13 @@ export class AmColorPicker extends LitElement {
   }
 
   private async _updatePosition() {
-    const trigger = this.shadowRoot?.querySelector('.trigger') as HTMLElement;
-    const panel = this.shadowRoot?.querySelector('.panel') as HTMLElement;
-    if (!trigger || !panel) return;
-    const { x, y } = await computePosition(trigger, panel, {
+    if (!this._trigger || !this._panel) return;
+    const { x, y } = await computePosition(this._trigger, this._panel, {
       placement: 'bottom-start',
       strategy: 'fixed',
       middleware: [offset(4), flip(), shift({ padding: 8 })],
     });
-    Object.assign(panel.style, { left: `${x}px`, top: `${y}px` });
+    Object.assign(this._panel.style, { left: `${x}px`, top: `${y}px` });
   }
 
   render() {
@@ -425,35 +435,29 @@ export class AmColorPicker extends LitElement {
     const currentColor = `rgba(${r},${g},${b},${this._alpha})`;
     const hueColor = `hsl(${this._hue}, 100%, 50%)`;
     const alphaColor = `rgb(${r},${g},${b})`;
-    const panelStyle = `--_alpha-color: ${alphaColor}`;
-    const areaStyle = `background-color: ${hueColor}`;
-    const areaThumbStyle = `left: ${this._saturation}%; top: ${100 - this._brightness}%; background: ${currentColor}`;
-    const sliderPreviewStyle = `background: ${currentColor}`;
-    const hueThumbStyle = `left: ${(this._hue / 360) * 100}%; background: ${hueColor}`;
-    const alphaThumbStyle = `left: ${this._alpha * 100}%; background: ${currentColor}`;
 
     return html`
       ${this.label ? html`<span class="label">${this.label}</span>` : nothing}
       <div class="trigger ${this.invalid ? 'invalid' : ''}" @click=${() => { if (!this.disabled) this._open = !this._open; }}>
-        <div class="swatch" part="swatch" style="background: ${currentColor}"></div>
+        <div class="swatch" part="swatch" style=${styleMap({'--_swatch-bg': currentColor})}></div>
         <span class="trigger-value">${this._hexInput || this.value}</span>
       </div>
 
-      <div class="panel ${this._open ? 'open' : ''}" part="panel" style=${panelStyle}>
-        <div class="area" style=${areaStyle} @pointerdown=${this._handleAreaPointerDown}>
+      <div class="panel ${this._open ? 'open' : ''}" part="panel" style=${styleMap({'--_alpha-color': alphaColor})}>
+        <div class="area" style=${styleMap({'--_area-bg': hueColor})} @pointerdown=${this._handleAreaPointerDown}>
           <div class="area-gradient"></div>
-          <div class="area-thumb" style=${areaThumbStyle}></div>
+          <div class="area-thumb" style=${styleMap({'--_thumb-x': `${this._saturation}%`, '--_thumb-y': `${100 - this._brightness}%`, '--_thumb-bg': currentColor})}></div>
         </div>
 
         <div class="slider-row">
-          <div class="slider-preview" style=${sliderPreviewStyle}></div>
+          <div class="slider-preview" style=${styleMap({'--_preview-bg': currentColor})}></div>
           <div class="sliders">
             <div class="hue-slider" @pointerdown=${this._handleHuePointerDown}>
-              <div class="slider-thumb" style=${hueThumbStyle}></div>
+              <div class="slider-thumb" style=${styleMap({'--_slider-pos': `${(this._hue / 360) * 100}%`, '--_slider-bg': hueColor})}></div>
             </div>
             ${this.showAlpha ? html`
               <div class="alpha-slider" @pointerdown=${this._handleAlphaPointerDown}>
-                <div class="slider-thumb" style=${alphaThumbStyle}></div>
+                <div class="slider-thumb" style=${styleMap({'--_slider-pos': `${this._alpha * 100}%`, '--_slider-bg': currentColor})}></div>
               </div>
             ` : nothing}
           </div>
@@ -466,7 +470,7 @@ export class AmColorPicker extends LitElement {
         ${this.swatches.length > 0 ? html`
           <div class="swatches">
             ${this.swatches.map(s => html`
-              <button class="swatch-btn" style="background: ${s}" aria-label=${s}
+              <button class="swatch-btn" style=${styleMap({'--_swatch-bg': s})} aria-label=${s}
                 @click=${() => this._handleSwatchClick(s)}></button>
             `)}
           </div>

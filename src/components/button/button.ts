@@ -285,7 +285,7 @@ export class AmButton extends LitElement {
         part="button"
         type=${this.type}
         ?disabled=${this.disabled}
-        aria-label=${this.ariaLabel || nothing}
+        aria-label=${this.ariaLabel || (this.loading ? 'Loading' : nothing)}
         aria-busy=${this.loading ? 'true' : nothing}
         class=${classMap({
           [this.size]: true,

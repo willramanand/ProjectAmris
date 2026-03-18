@@ -10,7 +10,10 @@
       "Bash(node:*)",
       "Bash(wc:*)",
       "Bash(npm test:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(cd:*)",
+      "Bash(python3:*)",
+      "WebFetch(domain:axe.deque.com)"
     ]
   }
 }

@@ -24,19 +24,19 @@ export const darkTokens = css`
 
     /* Text */
     --am-text: var(--am-color-neutral-50);
-    --am-text-secondary: var(--am-color-neutral-400);
-    --am-text-tertiary: var(--am-color-neutral-500);
+    --am-text-secondary: var(--am-color-neutral-300);
+    --am-text-tertiary: var(--am-color-neutral-400);
     --am-text-inverse: var(--am-color-neutral-900);
     --am-text-disabled: var(--am-color-neutral-600);
     --am-text-link: var(--am-color-primary-400);
 
     /* Primary */
-    --am-primary: var(--am-color-primary-500);
-    --am-primary-hover: var(--am-color-primary-400);
-    --am-primary-active: var(--am-color-primary-300);
+    --am-primary: var(--am-color-primary-400);
+    --am-primary-hover: var(--am-color-primary-300);
+    --am-primary-active: var(--am-color-primary-200);
     --am-primary-subtle: var(--am-color-primary-950);
     --am-primary-subtle-hover: var(--am-color-primary-900);
-    --am-primary-subtle-text: var(--am-color-primary-400);
+    --am-primary-subtle-text: var(--am-color-primary-300);
     --am-primary-text: var(--am-color-neutral-0);
 
     /* Secondary */
@@ -58,9 +58,9 @@ export const darkTokens = css`
     --am-warning-text: var(--am-color-warning-300);
 
     /* Danger */
-    --am-danger: var(--am-color-danger-500);
-    --am-danger-hover: var(--am-color-danger-400);
-    --am-danger-active: var(--am-color-danger-300);
+    --am-danger: var(--am-color-danger-700);
+    --am-danger-hover: var(--am-color-danger-600);
+    --am-danger-active: var(--am-color-danger-500);
     --am-danger-subtle: var(--am-color-danger-950);
     --am-danger-text: var(--am-color-danger-300);
 
@@ -100,19 +100,19 @@ export const darkTokens = css`
 
       /* Text */
       --am-text: var(--am-color-neutral-50);
-      --am-text-secondary: var(--am-color-neutral-400);
-      --am-text-tertiary: var(--am-color-neutral-500);
+      --am-text-secondary: var(--am-color-neutral-300);
+      --am-text-tertiary: var(--am-color-neutral-400);
       --am-text-inverse: var(--am-color-neutral-900);
       --am-text-disabled: var(--am-color-neutral-600);
       --am-text-link: var(--am-color-primary-400);
 
       /* Primary */
-      --am-primary: var(--am-color-primary-500);
-      --am-primary-hover: var(--am-color-primary-400);
-      --am-primary-active: var(--am-color-primary-300);
+      --am-primary: var(--am-color-primary-400);
+      --am-primary-hover: var(--am-color-primary-300);
+      --am-primary-active: var(--am-color-primary-200);
       --am-primary-subtle: var(--am-color-primary-950);
       --am-primary-subtle-hover: var(--am-color-primary-900);
-      --am-primary-subtle-text: var(--am-color-primary-400);
+      --am-primary-subtle-text: var(--am-color-primary-300);
       --am-primary-text: var(--am-color-neutral-0);
 
       /* Secondary */
@@ -134,9 +134,9 @@ export const darkTokens = css`
       --am-warning-text: var(--am-color-warning-300);
 
       /* Danger */
-      --am-danger: var(--am-color-danger-500);
-      --am-danger-hover: var(--am-color-danger-400);
-      --am-danger-active: var(--am-color-danger-300);
+      --am-danger: var(--am-color-danger-700);
+      --am-danger-hover: var(--am-color-danger-600);
+      --am-danger-active: var(--am-color-danger-500);
       --am-danger-subtle: var(--am-color-danger-950);
       --am-danger-text: var(--am-color-danger-300);
 

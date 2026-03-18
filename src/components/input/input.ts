@@ -1,5 +1,5 @@
 import { LitElement, css, html, nothing, type PropertyValues } from 'lit';
-import { customElement, property, query } from 'lit/decorators.js';
+import { customElement, property, query, state } from 'lit/decorators.js';
 import { live } from 'lit/directives/live.js';
 import { resetStyles } from '../../styles/reset.css.js';
 
@@ -235,7 +235,7 @@ export class AmInput extends LitElement {
     `,
   ];
 
-  private _focused = false;
+  @state() private _focused = false;
 
   private get _floated(): boolean {
     return this._focused || this.value.length > 0;
@@ -257,8 +257,8 @@ export class AmInput extends LitElement {
     this.dispatchEvent(new CustomEvent('am-change', { detail: { value: this.value }, bubbles: true, composed: true }));
   }
 
-  private _handleFocus() { this._focused = true; this.requestUpdate(); }
-  private _handleBlur() { this._focused = false; this.requestUpdate(); }
+  private _handleFocus() { this._focused = true; }
+  private _handleBlur() { this._focused = false; }
 
   private _handleClear() {
     this.value = '';

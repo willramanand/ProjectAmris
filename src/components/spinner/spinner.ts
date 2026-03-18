@@ -57,6 +57,15 @@ export class AmSpinner extends LitElement {
       }
     }
 
+    .visually-hidden {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+    }
+
     @media (prefers-reduced-motion: reduce) {
       .spinner {
         animation-duration: 1.5s;
@@ -68,7 +77,7 @@ export class AmSpinner extends LitElement {
     return html`
       <div class="spinner" role="status" aria-label=${this.label}>
         <slot name="sr-only">
-          <span style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;">
+          <span class="visually-hidden">
             ${this.label}
           </span>
         </slot>

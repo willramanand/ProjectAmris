@@ -1,4 +1,4 @@
-import { LitElement, css, html, nothing } from 'lit';
+import { LitElement, css, html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { resetStyles } from '../../styles/reset.css.js';
 
@@ -159,13 +159,18 @@ export class AmTreeItem extends LitElement {
 
   protected updated() {
     this.style.setProperty('--_depth', String(this.depth));
+    // ARIA attributes belong on the host (role="treeitem"), not the inner button
+    this.setAttribute('aria-selected', String(this.selected));
+    if (this._hasChildren) {
+      this.setAttribute('aria-expanded', String(this.open));
+    } else {
+      this.removeAttribute('aria-expanded');
+    }
   }
 
   render() {
     return html`
       <button class="row" part="label"
-        aria-expanded=${this._hasChildren ? String(this.open) : nothing}
-        aria-selected=${String(this.selected)}
         @click=${this._toggle}
         @keydown=${this._handleKeydown}>
         ${this._hasChildren

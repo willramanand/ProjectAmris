@@ -107,8 +107,8 @@ export class AmListItem extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
+    this.setAttribute('role', 'listitem');
     if (this.interactive) {
-      this.setAttribute('role', 'option');
       this.setAttribute('tabindex', '0');
       this.addEventListener('click', this._handleClick);
       this.addEventListener('keydown', this._handleKeyDown);

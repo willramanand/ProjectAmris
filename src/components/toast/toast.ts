@@ -1,5 +1,6 @@
 import { LitElement, css, html, nothing } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
+import { styleMap } from 'lit/directives/style-map.js';
 import { resetStyles } from '../../styles/reset.css.js';
 
 export type ToastVariant = 'info' | 'success' | 'warning' | 'danger' | 'neutral';
@@ -261,7 +262,7 @@ export class AmToast extends LitElement {
   render() {
     return html`
       <div class="toast" part="toast"
-        style=${this.duration > 0 ? `--_toast-duration: ${this.duration}ms` : nothing}
+        style=${this.duration > 0 ? styleMap({'--_toast-duration': `${this.duration}ms`}) : nothing}
         @mouseenter=${this._handleMouseEnter}
         @mouseleave=${this._handleMouseLeave}>
         <div class="icon"><slot name="icon">${this._defaultIcon}</slot></div>

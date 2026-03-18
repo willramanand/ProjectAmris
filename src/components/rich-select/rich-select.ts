@@ -435,16 +435,19 @@ export class AmRichSelect extends LitElement {
         </svg>
       </button>
 
-      <div class="listbox ${this._open ? 'open' : ''}" part="listbox" role="listbox">
+      <div class="listbox ${this._open ? 'open' : ''}" part="listbox">
         ${this.searchable ? html`
           <div class="search-wrapper">
             <input class="search-input" type="text" placeholder="Search…"
+              aria-label="Filter options"
               .value=${this._searchQuery}
               @input=${this._handleSearchInput}
               @keydown=${this._handleKeydown} />
           </div>
         ` : nothing}
-        ${this._renderOptions()}
+        <div role="listbox" aria-label=${this.label || 'Options'}>
+          ${this._renderOptions()}
+        </div>
       </div>
     `;
   }

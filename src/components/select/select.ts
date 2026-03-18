@@ -710,6 +710,7 @@ export class AmSelect extends LitElement {
         class="listbox ${this._open ? 'open' : ''}"
         part="listbox"
         role="listbox"
+        aria-label=${this.label || 'Options'}
       >
         <slot @slotchange=${this._handleSlotChange}></slot>
       </div>

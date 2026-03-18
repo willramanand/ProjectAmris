@@ -285,13 +285,13 @@ export class AmAutocomplete extends LitElement {
         />
         ${this.loading ? html`<span class="spinner" aria-hidden="true"></span>` : nothing}
       </div>
-      <div class="listbox ${this._open ? 'open' : ''}" part="listbox" role="listbox">
+      <div class="listbox ${this._open ? 'open' : ''}" part="listbox" role="listbox" aria-label=${this.label || 'Options'}>
         ${this.results.length > 0
           ? this.results.map((r, i) => html`
               <div class="option ${i === this._highlightedIndex ? 'highlighted' : ''}"
                 role="option" @click=${() => this._select(r)}>${r}</div>
             `)
-          : html`<div class="empty">No results</div>`}
+          : html`<div class="empty" role="option" aria-disabled="true">No results</div>`}
       </div>
     `;
   }

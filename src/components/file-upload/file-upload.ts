@@ -1,5 +1,6 @@
 import { LitElement, css, html, nothing } from 'lit';
 import { customElement, property, query, state } from 'lit/decorators.js';
+import { styleMap } from 'lit/directives/style-map.js';
 import { resetStyles } from '../../styles/reset.css.js';
 
 export interface UploadFile {
@@ -190,6 +191,7 @@ export class AmFileUpload extends LitElement {
         height: 100%;
         background: var(--am-primary);
         border-radius: var(--am-radius-full);
+        width: var(--_progress);
         transition: width var(--am-duration-fast) var(--am-ease-default);
       }
 
@@ -326,7 +328,7 @@ export class AmFileUpload extends LitElement {
                 ${f.error ? html`<div class="file-error">${f.error}</div>` : nothing}
                 ${f.status === 'uploading' ? html`
                   <div class="progress-bar">
-                    <div class="progress-fill" style="width: ${f.progress}%"></div>
+                    <div class="progress-fill" style=${styleMap({'--_progress': `${f.progress}%`})}></div>
                   </div>
                 ` : nothing}
               </div>

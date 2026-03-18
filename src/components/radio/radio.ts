@@ -29,6 +29,7 @@ export class AmRadio extends LitElement {
   @property({ type: Boolean, reflect: true }) checked = false;
   @property({ type: Boolean, reflect: true }) disabled = false;
   @property() name = '';
+  @property({ attribute: 'aria-label' }) override ariaLabel: string | null = null;
 
   private internals: ElementInternals;
 
@@ -170,6 +171,8 @@ export class AmRadio extends LitElement {
         tabindex=${this.disabled ? nothing : '0'}
         aria-checked=${String(this.checked)}
         aria-disabled=${this.disabled ? 'true' : nothing}
+        aria-label=${this.ariaLabel || nothing}
+        aria-labelledby=${this.ariaLabel ? nothing : 'label'}
         @keydown=${this._handleKeyDown}
       >
         <svg class="radio-svg" viewBox="0 0 18 18">
@@ -177,7 +180,7 @@ export class AmRadio extends LitElement {
           <circle class="radio-dot" cx="9" cy="9" r="4"/>
         </svg>
       </div>
-      <span class="label" part="label">
+      <span class="label" part="label" id="label">
         <slot></slot>
       </span>
     `;

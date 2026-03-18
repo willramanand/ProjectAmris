@@ -1,5 +1,6 @@
 import { LitElement, css, html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
+import { styleMap } from 'lit/directives/style-map.js';
 import { resetStyles } from '../../styles/reset.css.js';
 
 export type ProgressVariant = 'primary' | 'success' | 'warning' | 'danger' | 'info';
@@ -66,6 +67,7 @@ export class AmProgress extends LitElement {
       .fill {
         height: 100%;
         border-radius: inherit;
+        width: var(--_progress);
         transition: width var(--am-duration-normal) var(--am-ease-default);
       }
 
@@ -115,7 +117,7 @@ export class AmProgress extends LitElement {
         <div
           class="fill"
           part="fill"
-          style=${this.indeterminate ? '' : `width: ${percent}%`}
+          style=${this.indeterminate ? '' : styleMap({'--_progress': `${percent}%`})}
         ></div>
       </div>
     `;
