@@ -35,6 +35,10 @@ export class AmAccordionItem extends LitElement {
         border-bottom: var(--am-border-1) solid var(--am-border);
       }
 
+      :host(:last-of-type) {
+        border-bottom: none;
+      }
+
       .header {
         all: unset;
         display: flex;

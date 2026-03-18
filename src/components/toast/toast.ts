@@ -58,12 +58,12 @@ export class AmToast extends LitElement {
         corner-shape: squircle;
         border: var(--am-border-1) solid transparent;
         font-family: var(--am-font-sans);
-        font-size: var(--am-text-base);
+        font-size: var(--am-text-sm);
         line-height: var(--am-leading-normal);
         box-shadow: var(--am-shadow-lg);
         background: var(--am-surface-raised);
         color: var(--am-text);
-        max-width: 28rem;
+        width: min(28rem, 100%);
         animation: toast-in var(--am-duration-normal) var(--am-ease-spring);
       }
 
@@ -88,7 +88,8 @@ export class AmToast extends LitElement {
       .icon {
         flex-shrink: 0;
         display: flex;
-        padding-top: 0.125rem;
+        align-items: center;
+        height: calc(var(--am-text-sm) * var(--am-leading-normal));
       }
 
       :host([variant='info']) .icon { color: var(--am-info); }
@@ -334,8 +335,8 @@ export class AmToastRegion extends LitElement {
     }
 
     :host([placement='top-center']), :host([placement='bottom-center']), :host(:not([placement])) {
-      left: 50%;
-      transform: translateX(-50%);
+      left: 0;
+      right: 0;
       align-items: center;
     }
 

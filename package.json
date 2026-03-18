@@ -33,7 +33,9 @@
     "build:manifest": "cem analyze --config custom-elements-manifest.config.js",
     "preview": "vite preview",
     "test": "vitest",
-    "test:run": "vitest run"
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:a11y": "vitest run test/a11y.test.ts"
   },
   "dependencies": {
     "@floating-ui/dom": "^1.7.6",
@@ -42,6 +44,8 @@
   "devDependencies": {
     "@custom-elements-manifest/analyzer": "^0.11.0",
     "@lit-labs/rollup-plugin-minify-html-literals": "^0.1.1",
+    "@vitest/coverage-v8": "^4.1.0",
+    "axe-core": "^4.11.1",
     "custom-elements-manifest": "^2.1.0",
     "jsdom": "^29.0.0",
     "terser": "^5.46.1",

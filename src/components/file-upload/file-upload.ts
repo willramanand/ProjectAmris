@@ -312,7 +312,7 @@ export class AmFileUpload extends LitElement {
         </div>
         ${hintParts.length > 0 ? html`<div class="hint">${hintParts.join(' · ')}</div>` : nothing}
       </div>
-      <input type="file" .accept=${this.accept} ?multiple=${this.multiple} @change=${this._handleFileSelect} />
+      <input type="file" aria-label=${this.label || 'Upload file'} .accept=${this.accept} ?multiple=${this.multiple} @change=${this._handleFileSelect} />
 
       ${this._files.length > 0 ? html`
         <div class="file-list" part="file-list">

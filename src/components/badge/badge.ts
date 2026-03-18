@@ -53,21 +53,15 @@ export class AmBadge extends LitElement {
       :host([size='md']) .badge, :host(:not([size])) .badge { padding: 0.3125rem 0.625rem; font-size: 0.75rem; }
       :host([size='lg']) .badge { padding: 0.375rem 0.75rem; font-size: 0.8125rem; }
 
-      /* Variants — light text defaults to dark */
-      .badge { color: var(--am-color-neutral-900); }
-
-      :host([variant='neutral']) .badge, :host(:not([variant])) .badge { background: var(--am-color-neutral-100); }
+      /* Variants — dark text on pastel backgrounds; --am-text adapts via theme tokens */
+      .badge { color: var(--am-text); }
+      :host([variant='neutral']) .badge, :host(:not([variant])) .badge { background: var(--am-neutral-subtle); }
       :host([variant='primary']) .badge { background: var(--am-primary-subtle); }
       :host([variant='secondary']) .badge { background: var(--am-secondary-subtle); }
       :host([variant='success']) .badge { background: var(--am-success-subtle); }
       :host([variant='warning']) .badge { background: var(--am-warning-subtle); }
       :host([variant='danger']) .badge { background: var(--am-danger-subtle); }
       :host([variant='info']) .badge { background: var(--am-info-subtle); }
-
-      /* Dark mode — colored variants get subtle white, neutral stays dark */
-      @media (prefers-color-scheme: dark) {
-        :host(:not([variant='neutral'])) .badge { color: var(--am-color-neutral-200); }
-      }
 
       :host([disabled]) .badge { opacity: var(--am-disabled-opacity); pointer-events: none; }
 

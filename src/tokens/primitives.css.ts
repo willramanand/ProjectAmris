@@ -111,7 +111,7 @@ export const primitiveTokens = css`
     --am-color-danger-300: #f7b5b1;
     --am-color-danger-400: #f08b84;
     --am-color-danger-500: #e5665d;
-    --am-color-danger-600: #cf4d45;
+    --am-color-danger-600: #c44840;
     --am-color-danger-700: #ae3f39;
     --am-color-danger-800: #903834;
     --am-color-danger-900: #783331;

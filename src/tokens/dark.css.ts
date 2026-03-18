@@ -69,6 +69,9 @@ export const darkTokens = css`
     --am-info-subtle: var(--am-color-info-950);
     --am-info-text: var(--am-color-info-300);
 
+    /* Neutral */
+    --am-neutral-subtle: var(--am-color-neutral-800);
+
     /* Interactive */
     --am-hover-overlay: rgb(255 255 255 / 0.06);
     --am-active-overlay: rgb(255 255 255 / 0.1);
@@ -144,6 +147,9 @@ export const darkTokens = css`
       --am-info: var(--am-color-info-400);
       --am-info-subtle: var(--am-color-info-950);
       --am-info-text: var(--am-color-info-300);
+
+      /* Neutral */
+      --am-neutral-subtle: var(--am-color-neutral-800);
 
       /* Interactive */
       --am-hover-overlay: rgb(255 255 255 / 0.06);

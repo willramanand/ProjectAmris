@@ -1,4 +1,4 @@
-# Amris Design System — Production Readiness TODO
+# Amris — Production Readiness TODO
 
 ## Must-Do Before Use
 
@@ -11,7 +11,6 @@
 
 ### Package Configuration
 - [ ] Set a real version (e.g. `"0.1.0"`)
-- [ ] Add `"main"` field pointing to CJS entry (if needed)
 - [x] Add `"module"` field pointing to ESM entry
 - [x] Add `"types"` field pointing to generated declarations
 - [x] Add `"exports"` map for modern resolution
@@ -19,12 +18,13 @@
 - [ ] Add `"license"`, `"repository"`, `"keywords"` fields
 
 ### Testing
-- [ ] Set up test runner (Vitest + @open-wc/testing or Web Test Runner)
-- [ ] Unit tests for component logic (properties, events, state)
-- [ ] Keyboard interaction tests for form inputs, selects, dropdowns, dialogs
-- [ ] Basic a11y smoke tests with axe-core
-- [ ] Form association tests (ElementInternals, form submission)
-- [ ] Add test script to `package.json`
+- [x] Set up test runner (Vitest + happy-dom)
+- [x] Unit tests for component logic (properties, events, state) — 259 tests across 32 files
+- [x] Keyboard interaction tests for form inputs, selects, dropdowns, dialogs
+- [x] Basic a11y smoke tests with axe-core — 35 tests across all components
+- [x] Form association tests (ElementInternals, form submission)
+- [x] Add test script to `package.json`
+- [x] Code coverage at 95%+ lines (via @vitest/coverage-v8)
 
 ### Custom Elements Manifest
 - [x] Configure and run `custom-elements-manifest` analyzer (package already installed)

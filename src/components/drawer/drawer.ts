@@ -57,6 +57,7 @@ export class AmDrawer extends LitElement {
 
       dialog {
         position: fixed;
+        inset: auto;
         border: none;
         padding: 0;
         margin: 0;

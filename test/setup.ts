@@ -183,6 +183,34 @@ if (!dialogPrototype.close) {
   };
 }
 
+if (typeof globalThis.DataTransfer === 'undefined') {
+  class DataTransferStub {
+    private _items: File[] = [];
+
+    get items() {
+      const self = this;
+      return {
+        add(file: File) { self._items.push(file); },
+        remove(i: number) { self._items.splice(i, 1); },
+        clear() { self._items.length = 0; },
+        get length() { return self._items.length; },
+        [Symbol.iterator]() { return self._items[Symbol.iterator](); },
+      };
+    }
+
+    get files(): FileList {
+      const items = this._items;
+      const list = Object.create(FileList.prototype);
+      items.forEach((f, i) => { list[i] = f; });
+      Object.defineProperty(list, 'length', { value: items.length });
+      list.item = (idx: number) => items[idx] ?? null;
+      return list;
+    }
+  }
+
+  (globalThis as Record<string, unknown>).DataTransfer = DataTransferStub;
+}
+
 afterEach(() => {
   document.body.innerHTML = '';
 });

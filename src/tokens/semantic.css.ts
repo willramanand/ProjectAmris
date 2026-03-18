@@ -32,7 +32,7 @@ export const semanticTokens = css`
        ================================================================ */
     --am-text: var(--am-color-neutral-900);
     --am-text-secondary: var(--am-color-neutral-600);
-    --am-text-tertiary: var(--am-color-neutral-400);
+    --am-text-tertiary: var(--am-color-neutral-500);
     --am-text-inverse: var(--am-color-neutral-0);
     --am-text-disabled: var(--am-color-neutral-300);
     --am-text-link: var(--am-color-primary-600);
@@ -87,6 +87,14 @@ export const semanticTokens = css`
     --am-info: var(--am-color-info-600);
     --am-info-subtle: var(--am-color-info-50);
     --am-info-text: var(--am-color-info-700);
+
+    /* ================================================================
+       INTERACTIVE — Hover/press overlays
+       ================================================================ */
+    /* ================================================================
+       NEUTRAL
+       ================================================================ */
+    --am-neutral-subtle: var(--am-color-neutral-100);
 
     /* ================================================================
        INTERACTIVE — Hover/press overlays

@@ -13,7 +13,9 @@
       "Bash(grep:*)",
       "Bash(cd:*)",
       "Bash(python3:*)",
-      "WebFetch(domain:axe.deque.com)"
+      "WebFetch(domain:axe.deque.com)",
+      "Bash(npx vitest:*)",
+      "Bash(npm install:*)"
     ]
   }
 }
