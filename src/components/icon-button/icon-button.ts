@@ -14,16 +14,16 @@ export type IconButtonSize = 'sm' | 'md' | 'lg';
  * Icon Button — a square button for icon-only actions.
  * Always requires an accessible label.
  *
- * @slot - Icon content (SVG or qz-icon)
+ * @slot - Icon content (SVG or am-icon)
  * @csspart button - The native button element
  *
  * @cssprop --am-icon-button-radius - Override border radius
  *
  * @example
  * ```html
- * <qz-icon-button label="Close">
+ * <am-icon-button label="Close">
  *   <svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2"/></svg>
- * </qz-icon-button>
+ * </am-icon-button>
  * ```
  */
 @customElement('am-icon-button')

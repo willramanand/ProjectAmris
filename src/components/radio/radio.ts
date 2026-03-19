@@ -13,12 +13,12 @@ import { resetStyles } from '../../styles/reset.css.js';
  * @csspart control - The visual radio circle
  * @csspart label - The label wrapper
  *
- * @fires qz-change - Fires when checked state changes with { checked, value } detail
+ * @fires am-change - Fires when checked state changes with { checked, value } detail
  *
  * @example
  * ```html
- * <qz-radio value="a">Option A</qz-radio>
- * <qz-radio value="b" checked>Option B</qz-radio>
+ * <am-radio value="a">Option A</am-radio>
+ * <am-radio value="b" checked>Option B</am-radio>
  * ```
  */
 @customElement('am-radio')
@@ -192,20 +192,20 @@ export class AmRadio extends LitElement {
    ================================================================ */
 
 /**
- * Radio Group — manages single-selection across qz-radio children.
+ * Radio Group — manages single-selection across am-radio children.
  * Provides roving tabindex keyboard navigation and form association.
  *
- * @slot - Radio buttons (qz-radio elements)
+ * @slot - Radio buttons (am-radio elements)
  *
- * @fires qz-change - Fires when the selected radio changes with { value } detail
+ * @fires am-change - Fires when the selected radio changes with { value } detail
  *
  * @example
  * ```html
- * <qz-radio-group label="Choose a plan" name="plan" value="pro">
- *   <qz-radio value="free">Free</qz-radio>
- *   <qz-radio value="pro">Pro</qz-radio>
- *   <qz-radio value="enterprise">Enterprise</qz-radio>
- * </qz-radio-group>
+ * <am-radio-group label="Choose a plan" name="plan" value="pro">
+ *   <am-radio value="free">Free</am-radio>
+ *   <am-radio value="pro">Pro</am-radio>
+ *   <am-radio value="enterprise">Enterprise</am-radio>
+ * </am-radio-group>
  * ```
  */
 @customElement('am-radio-group')

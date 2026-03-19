@@ -9,13 +9,13 @@ import { resetStyles } from '../../styles/reset.css.js';
  * @csspart control - The visual checkbox box
  * @csspart label - The label wrapper
  *
- * @fires qz-change - Fires when checked state changes with { checked } detail
+ * @fires am-change - Fires when checked state changes with { checked } detail
  *
  * @example
  * ```html
- * <qz-checkbox>Accept terms and conditions</qz-checkbox>
- * <qz-checkbox checked>Remember me</qz-checkbox>
- * <qz-checkbox indeterminate>Select all</qz-checkbox>
+ * <am-checkbox>Accept terms and conditions</am-checkbox>
+ * <am-checkbox checked>Remember me</am-checkbox>
+ * <am-checkbox indeterminate>Select all</am-checkbox>
  * ```
  */
 @customElement('am-checkbox')

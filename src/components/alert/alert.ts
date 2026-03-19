@@ -18,12 +18,12 @@ export type AlertVariant = 'info' | 'success' | 'warning' | 'danger' | 'neutral'
  *
  * @cssprop --am-alert-radius - Override border radius
  *
- * @fires qz-close - Fires when the alert is dismissed
+ * @fires am-close - Fires when the alert is dismissed
  *
  * @example
  * ```html
- * <qz-alert variant="success">Changes saved successfully.</qz-alert>
- * <qz-alert variant="danger" closable>Something went wrong.</qz-alert>
+ * <am-alert variant="success">Changes saved successfully.</am-alert>
+ * <am-alert variant="danger" closable>Something went wrong.</am-alert>
  * ```
  */
 @customElement('am-alert')

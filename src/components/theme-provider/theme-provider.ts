@@ -14,9 +14,9 @@ export type Theme = 'light' | 'dark' | 'system';
  *
  * @example
  * ```html
- * <qz-theme-provider theme="system">
- *   <qz-button variant="primary">Hello</qz-button>
- * </qz-theme-provider>
+ * <am-theme-provider theme="system">
+ *   <am-button variant="primary">Hello</am-button>
+ * </am-theme-provider>
  * ```
  */
 @customElement('am-theme-provider')

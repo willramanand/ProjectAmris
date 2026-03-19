@@ -14,12 +14,12 @@ export type ComboboxSize = 'sm' | 'md' | 'lg';
  * @csspart listbox - The dropdown panel
  * @csspart label - The floating label element
  *
- * @fires qz-input - Fires on input with { value } detail
- * @fires qz-change - Fires on selection with { value } detail
+ * @fires am-input - Fires on input with { value } detail
+ * @fires am-change - Fires on selection with { value } detail
  *
  * @example
  * ```html
- * <qz-combobox label="Country" .options=${['Canada', 'Chile', 'China']}></qz-combobox>
+ * <am-combobox label="Country" .options=${['Canada', 'Chile', 'China']}></am-combobox>
  * ```
  */
 @customElement('am-combobox')

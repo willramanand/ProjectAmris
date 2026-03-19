@@ -15,14 +15,14 @@ import { resetStyles } from '../../styles/reset.css.js';
  * @cssprop --am-textarea-radius - Override border radius
  * @cssprop --am-textarea-min-height - Override minimum height
  *
- * @fires qz-input - Fires on input with { value } detail
- * @fires qz-change - Fires on change with { value } detail
- * @fires qz-clear - Fires when the clear button is clicked
+ * @fires am-input - Fires on input with { value } detail
+ * @fires am-change - Fires on change with { value } detail
+ * @fires am-clear - Fires when the clear button is clicked
  *
  * @example
  * ```html
- * <qz-textarea label="Message"></qz-textarea>
- * <qz-textarea label="Bio" clearable></qz-textarea>
+ * <am-textarea label="Message"></am-textarea>
+ * <am-textarea label="Bio" clearable></am-textarea>
  * ```
  */
 @customElement('am-textarea')

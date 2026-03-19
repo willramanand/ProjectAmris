@@ -17,7 +17,7 @@ import { uniqueId } from '../../utilities/unique-id.js';
  * @csspart body - The collapsible body region
  * @csspart chevron - The expand/collapse chevron icon
  *
- * @fires qz-toggle - Fires when toggled with { open } detail
+ * @fires am-toggle - Fires when toggled with { open } detail
  */
 @customElement('am-accordion-item')
 export class AmAccordionItem extends LitElement {
@@ -165,20 +165,20 @@ export class AmAccordionItem extends LitElement {
 /**
  * Accordion — a group of collapsible sections.
  *
- * @slot - Accordion items (qz-accordion-item elements)
+ * @slot - Accordion items (am-accordion-item elements)
  *
  * @example
  * ```html
- * <qz-accordion>
- *   <qz-accordion-item open>
+ * <am-accordion>
+ *   <am-accordion-item open>
  *     <span slot="header">Section 1</span>
  *     Content for section 1.
- *   </qz-accordion-item>
- *   <qz-accordion-item>
+ *   </am-accordion-item>
+ *   <am-accordion-item>
  *     <span slot="header">Section 2</span>
  *     Content for section 2.
- *   </qz-accordion-item>
- * </qz-accordion>
+ *   </am-accordion-item>
+ * </am-accordion>
  * ```
  */
 @customElement('am-accordion')

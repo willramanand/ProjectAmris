@@ -16,12 +16,12 @@ export type IconSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
  * @example
  * ```html
  * <!-- From sprite sheet -->
- * <qz-icon name="check" src="/icons.svg"></qz-icon>
+ * <am-icon name="check" src="/icons.svg"></am-icon>
  *
  * <!-- Inline SVG -->
- * <qz-icon label="Checkmark">
+ * <am-icon label="Checkmark">
  *   <svg viewBox="0 0 24 24">...</svg>
- * </qz-icon>
+ * </am-icon>
  * ```
  */
 @customElement('am-icon')

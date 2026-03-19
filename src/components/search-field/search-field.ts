@@ -6,22 +6,22 @@ export type SearchFieldSize = 'sm' | 'md' | 'lg';
 
 /**
  * SearchField — a search-optimized input with a search icon prefix and
- * clear button. Built standalone (no qz-input wrapping) to avoid shadow
+ * clear button. Built standalone (no am-input wrapping) to avoid shadow
  * DOM nesting issues.
  *
  * @csspart wrapper - The outer wrapper div
  * @csspart input - The native input element
  * @csspart clear - The clear button
  *
- * @fires qz-input - Fires on input with { value } detail
- * @fires qz-change - Fires on change with { value } detail
- * @fires qz-clear - Fires when the clear button is clicked
- * @fires qz-search - Fires on Enter key press with { value } detail
+ * @fires am-input - Fires on input with { value } detail
+ * @fires am-change - Fires on change with { value } detail
+ * @fires am-clear - Fires when the clear button is clicked
+ * @fires am-search - Fires on Enter key press with { value } detail
  *
  * @example
  * ```html
- * <qz-search-field placeholder="Search items..."></qz-search-field>
- * <qz-search-field size="lg" placeholder="Find anything"></qz-search-field>
+ * <am-search-field placeholder="Search items..."></am-search-field>
+ * <am-search-field size="lg" placeholder="Find anything"></am-search-field>
  * ```
  */
 @customElement('am-search-field')

@@ -9,7 +9,7 @@ export type TabVariant = 'underline' | 'pill' | 'vertical';
    ================================================================ */
 
 /**
- * Tab — a single tab trigger. Place inside qz-tabs with slot="nav".
+ * Tab — a single tab trigger. Place inside am-tabs with slot="nav".
  *
  * @slot - Tab label content
  * @csspart tab - The tab button
@@ -19,7 +19,7 @@ export class AmTab extends LitElement {
   /** The name of the panel this tab controls. */
   @property({ reflect: true }) panel = '';
 
-  /** Whether this tab is selected. Managed by qz-tabs. */
+  /** Whether this tab is selected. Managed by am-tabs. */
   @property({ type: Boolean, reflect: true }) selected = false;
 
   /** Whether this tab is disabled. */
@@ -163,16 +163,16 @@ export class AmTab extends LitElement {
    ================================================================ */
 
 /**
- * Tab Panel — content panel controlled by a qz-tab.
+ * Tab Panel — content panel controlled by a am-tab.
  *
  * @slot - Panel content
  */
 @customElement('am-tab-panel')
 export class AmTabPanel extends LitElement {
-  /** Unique name linking this panel to a qz-tab. */
+  /** Unique name linking this panel to a am-tab. */
   @property({ reflect: true }) name = '';
 
-  /** Whether this panel is active. Managed by qz-tabs. */
+  /** Whether this panel is active. Managed by am-tabs. */
   @property({ type: Boolean, reflect: true }) active = false;
 
   static styles = css`
@@ -198,21 +198,21 @@ export class AmTabPanel extends LitElement {
  * Tabs — a tabbed interface container. Manages selection,
  * ARIA attributes, and keyboard navigation.
  *
- * @slot nav - Tab triggers (qz-tab elements)
- * @slot - Tab panels (qz-tab-panel elements)
+ * @slot nav - Tab triggers (am-tab elements)
+ * @slot - Tab panels (am-tab-panel elements)
  *
  * @csspart nav - The tab navigation bar
  *
- * @fires qz-tab-change - Fires when the active tab changes with { panel } detail
+ * @fires am-tab-change - Fires when the active tab changes with { panel } detail
  *
  * @example
  * ```html
- * <qz-tabs>
- *   <qz-tab slot="nav" panel="one">Tab 1</qz-tab>
- *   <qz-tab slot="nav" panel="two">Tab 2</qz-tab>
- *   <qz-tab-panel name="one">Content 1</qz-tab-panel>
- *   <qz-tab-panel name="two">Content 2</qz-tab-panel>
- * </qz-tabs>
+ * <am-tabs>
+ *   <am-tab slot="nav" panel="one">Tab 1</am-tab>
+ *   <am-tab slot="nav" panel="two">Tab 2</am-tab>
+ *   <am-tab-panel name="one">Content 1</am-tab-panel>
+ *   <am-tab-panel name="two">Content 2</am-tab-panel>
+ * </am-tabs>
  * ```
  */
 @customElement('am-tabs')

@@ -10,12 +10,12 @@ import { resetStyles } from '../../styles/reset.css.js';
  * @csspart thumb - The switch thumb
  * @csspart label - The label text
  *
- * @fires qz-change - Fires when toggled with { checked } detail
+ * @fires am-change - Fires when toggled with { checked } detail
  *
  * @example
  * ```html
- * <qz-switch>Dark mode</qz-switch>
- * <qz-switch checked>Notifications</qz-switch>
+ * <am-switch>Dark mode</am-switch>
+ * <am-switch checked>Notifications</am-switch>
  * ```
  */
 @customElement('am-switch')

@@ -7,14 +7,14 @@ import { resetStyles } from '../../styles/reset.css.js';
  *
  * @csspart input - The native range input element
  *
- * @fires qz-input - Fires during drag with { value } detail
- * @fires qz-change - Fires on drag end with { value } detail
+ * @fires am-input - Fires during drag with { value } detail
+ * @fires am-change - Fires on drag end with { value } detail
  *
  * @example
  * ```html
- * <qz-slider></qz-slider>
- * <qz-slider value="30" min="0" max="100" step="5"></qz-slider>
- * <qz-slider label="Volume" value="75"></qz-slider>
+ * <am-slider></am-slider>
+ * <am-slider value="30" min="0" max="100" step="5"></am-slider>
+ * <am-slider label="Volume" value="75"></am-slider>
  * ```
  */
 @customElement('am-slider')

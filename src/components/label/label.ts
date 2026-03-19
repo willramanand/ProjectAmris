@@ -10,7 +10,7 @@ import { resetStyles } from '../../styles/reset.css.js';
  *
  * @example
  * ```html
- * <qz-label for="email-input" required>Email address</qz-label>
+ * <am-label for="email-input" required>Email address</am-label>
  * ```
  */
 @customElement('am-label')

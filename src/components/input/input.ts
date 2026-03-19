@@ -19,14 +19,14 @@ export type InputSize = 'sm' | 'md' | 'lg';
  *
  * @cssprop --am-input-radius - Override border radius
  *
- * @fires qz-input - Fires on input with { value } detail
- * @fires qz-change - Fires on change with { value } detail
- * @fires qz-clear - Fires when the clear button is clicked
+ * @fires am-input - Fires on input with { value } detail
+ * @fires am-change - Fires on change with { value } detail
+ * @fires am-clear - Fires when the clear button is clicked
  *
  * @example
  * ```html
- * <qz-input label="Email address" type="email"></qz-input>
- * <qz-input label="Search" clearable></qz-input>
+ * <am-input label="Email address" type="email"></am-input>
+ * <am-input label="Search" clearable></am-input>
  * ```
  */
 @customElement('am-input')

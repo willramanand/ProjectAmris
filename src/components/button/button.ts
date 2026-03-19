@@ -28,9 +28,9 @@ export type ButtonSize = 'sm' | 'md' | 'lg';
  *
  * @example
  * ```html
- * <qz-button variant="primary">Save changes</qz-button>
- * <qz-button variant="outlined" size="sm">Cancel</qz-button>
- * <qz-button variant="ghost" loading>Processing</qz-button>
+ * <am-button variant="primary">Save changes</am-button>
+ * <am-button variant="outlined" size="sm">Cancel</am-button>
+ * <am-button variant="ghost" loading>Processing</am-button>
  * ```
  */
 @customElement('am-button')

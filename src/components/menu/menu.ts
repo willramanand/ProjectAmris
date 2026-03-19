@@ -35,13 +35,13 @@ export class AmMenuDivider extends LitElement {
    ================================================================ */
 
 /**
- * Menu Item — an actionable entry within a qz-menu.
+ * Menu Item — an actionable entry within a am-menu.
  *
  * @slot - Label text
  * @slot prefix - Icon or content before the label
  * @slot suffix - Content after the label (e.g. keyboard shortcut hint)
  *
- * @fires qz-select - Fires on click with `{ item }` detail
+ * @fires am-select - Fires on click with `{ item }` detail
  */
 @customElement('am-menu-item')
 export class AmMenuItem extends LitElement {
@@ -177,17 +177,17 @@ export class AmMenuItem extends LitElement {
  *
  * Uses roving tabindex and arrow-key navigation between items.
  *
- * @slot - Menu items (qz-menu-item and qz-menu-divider elements)
+ * @slot - Menu items (am-menu-item and am-menu-divider elements)
  *
  * @example
  * ```html
- * <qz-menu>
- *   <qz-menu-item>Cut</qz-menu-item>
- *   <qz-menu-item>Copy</qz-menu-item>
- *   <qz-menu-item>Paste</qz-menu-item>
- *   <qz-menu-divider></qz-menu-divider>
- *   <qz-menu-item destructive>Delete</qz-menu-item>
- * </qz-menu>
+ * <am-menu>
+ *   <am-menu-item>Cut</am-menu-item>
+ *   <am-menu-item>Copy</am-menu-item>
+ *   <am-menu-item>Paste</am-menu-item>
+ *   <am-menu-divider></am-menu-divider>
+ *   <am-menu-item destructive>Delete</am-menu-item>
+ * </am-menu>
  * ```
  */
 @customElement('am-menu')

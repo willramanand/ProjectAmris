@@ -10,7 +10,7 @@ import { customElement } from 'lit/decorators.js';
  *
  * @example
  * ```html
- * <qz-visually-hidden>Close dialog</qz-visually-hidden>
+ * <am-visually-hidden>Close dialog</am-visually-hidden>
  * ```
  */
 @customElement('am-visually-hidden')

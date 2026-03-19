@@ -18,9 +18,9 @@ import { resetStyles } from '../../styles/reset.css.js';
  *
  * @example
  * ```html
- * <qz-tooltip content="Save your changes">
- *   <qz-button>Save</qz-button>
- * </qz-tooltip>
+ * <am-tooltip content="Save your changes">
+ *   <am-button>Save</am-button>
+ * </am-tooltip>
  * ```
  */
 @customElement('am-tooltip')

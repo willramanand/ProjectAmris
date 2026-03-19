@@ -6,10 +6,10 @@ import { resetStyles } from '../../styles/reset.css.js';
  * Field — a structural wrapper for composing label + input + hint/error.
  * Provides consistent vertical spacing for form groups.
  *
- * @slot - Default slot for form controls (qz-input, qz-checkbox, etc.)
- * @slot label - Label slot (qz-label)
- * @slot hint - Hint text slot (qz-hint-text)
- * @slot error - Error text slot (qz-error-text)
+ * @slot - Default slot for form controls (am-input, am-checkbox, etc.)
+ * @slot label - Label slot (am-label)
+ * @slot hint - Hint text slot (am-hint-text)
+ * @slot error - Error text slot (am-error-text)
  *
  * @csspart field - The outer field container
  *
@@ -17,11 +17,11 @@ import { resetStyles } from '../../styles/reset.css.js';
  *
  * @example
  * ```html
- * <qz-field>
- *   <qz-label slot="label" required>Email</qz-label>
- *   <qz-input type="email" placeholder="you@example.com"></qz-input>
- *   <qz-hint-text slot="hint">We'll never share your email.</qz-hint-text>
- * </qz-field>
+ * <am-field>
+ *   <am-label slot="label" required>Email</am-label>
+ *   <am-input type="email" placeholder="you@example.com"></am-input>
+ *   <am-hint-text slot="hint">We'll never share your email.</am-hint-text>
+ * </am-field>
  * ```
  */
 @customElement('am-field')

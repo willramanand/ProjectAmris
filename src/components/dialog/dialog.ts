@@ -22,18 +22,18 @@ export type DialogSize = 'sm' | 'md' | 'lg' | 'xl';
  * @cssprop --am-dialog-radius - Override border radius
  * @cssprop --am-dialog-padding - Override content padding
  *
- * @fires qz-open - Fires when the dialog opens
- * @fires qz-close - Fires when the dialog closes
+ * @fires am-open - Fires when the dialog opens
+ * @fires am-close - Fires when the dialog closes
  *
  * @example
  * ```html
- * <qz-dialog label="Confirm" open>
+ * <am-dialog label="Confirm" open>
  *   <p>Are you sure you want to continue?</p>
  *   <div slot="footer">
- *     <qz-button variant="ghost" onclick="this.closest('am-dialog').open = false">Cancel</qz-button>
- *     <qz-button>Confirm</qz-button>
+ *     <am-button variant="ghost" onclick="this.closest('am-dialog').open = false">Cancel</am-button>
+ *     <am-button>Confirm</am-button>
  *   </div>
- * </qz-dialog>
+ * </am-dialog>
  * ```
  */
 @customElement('am-dialog')

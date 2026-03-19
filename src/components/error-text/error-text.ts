@@ -9,7 +9,7 @@ import { resetStyles } from '../../styles/reset.css.js';
  *
  * @example
  * ```html
- * <qz-error-text>This field is required.</qz-error-text>
+ * <am-error-text>This field is required.</am-error-text>
  * ```
  */
 @customElement('am-error-text')

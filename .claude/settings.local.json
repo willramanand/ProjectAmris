@@ -15,7 +15,11 @@
       "Bash(python3:*)",
       "WebFetch(domain:axe.deque.com)",
       "Bash(npx vitest:*)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(npm i:*)",
+      "Bash(npx storybook:*)",
+      "Bash(curl:*)",
+      "Bash(npx kill-port:*)"
     ]
   }
 }

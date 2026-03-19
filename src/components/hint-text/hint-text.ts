@@ -9,7 +9,7 @@ import { resetStyles } from '../../styles/reset.css.js';
  *
  * @example
  * ```html
- * <qz-hint-text>Must be at least 8 characters.</qz-hint-text>
+ * <am-hint-text>Must be at least 8 characters.</am-hint-text>
  * ```
  */
 @customElement('am-hint-text')

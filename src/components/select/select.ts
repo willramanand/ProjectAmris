@@ -10,14 +10,14 @@ export type SelectSize = 'sm' | 'md' | 'lg';
    ================================================================ */
 
 /**
- * Option — a single selectable option inside a qz-select.
+ * Option — a single selectable option inside a am-select.
  *
  * @slot - Option label text
  *
  * @example
  * ```html
- * <qz-option value="apple">Apple</qz-option>
- * <qz-option value="banana" disabled>Banana</qz-option>
+ * <am-option value="apple">Apple</am-option>
+ * <am-option value="banana" disabled>Banana</am-option>
  * ```
  */
 @customElement('am-option')
@@ -136,22 +136,22 @@ export class AmOption extends LitElement {
  * Select — a custom dropdown select with floating label support.
  * Uses Floating UI for dropdown positioning.
  *
- * @slot - Option elements (qz-option)
+ * @slot - Option elements (am-option)
  *
  * @csspart trigger - The select trigger button
  * @csspart listbox - The dropdown panel
  * @csspart label - The floating label element
  * @csspart clear - The clear button
  *
- * @fires qz-change - Fires on selection change with { value } detail
+ * @fires am-change - Fires on selection change with { value } detail
  *
  * @example
  * ```html
- * <qz-select label="Fruit" placeholder="Choose a fruit">
- *   <qz-option value="apple">Apple</qz-option>
- *   <qz-option value="banana">Banana</qz-option>
- *   <qz-option value="cherry">Cherry</qz-option>
- * </qz-select>
+ * <am-select label="Fruit" placeholder="Choose a fruit">
+ *   <am-option value="apple">Apple</am-option>
+ *   <am-option value="banana">Banana</am-option>
+ *   <am-option value="cherry">Cherry</am-option>
+ * </am-select>
  * ```
  */
 @customElement('am-select')
@@ -215,7 +215,7 @@ export class AmSelect extends LitElement {
         position: relative;
       }
 
-      /* ---- Trigger (matches qz-input wrapper styling) ---- */
+      /* ---- Trigger (matches am-input wrapper styling) ---- */
 
       .trigger {
         all: unset;
@@ -268,7 +268,7 @@ export class AmSelect extends LitElement {
       :host([size='md']) .trigger.has-label, :host(:not([size])) .trigger.has-label { height: 3.5rem; padding-inline: var(--am-space-3); font-size: var(--am-text-sm); }
       :host([size='lg']) .trigger.has-label { height: 3.75rem; padding-inline: var(--am-space-4); font-size: var(--am-text-base); }
 
-      /* ---- Input group (mirrors qz-input) ---- */
+      /* ---- Input group (mirrors am-input) ---- */
 
       .input-group {
         flex: 1;

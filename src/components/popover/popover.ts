@@ -13,15 +13,15 @@ import { resetStyles } from '../../styles/reset.css.js';
  * @csspart popover - The floating panel
  * @csspart arrow - The arrow element
  *
- * @fires qz-show - Fires when the popover opens
- * @fires qz-hide - Fires when the popover closes
+ * @fires am-show - Fires when the popover opens
+ * @fires am-hide - Fires when the popover closes
  *
  * @example
  * ```html
- * <qz-popover>
- *   <qz-button>Open</qz-button>
+ * <am-popover>
+ *   <am-button>Open</am-button>
  *   <div slot="content">Popover content here</div>
- * </qz-popover>
+ * </am-popover>
  * ```
  */
 @customElement('am-popover')
