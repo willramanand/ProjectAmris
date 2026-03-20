@@ -10,16 +10,35 @@ export type ComboboxSize = 'sm' | 'md' | 'lg';
  * Combobox — a text input with a filterable dropdown list.
  * Typing filters the available options; selecting an option sets the value.
  *
+ * When `async` is set, client-side filtering is disabled. Instead, the
+ * component fires `am-search` events and expects the consumer to update
+ * the `options` property with results from an external source.
+ *
  * @csspart input - The native input element
  * @csspart listbox - The dropdown panel
  * @csspart label - The floating label element
  *
  * @fires am-input - Fires on input with { value } detail
  * @fires am-change - Fires on selection with { value } detail
+ * @fires am-search - Fires when the user types in async mode, with { query } detail
  *
  * @example
  * ```html
  * <am-combobox label="Country" .options=${['Canada', 'Chile', 'China']}></am-combobox>
+ * ```
+ *
+ * @example Async mode
+ * ```html
+ * <am-combobox async label="Search users" placeholder="Type a name..."></am-combobox>
+ * <script>
+ *   const cb = document.querySelector('am-combobox');
+ *   cb.addEventListener('am-search', async (e) => {
+ *     cb.loading = true;
+ *     const res = await fetch(`/api/users?q=${e.detail.query}`);
+ *     cb.options = await res.json();
+ *     cb.loading = false;
+ *   });
+ * </script>
  * ```
  */
 @customElement('am-combobox')
@@ -37,6 +56,15 @@ export class AmCombobox extends LitElement {
   @property({ type: Boolean, reflect: true }) readonly = false;
   @property({ type: Boolean, reflect: true }) invalid = false;
   @property({ type: Boolean, reflect: true }) required = false;
+
+  /** When true, disables client-side filtering and fires `am-search` events instead. */
+  @property({ type: Boolean, reflect: true }) async = false;
+
+  /** Shows a loading spinner (useful in async mode while fetching results). */
+  @property({ type: Boolean, reflect: true }) loading = false;
+
+  /** Minimum characters before firing `am-search` in async mode. */
+  @property({ type: Number, attribute: 'min-chars' }) minChars = 1;
 
   /** When true, uses a select-style trigger with search inside the dropdown. */
   @property({ type: Boolean, reflect: true }) select = false;
@@ -209,6 +237,20 @@ export class AmCombobox extends LitElement {
         transform: rotate(180deg);
       }
 
+      /* ---- Loading spinner ---- */
+
+      .spinner {
+        width: 0.875rem;
+        height: 0.875rem;
+        border: 2px solid var(--am-border);
+        border-top-color: var(--am-primary);
+        border-radius: var(--am-radius-full);
+        animation: spin 0.6s linear infinite;
+        flex-shrink: 0;
+      }
+
+      @keyframes spin { to { transform: rotate(360deg); } }
+
       /* ---- Dropdown panel ---- */
 
       .listbox {
@@ -295,7 +337,8 @@ export class AmCombobox extends LitElement {
       .dropdown-search::placeholder { color: var(--am-text-tertiary); }
 
       @media (prefers-reduced-motion: reduce) {
-        .wrapper, .floating-label, .chevron, .listbox, .option { transition: none; }
+        .wrapper, .floating-label, .chevron, .listbox, .option, .spinner { transition: none; }
+        .spinner { animation-duration: 1.5s; }
       }
     `,
   ];
@@ -333,6 +376,11 @@ export class AmCombobox extends LitElement {
     if (changed.has('value')) {
       this.internals.setFormValue(this.value);
     }
+    // In async mode, open the dropdown when new options arrive while focused
+    if (this.async && changed.has('options') && this.options.length > 0 && this._focused) {
+      this._open = true;
+      this._highlightedIndex = -1;
+    }
     if (changed.has('_open')) {
       if (this._open) {
         this._startAutoUpdate();
@@ -363,8 +411,16 @@ export class AmCombobox extends LitElement {
     this.value = input.value;
     this._highlightedIndex = -1;
 
-    if (!this._open && this.value.length > 0) {
-      this._open = true;
+    if (this.async) {
+      if (this.value.length >= this.minChars) {
+        this.dispatchEvent(new CustomEvent('am-search', { detail: { query: this.value }, bubbles: true, composed: true }));
+      } else {
+        this._open = false;
+      }
+    } else {
+      if (!this._open && this.value.length > 0) {
+        this._open = true;
+      }
     }
 
     this.dispatchEvent(new CustomEvent('am-input', { detail: { value: this.value }, bubbles: true, composed: true }));
@@ -372,7 +428,11 @@ export class AmCombobox extends LitElement {
 
   private _handleFocus() {
     this._focused = true;
-    if (this._allOptions.length > 0) {
+    if (this.async) {
+      if (this._allOptions.length > 0 && this.value.length >= this.minChars) {
+        this._open = true;
+      }
+    } else if (this._allOptions.length > 0) {
       this._open = true;
     }
   }
@@ -382,7 +442,9 @@ export class AmCombobox extends LitElement {
   }
 
   private _handleKeydown(e: KeyboardEvent) {
-    const filtered = this._allOptions.filter(o => o.toLowerCase().includes(this.value.toLowerCase()));
+    const filtered = this.async
+      ? this._allOptions
+      : this._allOptions.filter(o => o.toLowerCase().includes(this.value.toLowerCase()));
 
     switch (e.key) {
       case 'ArrowDown':
@@ -522,7 +584,10 @@ export class AmCombobox extends LitElement {
 
     const hasLabel = !!this.label;
     const floated = hasLabel && this._floated;
-    const filteredOptions = this._allOptions.filter(o => o.toLowerCase().includes(this.value.toLowerCase()));
+    // In async mode, show all options as-is (server already filtered them)
+    const filteredOptions = this.async
+      ? this._allOptions
+      : this._allOptions.filter(o => o.toLowerCase().includes(this.value.toLowerCase()));
 
     const wrapperClasses = [
       'wrapper',
@@ -559,9 +624,11 @@ export class AmCombobox extends LitElement {
             @keydown=${this._handleKeydown}
           />
         </div>
-        <svg class="chevron ${this._open ? 'open' : ''}" viewBox="0 0 16 16" fill="none">
-          <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
+        ${this.loading
+          ? html`<span class="spinner" aria-hidden="true"></span>`
+          : html`<svg class="chevron ${this._open ? 'open' : ''}" viewBox="0 0 16 16" fill="none">
+              <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>`}
       </div>
       <div class="listbox ${this._open ? 'open' : ''}" part="listbox" role="listbox" tabindex="0" aria-label=${this.label || 'Options'}>
         ${filteredOptions.length > 0

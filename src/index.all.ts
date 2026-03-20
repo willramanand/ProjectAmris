@@ -89,9 +89,6 @@ export type { NumberFieldSize } from './components/number-field/number-field.js'
 
 export { AmInputOtp } from './components/input-otp/input-otp.js';
 
-export { AmAutocomplete } from './components/autocomplete/autocomplete.js';
-export type { AutocompleteSize } from './components/autocomplete/autocomplete.js';
-
 // Components — Navigation
 export { AmTabs, AmTab, AmTabPanel } from './components/tabs/tabs.js';
 export type { TabVariant } from './components/tabs/tabs.js';
