@@ -17,7 +17,7 @@ const MONTHS = [
  * @csspart header - The month/year navigation header
  * @csspart day - Each day cell
  *
- * @fires am-change - Fires when a date is selected with { value } detail (ISO string)
+ * @fires change - Fires when a date is selected
  *
  * @example
  * ```html
@@ -277,7 +277,7 @@ export class AmCalendar extends LitElement {
 
   private _selectDate(dateStr: string) {
     this.value = dateStr;
-    this.dispatchEvent(new CustomEvent('am-change', { detail: { value: dateStr }, bubbles: true, composed: true }));
+    this.dispatchEvent(new Event('change', { bubbles: true, composed: true }));
   }
 
   private _isDisabled(dateStr: string): boolean {

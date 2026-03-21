@@ -23,7 +23,8 @@ export interface RichOption {
  * @csspart trigger - The select trigger button
  * @csspart listbox - The dropdown panel
  *
- * @fires am-change - Fires on selection with { value, option } detail
+ * @fires input - Fires on selection
+ * @fires change - Fires on selection
  *
  * @example
  * ```html
@@ -309,10 +310,8 @@ export class AmRichSelect extends LitElement {
     this.value = option.value;
     this._close();
     this._trigger?.focus();
-    this.dispatchEvent(new CustomEvent('am-change', {
-      detail: { value: option.value, option },
-      bubbles: true, composed: true,
-    }));
+    this.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
+    this.dispatchEvent(new Event('change', { bubbles: true, composed: true }));
   }
 
   private _handleSearchInput(e: Event) {

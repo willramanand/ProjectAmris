@@ -10,7 +10,8 @@ import { resetStyles } from '../../styles/reset.css.js';
  * @csspart thumb - The switch thumb
  * @csspart label - The label text
  *
- * @fires am-change - Fires when toggled with { checked } detail
+ * @fires input - Fires when toggled
+ * @fires change - Fires when toggled
  *
  * @example
  * ```html
@@ -140,7 +141,8 @@ export class AmSwitch extends LitElement {
   private _toggle = () => {
     if (this.disabled || this.loading) return;
     this.checked = !this.checked;
-    this.dispatchEvent(new CustomEvent('am-change', { detail: { checked: this.checked }, bubbles: true, composed: true }));
+    this.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
+    this.dispatchEvent(new Event('change', { bubbles: true, composed: true }));
   };
 
   private _handleKeyDown(e: KeyboardEvent) {

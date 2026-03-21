@@ -1,5 +1,5 @@
 import { LitElement, css, html, nothing, type PropertyValues } from 'lit';
-import { customElement, property } from 'lit/decorators.js';
+import { customElement, property, query } from 'lit/decorators.js';
 import { resetStyles } from '../../styles/reset.css.js';
 
 export type NumberFieldSize = 'sm' | 'md' | 'lg';
@@ -11,7 +11,8 @@ export type NumberFieldSize = 'sm' | 'md' | 'lg';
  * @csspart decrement - The decrement button
  * @csspart increment - The increment button
  *
- * @fires am-change - Fires when the value changes
+ * @fires input - Fires when the value changes
+ * @fires change - Fires when the value change is committed
  *
  * @example
  * ```html
@@ -35,6 +36,7 @@ export class AmNumberField extends LitElement {
   @property({ type: Boolean, reflect: true }) invalid = false;
   @property({ type: Boolean, reflect: true }) required = false;
 
+  @query('input') private _inputEl!: HTMLInputElement;
   private _internals: ElementInternals;
 
   constructor() {
@@ -133,20 +135,28 @@ export class AmNumberField extends LitElement {
 
   private _increment() {
     const next = (this.value ?? 0) + this.step;
-    this._setValue(next);
+    this._setValue(next, { emitInput: true, emitChange: true });
   }
 
   private _decrement() {
     const next = (this.value ?? 0) - this.step;
-    this._setValue(next);
+    this._setValue(next, { emitInput: true, emitChange: true });
   }
 
-  private _setValue(v: number) {
+  private _setValue(v: number, options: { emitInput?: boolean; emitChange?: boolean } = {}) {
     const clamped = Math.max(this.min, Math.min(this.max, v));
     // Round to step precision
     const precision = String(this.step).split('.')[1]?.length ?? 0;
     this.value = Number(clamped.toFixed(precision));
-    this.dispatchEvent(new CustomEvent('am-change', { detail: { value: this.value }, bubbles: true, composed: true }));
+    if (this._inputEl) {
+      this._inputEl.value = String(this.value);
+      if (options.emitInput) {
+        this._inputEl.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
+      }
+      if (options.emitChange) {
+        this._inputEl.dispatchEvent(new Event('change', { bubbles: true, composed: true }));
+      }
+    }
   }
 
   private _handleInput(e: Event) {

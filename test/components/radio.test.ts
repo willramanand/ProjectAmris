@@ -12,20 +12,21 @@ import {
 } from '../helpers';
 
 describe('am-radio', () => {
-  it('selects on click and emits am-change', async () => {
+  it('selects on click and emits change', async () => {
     const element = await fixture<HTMLElement & { checked: boolean; value: string }>(
       '<am-radio value="a">Option A</am-radio>',
     );
-    const eventPromise = oneEvent<{ checked: boolean; value: string }>(element, 'am-change');
+    const eventPromise = oneEvent(element, 'change');
 
     await click(element, element);
 
     const event = await eventPromise;
     const control = shadowQuery<HTMLElement>(element, '.control');
+    const target = event.target as HTMLElement & { checked: boolean; value: string };
 
     expect(element.checked).toBe(true);
-    expect(event.detail.checked).toBe(true);
-    expect(event.detail.value).toBe('a');
+    expect(target.checked).toBe(true);
+    expect(target.value).toBe('a');
     expect(control.getAttribute('aria-checked')).toBe('true');
     expect(getMockInternals(element).formValue).toBe('a');
   });
@@ -122,11 +123,11 @@ describe('am-radio-group', () => {
     expect(radios[0].checked).toBe(true);
     expect(radios[1].checked).toBe(false);
 
-    const eventPromise = oneEvent<{ value: string }>(group, 'am-change');
+    const eventPromise = oneEvent(group, 'change');
     await click(radios[1], group);
     const event = await eventPromise;
 
-    expect(event.detail.value).toBe('pro');
+    expect((event.target as HTMLElement & { value: string }).value).toBe('pro');
     expect(group.value).toBe('pro');
     expect(radios[0].checked).toBe(false);
     expect(radios[1].checked).toBe(true);
@@ -166,11 +167,11 @@ describe('am-radio-group', () => {
     await waitForUpdate(group);
 
     const radios = group.querySelectorAll('am-radio') as NodeListOf<HTMLElement>;
-    const eventPromise = oneEvent<{ value: string }>(group, 'am-change');
+    const eventPromise = oneEvent(group, 'change');
     await keydown(radios[0], 'ArrowDown', group);
     const event = await eventPromise;
 
-    expect(event.detail.value).toBe('pro');
+    expect((event.target as HTMLElement & { value: string }).value).toBe('pro');
     expect(group.value).toBe('pro');
   });
 
@@ -185,11 +186,11 @@ describe('am-radio-group', () => {
     await waitForUpdate(group);
 
     const radios = group.querySelectorAll('am-radio') as NodeListOf<HTMLElement>;
-    const eventPromise = oneEvent<{ value: string }>(group, 'am-change');
+    const eventPromise = oneEvent(group, 'change');
     await keydown(radios[0], 'ArrowRight', group);
     const event = await eventPromise;
 
-    expect(event.detail.value).toBe('pro');
+    expect((event.target as HTMLElement & { value: string }).value).toBe('pro');
   });
 
   it('navigates backward with ArrowUp', async () => {
@@ -204,11 +205,11 @@ describe('am-radio-group', () => {
     await waitForUpdate(group);
 
     const radios = group.querySelectorAll('am-radio') as NodeListOf<HTMLElement>;
-    const eventPromise = oneEvent<{ value: string }>(group, 'am-change');
+    const eventPromise = oneEvent(group, 'change');
     await keydown(radios[1], 'ArrowUp', group);
     const event = await eventPromise;
 
-    expect(event.detail.value).toBe('free');
+    expect((event.target as HTMLElement & { value: string }).value).toBe('free');
   });
 
   it('navigates backward with ArrowLeft', async () => {
@@ -222,11 +223,11 @@ describe('am-radio-group', () => {
     await waitForUpdate(group);
 
     const radios = group.querySelectorAll('am-radio') as NodeListOf<HTMLElement>;
-    const eventPromise = oneEvent<{ value: string }>(group, 'am-change');
+    const eventPromise = oneEvent(group, 'change');
     await keydown(radios[1], 'ArrowLeft', group);
     const event = await eventPromise;
 
-    expect(event.detail.value).toBe('free');
+    expect((event.target as HTMLElement & { value: string }).value).toBe('free');
   });
 
   it('wraps around forward from last radio', async () => {
@@ -240,11 +241,11 @@ describe('am-radio-group', () => {
     await waitForUpdate(group);
 
     const radios = group.querySelectorAll('am-radio') as NodeListOf<HTMLElement>;
-    const eventPromise = oneEvent<{ value: string }>(group, 'am-change');
+    const eventPromise = oneEvent(group, 'change');
     await keydown(radios[1], 'ArrowDown', group);
     const event = await eventPromise;
 
-    expect(event.detail.value).toBe('free');
+    expect((event.target as HTMLElement & { value: string }).value).toBe('free');
   });
 
   it('wraps around backward from first radio', async () => {
@@ -258,11 +259,11 @@ describe('am-radio-group', () => {
     await waitForUpdate(group);
 
     const radios = group.querySelectorAll('am-radio') as NodeListOf<HTMLElement>;
-    const eventPromise = oneEvent<{ value: string }>(group, 'am-change');
+    const eventPromise = oneEvent(group, 'change');
     await keydown(radios[0], 'ArrowUp', group);
     const event = await eventPromise;
 
-    expect(event.detail.value).toBe('pro');
+    expect((event.target as HTMLElement & { value: string }).value).toBe('pro');
   });
 
   it('sets form value from group value', async () => {
@@ -332,3 +333,4 @@ describe('am-radio-group', () => {
     expect(control1.getAttribute('tabindex')).toBe('-1');
   });
 });
+

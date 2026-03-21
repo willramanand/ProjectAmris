@@ -9,7 +9,8 @@ import { resetStyles } from '../../styles/reset.css.js';
  * @csspart control - The visual checkbox box
  * @csspart label - The label wrapper
  *
- * @fires am-change - Fires when checked state changes with { checked } detail
+ * @fires input - Fires when checked state changes
+ * @fires change - Fires when checked state changes
  *
  * @example
  * ```html
@@ -144,7 +145,8 @@ export class AmCheckbox extends LitElement {
     if (this.disabled) return;
     this.checked = !this.checked;
     this.indeterminate = false;
-    this.dispatchEvent(new CustomEvent('am-change', { detail: { checked: this.checked }, bubbles: true, composed: true }));
+    this.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
+    this.dispatchEvent(new Event('change', { bubbles: true, composed: true }));
   };
 
   private _handleKeyDown(e: KeyboardEvent) {

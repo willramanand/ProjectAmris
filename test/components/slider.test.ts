@@ -15,26 +15,28 @@ describe('am-slider', () => {
     expect(input.max).toBe('100');
   });
 
-  it('emits am-input on input and am-change on change', async () => {
+  it('emits input on input and change on change', async () => {
     const element = await fixture<HTMLElement & { value: number }>(
       '<am-slider value="50"></am-slider>',
     );
     const input = shadowQuery<HTMLInputElement>(element, 'input[type="range"]');
 
-    const inputPromise = oneEvent<{ value: number }>(element, 'am-input');
+    const inputPromise = oneEvent(element, 'input');
     input.value = '75';
     input.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
     await waitForUpdate(element);
     const inputEvent = await inputPromise;
+    const inputTarget = inputEvent.target as HTMLElement & { value: number };
 
-    expect(inputEvent.detail.value).toBe(75);
+    expect(inputTarget.value).toBe(75);
     expect(element.value).toBe(75);
 
-    const changePromise = oneEvent<{ value: number }>(element, 'am-change');
+    const changePromise = oneEvent(element, 'change');
     input.dispatchEvent(new Event('change', { bubbles: true, composed: true }));
     const changeEvent = await changePromise;
+    const changeTarget = changeEvent.target as HTMLElement & { value: number };
 
-    expect(changeEvent.detail.value).toBe(75);
+    expect(changeTarget.value).toBe(75);
   });
 
   it('sets form value via ElementInternals', async () => {

@@ -12,19 +12,20 @@ import {
 } from '../helpers';
 
 describe('am-textarea', () => {
-  it('syncs the textarea value and emits am-input', async () => {
+  it('syncs the textarea value and emits input', async () => {
     const element = await fixture<HTMLElement & { value: string }>(
       '<am-textarea label="Notes"></am-textarea>',
     );
     const textarea = shadowQuery<HTMLTextAreaElement>(element, 'textarea');
-    const eventPromise = oneEvent<{ value: string }>(element, 'am-input');
+    const eventPromise = oneEvent(element, 'input');
 
     await inputText(textarea, 'Hello world', element);
 
     const event = await eventPromise;
+    const target = event.target as HTMLElement & { value: string };
 
     expect(element.value).toBe('Hello world');
-    expect(event.detail.value).toBe('Hello world');
+    expect(target.value).toBe('Hello world');
     expect(textarea.getAttribute('aria-label')).toBe('Notes');
   });
 

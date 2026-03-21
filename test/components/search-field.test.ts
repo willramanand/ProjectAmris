@@ -12,18 +12,19 @@ import {
 } from '../helpers';
 
 describe('am-search-field', () => {
-  it('syncs input value and emits am-input', async () => {
+  it('syncs input value and emits input', async () => {
     const element = await fixture<HTMLElement & { value: string }>(
       '<am-search-field placeholder="Search..."></am-search-field>',
     );
     const input = shadowQuery<HTMLInputElement>(element, 'input');
-    const eventPromise = oneEvent<{ value: string }>(element, 'am-input');
+    const eventPromise = oneEvent(element, 'input');
 
     await inputText(input, 'test query', element);
 
     const event = await eventPromise;
+    const target = event.target as HTMLElement & { value: string };
     expect(element.value).toBe('test query');
-    expect(event.detail.value).toBe('test query');
+    expect(target.value).toBe('test query');
   });
 
   it('emits am-search on Enter key', async () => {

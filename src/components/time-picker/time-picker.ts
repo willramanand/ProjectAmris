@@ -11,7 +11,8 @@ export type TimePickerSize = 'sm' | 'md' | 'lg';
  *
  * @csspart input - The time input container
  *
- * @fires am-change - Fires when the time changes with { value } detail (HH:MM or HH:MM:SS)
+ * @fires input - Fires when the time changes
+ * @fires change - Fires when the time changes
  *
  * @example
  * ```html
@@ -296,7 +297,8 @@ export class AmTimePicker extends LitElement {
     }
 
     this.value = this._formatValue();
-    this.dispatchEvent(new CustomEvent('am-change', { detail: { value: this.value }, bubbles: true, composed: true }));
+    this.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
+    this.dispatchEvent(new Event('change', { bubbles: true, composed: true }));
   }
 
   private _getSegmentOrder(): Array<'hours' | 'minutes' | 'seconds' | 'period'> {
@@ -374,7 +376,8 @@ export class AmTimePicker extends LitElement {
     }
 
     this.value = this._formatValue();
-    this.dispatchEvent(new CustomEvent('am-change', { detail: { value: this.value }, bubbles: true, composed: true }));
+    this.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
+    this.dispatchEvent(new Event('change', { bubbles: true, composed: true }));
   }
 
   private _handleKeydown(segment: 'hours' | 'minutes' | 'seconds' | 'period', e: KeyboardEvent) {

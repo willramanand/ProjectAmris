@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import '../../src/components/number-field/number-field';
-import { click, fixture, getMockInternals, keydown, oneEvent, shadowQuery, waitForUpdate } from '../helpers';
+import { click, fixture, getMockInternals, keydown, oneEvent, shadowQuery } from '../helpers';
 
 describe('am-number-field', () => {
   it('renders with label and initial value', async () => {
@@ -20,11 +20,12 @@ describe('am-number-field', () => {
     );
 
     const incBtn = shadowQuery<HTMLButtonElement>(element, '[aria-label="Increase"]');
-    const eventPromise = oneEvent<{ value: number }>(element, 'am-change');
+    const eventPromise = oneEvent(element, 'change');
     await click(incBtn, element);
     const event = await eventPromise;
+    const target = event.target as HTMLElement & { value: number | null };
 
-    expect(event.detail.value).toBe(4);
+    expect(target.value).toBe(4);
     expect(element.value).toBe(4);
   });
 
@@ -34,11 +35,12 @@ describe('am-number-field', () => {
     );
 
     const decBtn = shadowQuery<HTMLButtonElement>(element, '[aria-label="Decrease"]');
-    const eventPromise = oneEvent<{ value: number }>(element, 'am-change');
+    const eventPromise = oneEvent(element, 'change');
     await click(decBtn, element);
     const event = await eventPromise;
+    const target = event.target as HTMLElement & { value: number | null };
 
-    expect(event.detail.value).toBe(8);
+    expect(target.value).toBe(8);
     expect(element.value).toBe(8);
   });
 
@@ -50,7 +52,6 @@ describe('am-number-field', () => {
     const incBtn = shadowQuery<HTMLButtonElement>(element, '[aria-label="Increase"]');
     expect(incBtn.disabled).toBe(true);
 
-    // Force increment — should stay at max
     await click(incBtn, element);
     expect(element.value).toBe(10);
   });

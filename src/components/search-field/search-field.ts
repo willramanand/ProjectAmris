@@ -13,8 +13,8 @@ export type SearchFieldSize = 'sm' | 'md' | 'lg';
  * @csspart input - The native input element
  * @csspart clear - The clear button
  *
- * @fires am-input - Fires on input with { value } detail
- * @fires am-change - Fires on change with { value } detail
+ * @fires input - Fires on input
+ * @fires change - Fires on change
  * @fires am-clear - Fires when the clear button is clicked
  * @fires am-search - Fires on Enter key press with { value } detail
  *
@@ -164,23 +164,10 @@ export class AmSearchField extends LitElement {
   private _handleInput(e: Event) {
     const input = e.target as HTMLInputElement;
     this.value = input.value;
-    this.dispatchEvent(
-      new CustomEvent('am-input', {
-        detail: { value: this.value },
-        bubbles: true,
-        composed: true,
-      })
-    );
   }
 
-  private _handleChange() {
-    this.dispatchEvent(
-      new CustomEvent('am-change', {
-        detail: { value: this.value },
-        bubbles: true,
-        composed: true,
-      })
-    );
+  private _handleChange(e: Event) {
+    this.value = (e.target as HTMLInputElement).value;
   }
 
   private _handleFocus() {
@@ -208,24 +195,15 @@ export class AmSearchField extends LitElement {
 
   private _handleClear() {
     this.value = '';
-    this.inputEl?.focus();
+    if (this.inputEl) {
+      this.inputEl.value = '';
+      this.inputEl.focus();
+    }
     this.dispatchEvent(
       new CustomEvent('am-clear', { bubbles: true, composed: true })
     );
-    this.dispatchEvent(
-      new CustomEvent('am-input', {
-        detail: { value: '' },
-        bubbles: true,
-        composed: true,
-      })
-    );
-    this.dispatchEvent(
-      new CustomEvent('am-change', {
-        detail: { value: '' },
-        bubbles: true,
-        composed: true,
-      })
-    );
+    this.inputEl?.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
+    this.inputEl?.dispatchEvent(new Event('change', { bubbles: true, composed: true }));
   }
 
   private _handleWrapperClick() {
@@ -294,3 +272,4 @@ declare global {
     'am-search-field': AmSearchField;
   }
 }
+

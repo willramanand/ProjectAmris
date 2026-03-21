@@ -18,8 +18,8 @@ export type ComboboxSize = 'sm' | 'md' | 'lg';
  * @csspart listbox - The dropdown panel
  * @csspart label - The floating label element
  *
- * @fires am-input - Fires on input with { value } detail
- * @fires am-change - Fires on selection with { value } detail
+ * @fires input - Fires when the value changes
+ * @fires change - Fires when a value is selected
  * @fires am-search - Fires when the user types in async mode, with { query } detail
  *
  * @example
@@ -423,7 +423,6 @@ export class AmCombobox extends LitElement {
       }
     }
 
-    this.dispatchEvent(new CustomEvent('am-input', { detail: { value: this.value }, bubbles: true, composed: true }));
   }
 
   private _handleFocus() {
@@ -488,7 +487,14 @@ export class AmCombobox extends LitElement {
     this._highlightedIndex = -1;
     this._dropdownQuery = '';
     if (!this.select) this.inputEl?.focus();
-    this.dispatchEvent(new CustomEvent('am-change', { detail: { value: this.value }, bubbles: true, composed: true }));
+    if (!this.select && this.inputEl) {
+      this.inputEl.value = this.value;
+      this.inputEl.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
+      this.inputEl.dispatchEvent(new Event('change', { bubbles: true, composed: true }));
+      return;
+    }
+    this.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
+    this.dispatchEvent(new Event('change', { bubbles: true, composed: true }));
   }
 
   private _handleDropdownSearch(e: Event) {

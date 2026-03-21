@@ -4,19 +4,20 @@ import '../../src/components/switch/switch';
 import { click, fixture, keydown, oneEvent, shadowQuery } from '../helpers';
 
 describe('am-switch', () => {
-  it('toggles on click and emits am-change', async () => {
+  it('toggles on click and emits change', async () => {
     const element = await fixture<HTMLElement & { checked: boolean }>(
       '<am-switch>Notifications</am-switch>',
     );
-    const eventPromise = oneEvent<{ checked: boolean }>(element, 'am-change');
+    const eventPromise = oneEvent(element, 'change');
 
     await click(element, element);
 
     const event = await eventPromise;
     const track = shadowQuery<HTMLElement>(element, '.track');
+    const target = event.target as HTMLElement & { checked: boolean };
 
     expect(element.checked).toBe(true);
-    expect(event.detail.checked).toBe(true);
+    expect(target.checked).toBe(true);
     expect(track.getAttribute('aria-checked')).toBe('true');
   });
 

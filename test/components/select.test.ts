@@ -70,7 +70,7 @@ describe('am-select', () => {
     expect(trigger.getAttribute('aria-expanded')).toBe('true');
   });
 
-  it('selects an option and emits am-change', async () => {
+  it('selects an option and emits change', async () => {
     const element = await fixture<HTMLElement & { value: string }>(
       `<am-select label="Fruit">
         <am-option value="apple">Apple</am-option>
@@ -84,11 +84,12 @@ describe('am-select', () => {
 
     // Click an option
     const options = element.querySelectorAll('am-option') as NodeListOf<HTMLElement>;
-    const eventPromise = oneEvent<{ value: string }>(element, 'am-change');
+    const eventPromise = oneEvent(element, 'change');
     await click(options[1], element);
     const event = await eventPromise;
+    const target = event.target as HTMLElement & { value: string };
 
-    expect(event.detail.value).toBe('banana');
+    expect(target.value).toBe('banana');
     expect(element.value).toBe('banana');
     expect(getMockInternals(element).formValue).toBe('banana');
   });
@@ -250,7 +251,7 @@ describe('am-select', () => {
     expect(clearBtn.getAttribute('aria-label')).toBe('Clear');
   });
 
-  it('clears value on clear button click and emits am-change', async () => {
+  it('clears value on clear button click and emits change', async () => {
     const element = await fixture<HTMLElement & { value: string; clearable: boolean }>(
       `<am-select label="Fruit" clearable>
         <am-option value="apple">Apple</am-option>
@@ -262,11 +263,12 @@ describe('am-select', () => {
     await waitForUpdate(element);
 
     const clearBtn = shadowQuery<HTMLButtonElement>(element, '.clear-btn');
-    const eventPromise = oneEvent<{ value: string }>(element, 'am-change');
+    const eventPromise = oneEvent(element, 'change');
     await click(clearBtn, element);
     const event = await eventPromise;
+    const target = event.target as HTMLElement & { value: string };
 
-    expect(event.detail.value).toBe('');
+    expect(target.value).toBe('');
     expect(element.value).toBe('');
   });
 
@@ -352,7 +354,7 @@ describe('am-select', () => {
     expect(trigger.getAttribute('aria-expanded')).toBe('false');
   });
 
-  it('does not emit am-change when selecting the same value', async () => {
+  it('does not emit change when selecting the same value', async () => {
     const element = await fixture<HTMLElement & { value: string }>(
       `<am-select label="Fruit">
         <am-option value="apple">Apple</am-option>
@@ -367,7 +369,7 @@ describe('am-select', () => {
     await click(trigger, element);
 
     let fired = false;
-    element.addEventListener('am-change', () => { fired = true; });
+    element.addEventListener('change', () => { fired = true; });
 
     const options = element.querySelectorAll('am-option') as NodeListOf<HTMLElement>;
     await click(options[0], element);
@@ -375,3 +377,4 @@ describe('am-select', () => {
     expect(fired).toBe(false);
   });
 });
+

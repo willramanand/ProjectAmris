@@ -13,7 +13,8 @@ import { resetStyles } from '../../styles/reset.css.js';
  * @csspart control - The visual radio circle
  * @csspart label - The label wrapper
  *
- * @fires am-change - Fires when checked state changes with { checked, value } detail
+ * @fires input - Fires when checked state changes
+ * @fires change - Fires when checked state changes
  *
  * @example
  * ```html
@@ -136,13 +137,8 @@ export class AmRadio extends LitElement {
     if (this.disabled) return;
     if (this.checked) return;
     this.checked = true;
-    this.dispatchEvent(
-      new CustomEvent('am-change', {
-        detail: { checked: this.checked, value: this.value },
-        bubbles: true,
-        composed: true,
-      }),
-    );
+    this.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
+    this.dispatchEvent(new Event('change', { bubbles: true, composed: true }));
   };
 
   private _handleKeyDown(e: KeyboardEvent) {
@@ -197,7 +193,8 @@ export class AmRadio extends LitElement {
  *
  * @slot - Radio buttons (am-radio elements)
  *
- * @fires am-change - Fires when the selected radio changes with { value } detail
+ * @fires input - Fires when the selected radio changes
+ * @fires change - Fires when the selected radio changes
  *
  * @example
  * ```html
@@ -257,13 +254,15 @@ export class AmRadioGroup extends LitElement {
   connectedCallback() {
     super.connectedCallback();
     this.setAttribute('role', 'radiogroup');
-    this.addEventListener('am-change', this._handleRadioChange as EventListener);
+    this.addEventListener('input', this._handleRadioInput as EventListener);
+    this.addEventListener('change', this._handleRadioChange as EventListener);
     this.addEventListener('keydown', this._handleKeyDown);
   }
 
   disconnectedCallback() {
     super.disconnectedCallback();
-    this.removeEventListener('am-change', this._handleRadioChange as EventListener);
+    this.removeEventListener('input', this._handleRadioInput as EventListener);
+    this.removeEventListener('change', this._handleRadioChange as EventListener);
     this.removeEventListener('keydown', this._handleKeyDown);
   }
 
@@ -322,7 +321,13 @@ export class AmRadioGroup extends LitElement {
     });
   }
 
-  private _handleRadioChange = (e: CustomEvent) => {
+  private _handleRadioInput = (e: Event) => {
+    if (e.target instanceof AmRadio) {
+      e.stopPropagation();
+    }
+  };
+
+  private _handleRadioChange = (e: Event) => {
     const target = e.target as AmRadio;
     if (!(target instanceof AmRadio)) return;
 
@@ -335,13 +340,8 @@ export class AmRadioGroup extends LitElement {
     this.value = newValue;
     this._syncRadios();
 
-    this.dispatchEvent(
-      new CustomEvent('am-change', {
-        detail: { value: this.value },
-        bubbles: true,
-        composed: true,
-      }),
-    );
+    this.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
+    this.dispatchEvent(new Event('change', { bubbles: true, composed: true }));
   };
 
   private _handleKeyDown = (e: KeyboardEvent) => {
@@ -371,14 +371,8 @@ export class AmRadioGroup extends LitElement {
 
       next.shadowRoot?.querySelector<HTMLElement>('.control')?.focus();
 
-      // Stop child event and dispatch group event
-      this.dispatchEvent(
-        new CustomEvent('am-change', {
-          detail: { value: this.value },
-          bubbles: true,
-          composed: true,
-        }),
-      );
+      this.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
+      this.dispatchEvent(new Event('change', { bubbles: true, composed: true }));
     }
   };
 

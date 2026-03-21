@@ -13,7 +13,8 @@ export type ColorPickerSize = 'sm' | 'md' | 'lg';
  * @csspart swatch - The color preview swatch
  * @csspart panel - The picker dropdown panel
  *
- * @fires am-change - Fires when the color changes with { value } detail (hex string)
+ * @fires input - Fires when the color changes
+ * @fires change - Fires when the color changes
  *
  * @example
  * ```html
@@ -347,7 +348,8 @@ export class AmColorPicker extends LitElement {
   private _emitChange() {
     this.value = this._toHex();
     this._hexInput = this.value;
-    this.dispatchEvent(new CustomEvent('am-change', { detail: { value: this.value }, bubbles: true, composed: true }));
+    this.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
+    this.dispatchEvent(new Event('change', { bubbles: true, composed: true }));
   }
 
   // --- Interaction handlers ---
@@ -411,7 +413,8 @@ export class AmColorPicker extends LitElement {
     if (/^#[0-9a-fA-F]{6}([0-9a-fA-F]{2})?$/.test(raw)) {
       this._parseHex(raw);
       this.value = raw;
-      this.dispatchEvent(new CustomEvent('am-change', { detail: { value: raw }, bubbles: true, composed: true }));
+      this.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
+      this.dispatchEvent(new Event('change', { bubbles: true, composed: true }));
     }
   }
 

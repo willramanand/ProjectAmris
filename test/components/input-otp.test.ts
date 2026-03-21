@@ -65,7 +65,7 @@ describe('am-input-otp', () => {
     );
 
     const inputs = element.shadowRoot!.querySelectorAll('input');
-    const changePromise = oneEvent<{ value: string }>(element, 'am-change');
+    const changePromise = oneEvent(element, 'change');
 
     // Simulate typing '5' into the first cell
     inputs[0].value = '5';
@@ -73,7 +73,7 @@ describe('am-input-otp', () => {
     await waitForUpdate(element);
 
     const event = await changePromise;
-    expect(event.detail.value).toBe('5');
+    expect((event.target as HTMLElement & { value: string }).value).toBe('5');
     expect(element.value).toContain('5');
   });
 
@@ -98,14 +98,14 @@ describe('am-input-otp', () => {
     );
 
     const inputs = element.shadowRoot!.querySelectorAll('input');
-    const changePromise = oneEvent<{ value: string }>(element, 'am-change');
+    const changePromise = oneEvent(element, 'change');
 
     inputs[0].value = 'A';
     inputs[0].dispatchEvent(new Event('input', { bubbles: true }));
     await waitForUpdate(element);
 
     const event = await changePromise;
-    expect(event.detail.value).toContain('A');
+    expect((event.target as HTMLElement & { value: string }).value).toContain('A');
   });
 
   it('emits am-complete when all cells are filled', async () => {
@@ -220,7 +220,7 @@ describe('am-input-otp', () => {
 
     const inputs = element.shadowRoot!.querySelectorAll('input');
 
-    const changePromise = oneEvent<{ value: string }>(element, 'am-change');
+    const changePromise = oneEvent(element, 'change');
     const pasteEvent = new Event('paste', { bubbles: true, cancelable: true }) as ClipboardEvent;
     Object.defineProperty(pasteEvent, 'clipboardData', {
       value: { getData: () => '12' },
@@ -231,7 +231,7 @@ describe('am-input-otp', () => {
     await waitForUpdate(element);
 
     const event = await changePromise;
-    expect(event.detail.value).toBe('12');
+    expect((event.target as HTMLElement & { value: string }).value).toBe('12');
   });
 
   it('sets form value via ElementInternals', async () => {
@@ -268,3 +268,4 @@ describe('am-input-otp', () => {
     expect(group?.getAttribute('aria-label')).toBe('One-time passcode');
   });
 });
+

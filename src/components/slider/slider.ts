@@ -7,8 +7,8 @@ import { resetStyles } from '../../styles/reset.css.js';
  *
  * @csspart input - The native range input element
  *
- * @fires am-input - Fires during drag with { value } detail
- * @fires am-change - Fires on drag end with { value } detail
+ * @fires input - Fires during drag
+ * @fires change - Fires on drag end
  *
  * @example
  * ```html
@@ -173,13 +173,11 @@ export class AmSlider extends LitElement {
   private _handleInput(e: Event) {
     const input = e.target as HTMLInputElement;
     this.value = Number(input.value);
-    this.dispatchEvent(new CustomEvent('am-input', { detail: { value: this.value }, bubbles: true, composed: true }));
   }
 
   private _handleChange(e: Event) {
     const input = e.target as HTMLInputElement;
     this.value = Number(input.value);
-    this.dispatchEvent(new CustomEvent('am-change', { detail: { value: this.value }, bubbles: true, composed: true }));
   }
 
   render() {

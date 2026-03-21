@@ -15,7 +15,8 @@ export type DatePickerSize = 'sm' | 'md' | 'lg';
  * @csspart input - The date input container
  * @csspart calendar - The calendar dropdown
  *
- * @fires am-change - Fires when a date is selected with { value } detail (ISO string)
+ * @fires input - Fires when a date is selected
+ * @fires change - Fires when a date is selected
  *
  * @example
  * ```html
@@ -260,10 +261,8 @@ export class AmDatePicker extends LitElement {
 
   private _emitChange() {
     this.value = this._formatValue();
-    this.dispatchEvent(new CustomEvent('am-change', {
-      detail: { value: this.value },
-      bubbles: true, composed: true,
-    }));
+    this.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
+    this.dispatchEvent(new Event('change', { bubbles: true, composed: true }));
   }
 
   /* ---- Segment navigation ---- */
@@ -450,13 +449,11 @@ export class AmDatePicker extends LitElement {
     this._open = !this._open;
   }
 
-  private _handleCalendarChange(e: CustomEvent<{ value: string }>) {
-    this.value = e.detail.value;
+  private _handleCalendarChange(e: Event) {
+    this.value = (e.target as HTMLElement & { value: string }).value;
     this._open = false;
-    this.dispatchEvent(new CustomEvent('am-change', {
-      detail: { value: this.value },
-      bubbles: true, composed: true,
-    }));
+    this.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
+    this.dispatchEvent(new Event('change', { bubbles: true, composed: true }));
   }
 
   /* ---- Floating UI ---- */
@@ -530,7 +527,7 @@ export class AmDatePicker extends LitElement {
           value=${this._hasValue ? this._formatValue() : nothing}
           min=${this.min || nothing}
           max=${this.max || nothing}
-          @am-change=${this._handleCalendarChange}
+          @change=${this._handleCalendarChange}
         ></am-calendar>
       </div>
     `;
@@ -542,3 +539,4 @@ declare global {
     'am-date-picker': AmDatePicker;
   }
 }
+

@@ -124,7 +124,7 @@ import 'amris';</code></pre>
 &lt;/script&gt;
 
 &lt;am-theme-provider&gt;
-  &lt;am-input label="Name" on:am-input={(e) =&gt; name = e.detail.value}&gt;&lt;/am-input&gt;
+  &lt;am-input label="Name" on:input={(e) =&gt; name = e.currentTarget.value}&gt;&lt;/am-input&gt;
   &lt;am-button variant="primary" on:click={handleSave}&gt;Save&lt;/am-button&gt;
 &lt;/am-theme-provider&gt;</code></pre>
 
@@ -225,3 +225,4 @@ function App() {
     </am-theme-provider>
   </body>
 </html>
+

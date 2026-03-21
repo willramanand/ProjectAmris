@@ -7,7 +7,8 @@ import { resetStyles } from '../../styles/reset.css.js';
  *
  * @csspart cell - Individual input cells
  *
- * @fires am-change - Fires when the value changes with { value } detail
+ * @fires input - Fires when the value changes
+ * @fires change - Fires when the value changes
  * @fires am-complete - Fires when all cells are filled
  *
  * @example
@@ -181,11 +182,8 @@ export class AmInputOtp extends LitElement {
   }
 
   private _emitChange() {
-    this.dispatchEvent(new CustomEvent('am-change', {
-      detail: { value: this.value },
-      bubbles: true,
-      composed: true,
-    }));
+    this.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
+    this.dispatchEvent(new Event('change', { bubbles: true, composed: true }));
   }
 
   render() {

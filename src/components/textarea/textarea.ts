@@ -15,8 +15,8 @@ import { resetStyles } from '../../styles/reset.css.js';
  * @cssprop --am-textarea-radius - Override border radius
  * @cssprop --am-textarea-min-height - Override minimum height
  *
- * @fires am-input - Fires on input with { value } detail
- * @fires am-change - Fires on change with { value } detail
+ * @fires input - Fires on input
+ * @fires change - Fires on change
  * @fires am-clear - Fires when the clear button is clicked
  *
  * @example
@@ -202,11 +202,10 @@ export class AmTextarea extends LitElement {
 
   private _handleInput(e: Event) {
     this.value = (e.target as HTMLTextAreaElement).value;
-    this.dispatchEvent(new CustomEvent('am-input', { detail: { value: this.value }, bubbles: true, composed: true }));
   }
 
-  private _handleChange() {
-    this.dispatchEvent(new CustomEvent('am-change', { detail: { value: this.value }, bubbles: true, composed: true }));
+  private _handleChange(e: Event) {
+    this.value = (e.target as HTMLTextAreaElement).value;
   }
 
   private _handleFocus() { this._focused = true; }
@@ -214,10 +213,13 @@ export class AmTextarea extends LitElement {
 
   private _handleClear() {
     this.value = '';
-    this.textareaEl?.focus();
+    if (this.textareaEl) {
+      this.textareaEl.value = '';
+      this.textareaEl.focus();
+    }
     this.dispatchEvent(new CustomEvent('am-clear', { bubbles: true, composed: true }));
-    this.dispatchEvent(new CustomEvent('am-input', { detail: { value: '' }, bubbles: true, composed: true }));
-    this.dispatchEvent(new CustomEvent('am-change', { detail: { value: '' }, bubbles: true, composed: true }));
+    this.textareaEl?.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
+    this.textareaEl?.dispatchEvent(new Event('change', { bubbles: true, composed: true }));
   }
 
   private _handleWrapperClick() {
@@ -283,3 +285,4 @@ declare global {
     'am-textarea': AmTextarea;
   }
 }
+

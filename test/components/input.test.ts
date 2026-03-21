@@ -12,19 +12,20 @@ import {
 } from '../helpers';
 
 describe('am-input', () => {
-  it('syncs the input value and emits am-input events', async () => {
+  it('syncs the input value and emits input events', async () => {
     const element = await fixture<HTMLElement & { value: string }>(
       '<am-input label="Email"></am-input>',
     );
     const input = shadowQuery<HTMLInputElement>(element, 'input');
-    const eventPromise = oneEvent<{ value: string }>(element, 'am-input');
+    const eventPromise = oneEvent(element, 'input');
 
     await inputText(input, 'hello@example.com', element);
 
     const event = await eventPromise;
+    const target = event.target as HTMLElement & { value: string };
 
     expect(element.value).toBe('hello@example.com');
-    expect(event.detail.value).toBe('hello@example.com');
+    expect(target.value).toBe('hello@example.com');
     expect(input.getAttribute('aria-label')).toBe('Email');
   });
 

@@ -143,7 +143,8 @@ export class AmOption extends LitElement {
  * @csspart label - The floating label element
  * @csspart clear - The clear button
  *
- * @fires am-change - Fires on selection change with { value } detail
+ * @fires input - Fires when the selected value changes
+ * @fires change - Fires when the selected value changes
  *
  * @example
  * ```html
@@ -520,13 +521,8 @@ export class AmSelect extends LitElement {
     const newValue = e.detail.value;
     if (newValue !== this.value) {
       this.value = newValue;
-      this.dispatchEvent(
-        new CustomEvent('am-change', {
-          detail: { value: this.value },
-          bubbles: true,
-          composed: true,
-        }),
-      );
+      this.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
+      this.dispatchEvent(new Event('change', { bubbles: true, composed: true }));
     }
     this._close();
     this.triggerEl?.focus();
@@ -626,13 +622,8 @@ export class AmSelect extends LitElement {
     e.stopPropagation();
     if (this.value) {
       this.value = '';
-      this.dispatchEvent(
-        new CustomEvent('am-change', {
-          detail: { value: '' },
-          bubbles: true,
-          composed: true,
-        }),
-      );
+      this.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
+      this.dispatchEvent(new Event('change', { bubbles: true, composed: true }));
     }
     this.triggerEl?.focus();
   }
