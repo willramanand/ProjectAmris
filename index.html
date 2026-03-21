@@ -9,6 +9,7 @@
         <script type="module" src="/src/index.all.ts"></script>
 
         <style>
+            @import url("https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300..900;1,300..900&display=swap");
             .demo-section {
                 max-width: 960px;
                 margin: 0 auto;
@@ -17,8 +18,13 @@
 
             .demo-section h2 {
                 font-family:
-                    -apple-system, BlinkMacSystemFont, "SF Pro Display",
-                    "Segoe UI", Roboto, sans-serif;
+                    "Rubik",
+                    -apple-system,
+                    BlinkMacSystemFont,
+                    "SF Pro Display",
+                    "Segoe UI",
+                    Roboto,
+                    sans-serif;
                 font-size: 1.5rem;
                 font-weight: 600;
                 letter-spacing: -0.02em;
@@ -69,8 +75,13 @@
 
             .palette-label {
                 font-family:
-                    -apple-system, BlinkMacSystemFont, "SF Pro Display",
-                    "Segoe UI", Roboto, sans-serif;
+                    "Rubik",
+                    -apple-system,
+                    BlinkMacSystemFont,
+                    "SF Pro Display",
+                    "Segoe UI",
+                    Roboto,
+                    sans-serif;
                 font-size: 0.875rem;
                 font-weight: 600;
                 color: var(--am-text);
@@ -86,8 +97,13 @@
 
             .card-content h3 {
                 font-family:
-                    -apple-system, BlinkMacSystemFont, "SF Pro Display",
-                    "Segoe UI", Roboto, sans-serif;
+                    "Rubik",
+                    -apple-system,
+                    BlinkMacSystemFont,
+                    "SF Pro Display",
+                    "Segoe UI",
+                    Roboto,
+                    sans-serif;
                 font-size: 1.125rem;
                 font-weight: 600;
                 margin: 0 0 0.5rem;
@@ -96,8 +112,13 @@
 
             .card-content p {
                 font-family:
-                    -apple-system, BlinkMacSystemFont, "SF Pro Display",
-                    "Segoe UI", Roboto, sans-serif;
+                    "Rubik",
+                    -apple-system,
+                    BlinkMacSystemFont,
+                    "SF Pro Display",
+                    "Segoe UI",
+                    Roboto,
+                    sans-serif;
                 font-size: 0.875rem;
                 color: var(--am-text-secondary);
                 margin: 0;
@@ -106,8 +127,13 @@
 
             .demo-label {
                 font-family:
-                    -apple-system, BlinkMacSystemFont, "SF Pro Display",
-                    "Segoe UI", Roboto, sans-serif;
+                    "Rubik",
+                    -apple-system,
+                    BlinkMacSystemFont,
+                    "SF Pro Display",
+                    "Segoe UI",
+                    Roboto,
+                    sans-serif;
                 font-size: 0.8rem;
                 font-weight: 500;
                 color: var(--am-text-tertiary);
@@ -118,7 +144,16 @@
         </style>
     </head>
     <body>
-        <am-theme-provider id="theme-root" theme="system">
+        <am-theme-provider
+            id="theme-root"
+            theme="system"
+            style="
+                --am-font-sans:
+                    &quot;Rubik&quot;, system-ui, -apple-system,
+                    BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto,
+                    &quot;Helvetica Neue&quot;, Arial, sans-serif;
+            "
+        >
             <div class="theme-toggle">
                 <am-button
                     variant="outlined"
@@ -1184,7 +1219,8 @@
 
                     <p class="demo-label">Banner</p>
                     <am-alert variant="warning" banner closable>
-                        <strong>Maintenance:</strong> Scheduled maintenance in 30 minutes.
+                        <strong>Maintenance:</strong> Scheduled maintenance in
+                        30 minutes.
                     </am-alert>
 
                     <am-divider></am-divider>
@@ -1268,13 +1304,18 @@
                         <am-tab slot="nav" panel="v-general">General</am-tab>
                         <am-tab slot="nav" panel="v-settings">Settings</am-tab>
                         <am-tab slot="nav" panel="v-billing">Billing</am-tab>
-                        <am-tab slot="nav" panel="v-disabled" disabled>Disabled</am-tab>
+                        <am-tab slot="nav" panel="v-disabled" disabled
+                            >Disabled</am-tab
+                        >
 
                         <am-tab-panel name="v-general">
                             <am-surface bordered>
                                 <div class="card-content">
                                     <h3>General Settings</h3>
-                                    <p>Manage your account details and preferences.</p>
+                                    <p>
+                                        Manage your account details and
+                                        preferences.
+                                    </p>
                                 </div>
                             </am-surface>
                         </am-tab-panel>
@@ -1282,7 +1323,10 @@
                             <am-surface bordered>
                                 <div class="card-content">
                                     <h3>App Settings</h3>
-                                    <p>Configure notifications, theme, and display options.</p>
+                                    <p>
+                                        Configure notifications, theme, and
+                                        display options.
+                                    </p>
                                 </div>
                             </am-surface>
                         </am-tab-panel>
@@ -1290,7 +1334,10 @@
                             <am-surface bordered>
                                 <div class="card-content">
                                     <h3>Billing &amp; Plans</h3>
-                                    <p>View your subscription and payment history.</p>
+                                    <p>
+                                        View your subscription and payment
+                                        history.
+                                    </p>
                                 </div>
                             </am-surface>
                         </am-tab-panel>
@@ -1684,16 +1731,30 @@
                     </div>
                     <script type="module">
                         const cities = [
-                            "Amsterdam", "Austin", "Barcelona", "Berlin",
-                            "Boston", "Chicago", "Denver", "Dublin",
-                            "London", "Los Angeles", "Miami", "New York",
-                            "Paris", "San Francisco", "Seattle", "Tokyo",
+                            "Amsterdam",
+                            "Austin",
+                            "Barcelona",
+                            "Berlin",
+                            "Boston",
+                            "Chicago",
+                            "Denver",
+                            "Dublin",
+                            "London",
+                            "Los Angeles",
+                            "Miami",
+                            "New York",
+                            "Paris",
+                            "San Francisco",
+                            "Seattle",
+                            "Tokyo",
                         ];
                         const autoCity = document.getElementById("auto-city");
                         autoCity.addEventListener("am-search", (e) => {
                             const q = e.detail.query.toLowerCase();
                             autoCity.results = q
-                                ? cities.filter((c) => c.toLowerCase().includes(q))
+                                ? cities.filter((c) =>
+                                      c.toLowerCase().includes(q),
+                                  )
                                 : [];
                         });
                     </script>
@@ -2040,12 +2101,10 @@
                         <am-button
                             variant="primary"
                             onclick="
-                                document
-                                    .getElementById('toast-region')
-                                    .toast({
-                                        message: 'Changes saved.',
-                                        variant: 'success',
-                                    })
+                                document.getElementById('toast-region').toast({
+                                    message: 'Changes saved.',
+                                    variant: 'success',
+                                })
                             "
                         >
                             Success Toast
@@ -2053,12 +2112,10 @@
                         <am-button
                             variant="outlined"
                             onclick="
-                                document
-                                    .getElementById('toast-region')
-                                    .toast({
-                                        message: 'New update available.',
-                                        variant: 'info',
-                                    })
+                                document.getElementById('toast-region').toast({
+                                    message: 'New update available.',
+                                    variant: 'info',
+                                })
                             "
                         >
                             Info Toast
@@ -2066,12 +2123,10 @@
                         <am-button
                             variant="subtle"
                             onclick="
-                                document
-                                    .getElementById('toast-region')
-                                    .toast({
-                                        message: 'Disk space is running low.',
-                                        variant: 'warning',
-                                    })
+                                document.getElementById('toast-region').toast({
+                                    message: 'Disk space is running low.',
+                                    variant: 'warning',
+                                })
                             "
                         >
                             Warning Toast
@@ -2079,13 +2134,11 @@
                         <am-button
                             variant="danger"
                             onclick="
-                                document
-                                    .getElementById('toast-region')
-                                    .toast({
-                                        message:
-                                            'Failed to save. Please try again.',
-                                        variant: 'danger',
-                                    })
+                                document.getElementById('toast-region').toast({
+                                    message:
+                                        'Failed to save. Please try again.',
+                                    variant: 'danger',
+                                })
                             "
                         >
                             Danger Toast
