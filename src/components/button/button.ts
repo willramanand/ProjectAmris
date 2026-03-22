@@ -2,6 +2,7 @@ import { LitElement, css, html, nothing, type PropertyValues } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { resetStyles, focusRingStyles } from '../../styles/reset.css.js';
+import { requestAssociatedFormSubmit, resetAssociatedForm } from '../../utilities/form-actions.js';
 
 export type ButtonVariant =
   | 'primary'
@@ -11,51 +12,23 @@ export type ButtonVariant =
   | 'danger';
 export type ButtonSize = 'sm' | 'md' | 'lg';
 
-/**
- * Button — the primary interactive action element.
- *
- * @slot - Button label content
- * @slot prefix - Content before the label (e.g. icon)
- * @slot suffix - Content after the label (e.g. icon)
- *
- * @csspart button - The native button element
- * @csspart label - The label wrapper span
- *
- * @cssprop --am-button-radius - Override border radius
- * @cssprop --am-button-font-weight - Override font weight
- *
- * @fires click - Standard click event (not emitted when disabled)
- *
- * @example
- * ```html
- * <am-button variant="primary">Save changes</am-button>
- * <am-button variant="outlined" size="sm">Cancel</am-button>
- * <am-button variant="ghost" loading>Processing</am-button>
- * ```
- */
 @customElement('am-button')
 export class AmButton extends LitElement {
-  /** Visual style variant. */
   @property({ reflect: true })
   variant: ButtonVariant = 'primary';
 
-  /** Button size. */
   @property({ reflect: true })
   size: ButtonSize = 'md';
 
-  /** Whether the button is disabled. */
   @property({ type: Boolean, reflect: true })
   disabled = false;
 
-  /** Whether the button is in a loading state. */
   @property({ type: Boolean, reflect: true })
   loading = false;
 
-  /** HTML button type attribute. */
   @property()
   type: 'button' | 'submit' | 'reset' = 'button';
 
-  /** Accessible label override (for icon-only buttons). */
   @property({ attribute: 'aria-label' })
   override ariaLabel: string | null = null;
 
@@ -93,8 +66,6 @@ export class AmButton extends LitElement {
         position: relative;
       }
 
-      /* ---- Sizes ---- */
-
       :host([size='sm']) button,
       button.sm {
         height: var(--am-size-sm);
@@ -118,8 +89,6 @@ export class AmButton extends LitElement {
         font-size: var(--am-text-base);
       }
 
-      /* ---- Primary ---- */
-
       :host([variant='primary']) button,
       :host(:not([variant])) button {
         background: var(--am-primary);
@@ -137,8 +106,6 @@ export class AmButton extends LitElement {
         transform: scale(0.98);
       }
 
-      /* ---- Outlined ---- */
-
       :host([variant='outlined']) button {
         background: transparent;
         color: var(--am-text);
@@ -155,8 +122,6 @@ export class AmButton extends LitElement {
         transform: scale(0.98);
       }
 
-      /* ---- Ghost ---- */
-
       :host([variant='ghost']) button {
         background: transparent;
         color: var(--am-text);
@@ -170,8 +135,6 @@ export class AmButton extends LitElement {
         background: var(--am-active-overlay);
         transform: scale(0.98);
       }
-
-      /* ---- Subtle ---- */
 
       :host([variant='subtle']) button {
         background: var(--am-primary-subtle);
@@ -187,8 +150,6 @@ export class AmButton extends LitElement {
         transform: scale(0.98);
       }
 
-      /* ---- Danger ---- */
-
       :host([variant='danger']) button {
         background: var(--am-danger);
         color: var(--am-color-neutral-0);
@@ -203,15 +164,11 @@ export class AmButton extends LitElement {
         transform: scale(0.98);
       }
 
-      /* ---- Disabled ---- */
-
       :host([disabled]) button {
         opacity: var(--am-disabled-opacity);
         cursor: not-allowed;
         pointer-events: none;
       }
-
-      /* ---- Loading ---- */
 
       :host([loading]) button {
         cursor: wait;
@@ -279,6 +236,22 @@ export class AmButton extends LitElement {
     }
   }
 
+  private handleClick(event: Event) {
+    if (this.disabled || this.loading || this.type === 'button') {
+      return;
+    }
+
+    if (this.type === 'submit') {
+      requestAssociatedFormSubmit(this, { event, disabled: this.disabled || this.loading });
+      return;
+    }
+
+    if (this.type === 'reset') {
+      event.preventDefault();
+      resetAssociatedForm(this);
+    }
+  }
+
   render() {
     return html`
       <button
@@ -291,6 +264,7 @@ export class AmButton extends LitElement {
           [this.size]: true,
           [this.variant]: true,
         })}
+        @click=${this.handleClick}
       >
         <slot name="prefix"></slot>
         <span class="label" part="label">
@@ -314,3 +288,4 @@ declare global {
     'am-button': AmButton;
   }
 }
+

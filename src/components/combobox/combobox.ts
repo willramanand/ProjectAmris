@@ -3,6 +3,7 @@ import { customElement, property, query, state } from 'lit/decorators.js';
 import { live } from 'lit/directives/live.js';
 import { computePosition, autoUpdate, flip, shift, offset, size as sizeMiddleware } from '@floating-ui/dom';
 import { resetStyles } from '../../styles/reset.css.js';
+import { requestAssociatedFormSubmit } from '../../utilities/form-actions.js';
 
 export type ComboboxSize = 'sm' | 'md' | 'lg';
 
@@ -463,7 +464,15 @@ export class AmCombobox extends LitElement {
         if (this._open && this._highlightedIndex >= 0 && this._highlightedIndex < filtered.length) {
           e.preventDefault();
           this._selectOption(filtered[this._highlightedIndex]);
+          break;
         }
+
+        requestAssociatedFormSubmit(this, {
+          event: e,
+          internals: this.internals,
+          disabled: this.disabled,
+          readonly: this.readonly,
+        });
         break;
 
       case 'Escape':
@@ -726,3 +735,5 @@ declare global {
     'am-combobox': AmCombobox;
   }
 }
+
+

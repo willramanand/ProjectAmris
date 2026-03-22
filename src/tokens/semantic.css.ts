@@ -6,7 +6,7 @@ import { css } from 'lit';
  * Default values are the LIGHT theme.
  *
  * Primitive scales use role-based names so consuming apps can swap
- * entire palettes by overriding --am-color-{role}-{step} variables.
+ * entire palettes by overriding --am-color-{role}-* variables.
  *
  * Naming: --am-{purpose}
  */

@@ -1,6 +1,7 @@
 import { LitElement, css, html, nothing } from 'lit';
 import { customElement, property, query, state } from 'lit/decorators.js';
 import { resetStyles } from '../../styles/reset.css.js';
+import { requestAssociatedFormSubmit } from '../../utilities/form-actions.js';
 
 export type SearchFieldSize = 'sm' | 'md' | 'lg';
 
@@ -187,6 +188,11 @@ export class AmSearchField extends LitElement {
           composed: true,
         })
       );
+
+      requestAssociatedFormSubmit(this, {
+        event: e,
+        disabled: this.disabled,
+      });
     }
     if (e.key === 'Escape') {
       this._handleClear();
@@ -272,4 +278,6 @@ declare global {
     'am-search-field': AmSearchField;
   }
 }
+
+
 

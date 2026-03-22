@@ -2,6 +2,7 @@ import { LitElement, css, html, nothing, type PropertyValues } from 'lit';
 import { customElement, property, query, state } from 'lit/decorators.js';
 import { live } from 'lit/directives/live.js';
 import { resetStyles } from '../../styles/reset.css.js';
+import { requestAssociatedFormSubmit } from '../../utilities/form-actions.js';
 
 export type InputSize = 'sm' | 'md' | 'lg';
 
@@ -259,6 +260,19 @@ export class AmInput extends LitElement {
   private _handleFocus() { this._focused = true; }
   private _handleBlur() { this._focused = false; }
 
+  private _handleKeyDown(e: KeyboardEvent) {
+    if (e.key !== 'Enter') {
+      return;
+    }
+
+    requestAssociatedFormSubmit(this, {
+      event: e,
+      internals: this.internals,
+      disabled: this.disabled,
+      readonly: this.readonly,
+    });
+  }
+
   private _handleClear() {
     this.value = '';
     if (this.inputEl) {
@@ -319,6 +333,7 @@ export class AmInput extends LitElement {
             @change=${this._handleChange}
             @focus=${this._handleFocus}
             @blur=${this._handleBlur}
+            @keydown=${this._handleKeyDown}
           />
         </div>
         ${showClear

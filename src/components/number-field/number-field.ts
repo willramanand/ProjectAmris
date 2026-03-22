@@ -1,6 +1,7 @@
 import { LitElement, css, html, nothing, type PropertyValues } from 'lit';
 import { customElement, property, query } from 'lit/decorators.js';
 import { resetStyles } from '../../styles/reset.css.js';
+import { requestAssociatedFormSubmit } from '../../utilities/form-actions.js';
 
 export type NumberFieldSize = 'sm' | 'md' | 'lg';
 
@@ -170,8 +171,16 @@ export class AmNumberField extends LitElement {
   }
 
   private _handleKeyDown(e: KeyboardEvent) {
-    if (e.key === 'ArrowUp') { e.preventDefault(); this._increment(); }
-    if (e.key === 'ArrowDown') { e.preventDefault(); this._decrement(); }
+    if (e.key === 'ArrowUp') { e.preventDefault(); this._increment(); return; }
+    if (e.key === 'ArrowDown') { e.preventDefault(); this._decrement(); return; }
+    if (e.key === 'Enter') {
+      requestAssociatedFormSubmit(this, {
+        event: e,
+        internals: this._internals,
+        disabled: this.disabled,
+        readonly: this.readonly,
+      });
+    }
   }
 
   render() {
@@ -217,3 +226,5 @@ declare global {
     'am-number-field': AmNumberField;
   }
 }
+
+
