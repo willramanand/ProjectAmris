@@ -171,6 +171,7 @@ function createLibraryBuild(entry: string, fileName: string, emptyOutDir: boolea
         fileName,
       },
       rollupOptions: {
+        external: ['lit', /^lit\//, /^@lit\//],
         plugins: [minifyHTML()],
       },
     },
@@ -182,3 +183,4 @@ export default defineConfig(({ mode }) =>
     ? createLibraryBuild('src/index.all.ts', 'amris', false)
     : createLibraryBuild('src/index.ts', 'amris-core', true),
 );
+
