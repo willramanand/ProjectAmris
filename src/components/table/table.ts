@@ -41,6 +41,9 @@ export class AmTable extends LitElement {
   /** Whether the table is compact. */
   @property({ type: Boolean, reflect: true }) compact = false;
 
+  private _styleEl: HTMLStyleElement | null = null;
+  private _scopeId = `am-t-${Math.random().toString(36).slice(2, 8)}`;
+
   static styles = [
     resetStyles,
     css`
@@ -54,100 +57,81 @@ export class AmTable extends LitElement {
       :host([bordered]) {
         border: var(--am-border-1) solid var(--am-border);
       }
-
-      ::slotted(table) {
-        width: 100%;
-        border-collapse: collapse;
-        font-family: var(--am-font-sans);
-        font-size: var(--am-text-sm);
-        color: var(--am-text);
-      }
-
-      /* Header styling via CSS cascade */
-      ::slotted(table) {
-        --_cell-padding: var(--am-space-3) var(--am-space-4);
-      }
-
-      :host([compact]) ::slotted(table) {
-        --_cell-padding: var(--am-space-2) var(--am-space-3);
-        font-size: var(--am-text-xs);
-      }
     `,
   ];
 
   connectedCallback() {
     super.connectedCallback();
-    this._applyTableStyles();
+    this.dataset.scope = this._scopeId;
+    this._updateLightStyles();
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    this._styleEl?.remove();
+    this._styleEl = null;
   }
 
   updated() {
-    this._applyTableStyles();
+    this._updateLightStyles();
   }
 
-  private _applyTableStyles() {
-    const table = this.querySelector('table');
-    if (!table) return;
+  private _updateLightStyles() {
+    if (!this._styleEl) {
+      this._styleEl = document.createElement('style');
+      this.prepend(this._styleEl);
+    }
 
-    // Apply styles to light DOM table elements via inline styles
-    // since ::slotted only targets direct children and can't reach nested elements
-    const headerPad = this.compact ? '0.5rem 0.75rem' : '0.75rem 1rem';
-    const cellPad = this.compact ? '0.5rem 0.75rem' : '0.75rem 1rem';
+    const s = `[data-scope="${this._scopeId}"]`;
+    const pad = this.compact ? '0.5rem 0.75rem' : '0.75rem 1rem';
+    const fontSize = this.compact ? 'var(--am-text-xs)' : 'var(--am-text-sm)';
 
-    table.style.width = '100%';
-    table.style.borderCollapse = 'collapse';
-    table.style.fontFamily = 'var(--am-font-sans)';
-    table.style.fontSize = this.compact ? 'var(--am-text-xs)' : 'var(--am-text-sm)';
-    table.style.color = 'var(--am-text)';
+    let styles = `
+${s} table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--am-font-sans);
+  font-size: ${fontSize};
+  color: var(--am-text);
+}
+${s} th {
+  padding: ${pad};
+  text-align: left;
+  font-weight: var(--am-weight-semibold, 600);
+  color: var(--am-text-secondary);
+  border-bottom: 1px solid var(--am-border);
+  white-space: nowrap;
+  font-size: var(--am-text-xs);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+${s} td {
+  padding: ${pad};
+  border-bottom: 1px solid var(--am-border-subtle, var(--am-border));
+}`;
 
-    table.querySelectorAll('th').forEach(th => {
-      th.style.padding = headerPad;
-      th.style.textAlign = 'left';
-      th.style.fontWeight = 'var(--am-weight-semibold, 600)';
-      th.style.color = 'var(--am-text-secondary)';
-      th.style.borderBottom = '1px solid var(--am-border)';
-      th.style.whiteSpace = 'nowrap';
-      th.style.fontSize = this.compact ? 'var(--am-text-xs)' : 'var(--am-text-xs)';
-      th.style.letterSpacing = '0.03em';
-      th.style.textTransform = 'uppercase';
-    });
-
-    table.querySelectorAll('td').forEach(td => {
-      td.style.padding = cellPad;
-      td.style.borderBottom = '1px solid var(--am-border-subtle, var(--am-border))';
-    });
-
-    // Striped rows
     if (this.striped) {
-      table.querySelectorAll('tbody tr:nth-child(even)').forEach(tr => {
-        (tr as HTMLElement).style.background = 'var(--am-surface-sunken)';
-      });
-      table.querySelectorAll('tbody tr:nth-child(odd)').forEach(tr => {
-        (tr as HTMLElement).style.background = '';
-      });
-    } else {
-      table.querySelectorAll('tbody tr').forEach(tr => {
-        (tr as HTMLElement).style.background = '';
-      });
+      styles += `
+${s} tbody tr:nth-child(even) {
+  background: var(--am-surface-sunken);
+}`;
     }
 
-    // Hoverable rows
     if (this.hoverable) {
-      table.querySelectorAll('tbody tr').forEach(tr => {
-        const el = tr as HTMLElement;
-        el.onmouseenter = () => { el.style.background = 'var(--am-hover-overlay)'; };
-        el.onmouseleave = () => {
-          if (this.striped && Array.from(el.parentElement?.children ?? []).indexOf(el) % 2 === 1) {
-            el.style.background = 'var(--am-surface-sunken)';
-          } else {
-            el.style.background = '';
-          }
-        };
-      });
+      styles += `
+${s} tbody tr {
+  transition: background var(--am-duration-fast) var(--am-ease-default);
+}
+${s} tbody tr:hover {
+  background: var(--am-hover-overlay);
+}`;
     }
+
+    this._styleEl.textContent = styles;
   }
 
   render() {
-    return html`<div part="table"><slot @slotchange=${() => this._applyTableStyles()}></slot></div>`;
+    return html`<div part="table"><slot></slot></div>`;
   }
 }
 

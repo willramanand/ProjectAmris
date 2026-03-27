@@ -233,9 +233,23 @@ export class AmTabs extends LitElement {
 
       .nav {
         display: flex;
+        position: relative;
+        isolation: isolate;
 
         overflow-x: auto;
         scrollbar-width: none;
+      }
+
+      .nav::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--am-border);
+        pointer-events: none;
+        z-index: -1;
       }
 
       .nav::-webkit-scrollbar { display: none; }
@@ -257,6 +271,8 @@ export class AmTabs extends LitElement {
         gap: var(--am-space-1);
       }
 
+      :host([variant='pill']) .nav::after { display: none; }
+
       /* ---- Vertical variant ---- */
 
       :host([variant='vertical']) {
@@ -271,6 +287,8 @@ export class AmTabs extends LitElement {
         overflow-y: auto;
         min-width: 12rem;
       }
+
+      :host([variant='vertical']) .nav::after { display: none; }
 
       :host([variant='vertical']) .panels {
         padding-top: 0;

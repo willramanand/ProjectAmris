@@ -48,6 +48,10 @@ export class AmDatePicker extends LitElement {
   @state() private _activeSegment: 'year' | 'month' | 'day' = 'month';
   @state() private _inputBuffer = '';
 
+  private get _floated(): boolean {
+    return this._focused || this._hasValue;
+  }
+
   @query('.wrapper') private _wrapper!: HTMLElement;
   @query('.dropdown') private _dropdown!: HTMLElement;
 
@@ -63,19 +67,11 @@ export class AmDatePicker extends LitElement {
   static styles = [
     resetStyles,
     css`
-      :host { display: block; font-family: var(--am-font-sans); }
+      :host { display: block; width: 100%; font-family: var(--am-font-sans); }
       :host([disabled]) { pointer-events: none; }
 
-      .label {
-        display: block;
-        font-size: var(--am-text-sm);
-        font-weight: var(--am-weight-medium);
-        color: var(--am-text);
-        margin-bottom: var(--am-space-1-5);
-      }
-
       .wrapper {
-        display: inline-flex;
+        display: flex;
         align-items: center;
         gap: var(--am-space-1);
         border: var(--am-border-1) solid var(--am-border);
@@ -86,9 +82,15 @@ export class AmDatePicker extends LitElement {
                     box-shadow var(--am-duration-fast) var(--am-ease-default);
       }
 
-      :host([size='sm']) .wrapper { height: var(--am-size-sm); padding-inline: var(--am-space-2-5); font-size: var(--am-text-sm); }
-      :host([size='md']) .wrapper, :host(:not([size])) .wrapper { height: var(--am-size-md); padding-inline: var(--am-space-3); font-size: var(--am-text-sm); }
-      :host([size='lg']) .wrapper { height: var(--am-size-lg); padding-inline: var(--am-space-4); font-size: var(--am-text-base); }
+      /* ---- Sizes without floating label ---- */
+      :host([size='sm']) .wrapper:not(.has-label) { height: var(--am-size-sm); padding-inline: var(--am-space-2-5); font-size: var(--am-text-sm); }
+      :host([size='md']) .wrapper:not(.has-label), :host(:not([size])) .wrapper:not(.has-label) { height: var(--am-size-md); padding-inline: var(--am-space-3); font-size: var(--am-text-sm); }
+      :host([size='lg']) .wrapper:not(.has-label) { height: var(--am-size-lg); padding-inline: var(--am-space-4); font-size: var(--am-text-base); }
+
+      /* ---- Sizes with floating label (taller to fit label + value) ---- */
+      :host([size='sm']) .wrapper.has-label { height: 3rem; padding-inline: var(--am-space-2-5); font-size: var(--am-text-sm); }
+      :host([size='md']) .wrapper.has-label, :host(:not([size])) .wrapper.has-label { height: 3.5rem; padding-inline: var(--am-space-3); font-size: var(--am-text-sm); }
+      :host([size='lg']) .wrapper.has-label { height: 3.75rem; padding-inline: var(--am-space-4); font-size: var(--am-text-base); }
 
       .wrapper:hover:not(.disabled) { border-color: var(--am-border-strong); }
 
@@ -179,8 +181,76 @@ export class AmDatePicker extends LitElement {
         box-shadow: var(--am-shadow-lg);
       }
 
+      /* ---- Floating label ---- */
+
+      .wrapper.has-label {
+        gap: var(--am-space-2);
+      }
+
+      .field-group {
+        display: flex;
+        align-items: center;
+      }
+
+      .wrapper.has-label .field-group {
+        position: relative;
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        align-items: flex-start;
+        height: 100%;
+        padding-bottom: 0.5rem;
+      }
+
+      .wrapper.has-label { cursor: text; }
+
+      .floating-label {
+        position: absolute;
+        top: 50%;
+        left: 0;
+        transform: translateY(-50%);
+        font-family: var(--am-font-sans);
+        font-size: inherit;
+        color: var(--am-text-secondary);
+        pointer-events: none;
+        transform-origin: left center;
+        transition:
+          top var(--am-duration-normal) var(--am-ease-spring),
+          transform var(--am-duration-normal) var(--am-ease-spring),
+          font-size var(--am-duration-normal) var(--am-ease-spring),
+          color var(--am-duration-fast) var(--am-ease-default);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+      }
+
+      .floated .floating-label {
+        top: 0.4rem;
+        transform: none;
+        font-size: 0.75rem;
+      }
+
+      .focused .floating-label {
+        color: var(--am-primary);
+      }
+
+      .invalid .floating-label {
+        color: var(--am-danger);
+      }
+
+      .has-label:not(.floated) .segments {
+        opacity: 0;
+      }
+
+      .has-label .segments {
+        transition: opacity var(--am-duration-fast) var(--am-ease-default);
+      }
+
       @media (prefers-reduced-motion: reduce) {
-        .wrapper, .segment, .dropdown { transition: none; }
+        .wrapper, .segment, .dropdown, .floating-label { transition: none; }
         .caret { animation: none; opacity: 1; }
       }
     `,
@@ -449,6 +519,13 @@ export class AmDatePicker extends LitElement {
     this._open = !this._open;
   }
 
+  private _handleWrapperClick(e: MouseEvent) {
+    if (this.disabled || this.readonly) return;
+    if ((e.target as HTMLElement).closest('.segment, .calendar-icon')) return;
+    const first = this.shadowRoot?.querySelector('.segment') as HTMLElement;
+    first?.focus();
+  }
+
   private _handleCalendarChange(e: Event) {
     this.value = (e.target as HTMLElement & { value: string }).value;
     this._open = false;
@@ -486,14 +563,26 @@ export class AmDatePicker extends LitElement {
   }
 
   render() {
+    const hasLabel = !!this.label;
+    const floated = hasLabel && this._floated;
+
+    const wrapperClasses = [
+      'wrapper',
+      hasLabel ? 'has-label' : '',
+      floated ? 'floated' : '',
+      this._focused ? 'focused' : '',
+      this.invalid ? 'invalid' : '',
+    ].filter(Boolean).join(' ');
+
     return html`
-      ${this.label ? html`<span class="label">${this.label}</span>` : nothing}
-      <div class="wrapper ${this._focused ? 'focused' : ''} ${this.invalid ? 'invalid' : ''}" part="input">
+      <div class="${wrapperClasses}" part="input" @click=${this._handleWrapperClick}>
         <svg class="calendar-icon" viewBox="0 0 16 16" fill="none" @click=${this._toggleCalendar}>
           <rect x="2" y="3" width="12" height="11" rx="2" stroke="currentColor" stroke-width="1.5"/>
           <path d="M2 7h12M5 1v3M11 1v3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
         </svg>
-        <div class="segments">
+        <div class="field-group">
+          ${hasLabel ? html`<span class="floating-label">${this.label}</span>` : nothing}
+          <div class="segments">
           <button class="segment seg-year ${this._activeSegment === 'year' ? (this._isEditing('year') ? 'editing' : 'active') : ''}"
             data-segment="year"
             aria-label="Year — type digits or use arrow keys"
@@ -520,6 +609,7 @@ export class AmDatePicker extends LitElement {
             @keydown=${(e: KeyboardEvent) => this._handleKeydown('day', e)}>
             ${this._renderSegmentContent('day')}
           </button>
+        </div>
         </div>
       </div>
       <div class="dropdown ${this._open ? 'open' : ''}" part="calendar">
