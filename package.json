@@ -1,8 +1,17 @@
 {
-  "name": "amris",
-  "private": true,
-  "version": "0.0.0",
+  "name": "@willramanand/amris",
+  "version": "0.1.0",
   "type": "module",
+  "description": "Amris web component library.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/willramanand/ProjectQuartz.git"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com",
+    "access": "restricted"
+  },
   "main": "./dist/amris.js",
   "module": "./dist/amris.js",
   "types": "./dist/index.all.d.ts",
