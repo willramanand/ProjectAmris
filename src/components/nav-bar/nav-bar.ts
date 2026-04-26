@@ -95,7 +95,7 @@ export class AmNavBar extends LitElement {
         display: flex;
         align-items: center;
         gap: var(--am-space-2);
-        margin-left: auto;
+        margin-inline-start: auto;
       }
 
       @media (prefers-reduced-motion: reduce) {

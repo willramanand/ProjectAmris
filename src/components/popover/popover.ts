@@ -95,22 +95,25 @@ export class AmPopover extends LitElement {
     `,
   ];
 
-  connectedCallback() {
-    super.connectedCallback();
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    this._detachGlobalListeners();
+    clearTimeout(this._showTimer);
+    clearTimeout(this._hideTimer);
+    this._cleanupAutoUpdate?.();
+    this._cleanupAutoUpdate = null;
+  }
+
+  private _attachGlobalListeners() {
     if (this.trigger === 'click') {
       document.addEventListener('click', this._handleDocumentClick);
     }
     document.addEventListener('keydown', this._handleKeydown);
   }
 
-  disconnectedCallback() {
-    super.disconnectedCallback();
+  private _detachGlobalListeners() {
     document.removeEventListener('click', this._handleDocumentClick);
     document.removeEventListener('keydown', this._handleKeydown);
-    clearTimeout(this._showTimer);
-    clearTimeout(this._hideTimer);
-    this._cleanupAutoUpdate?.();
-    this._cleanupAutoUpdate = null;
   }
 
   private _handleTriggerClick = () => {
@@ -151,9 +154,11 @@ export class AmPopover extends LitElement {
   protected updated(changed: Map<string, unknown>) {
     if (changed.has('open')) {
       if (this.open) {
+        this._attachGlobalListeners();
         this._startAutoUpdate();
         this.dispatchEvent(new CustomEvent('am-show', { bubbles: true, composed: true }));
       } else {
+        this._detachGlobalListeners();
         this._cleanupAutoUpdate?.();
         this._cleanupAutoUpdate = null;
         this.dispatchEvent(new CustomEvent('am-hide', { bubbles: true, composed: true }));

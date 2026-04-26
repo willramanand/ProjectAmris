@@ -1,5 +1,6 @@
 import { LitElement, css, html, nothing, type PropertyValues } from 'lit';
 import { customElement, property, query, state } from 'lit/decorators.js';
+import { repeat } from 'lit/directives/repeat.js';
 import { resetStyles } from '../../styles/reset.css.js';
 
 export interface CommandItem {
@@ -337,23 +338,27 @@ export class AmCommandPalette extends LitElement {
         <div class="list" part="list">
           ${filtered.length === 0
             ? html`<div class="empty">No commands found.</div>`
-            : Array.from(groups.entries()).map(([group, items]) => html`
-                ${group ? html`<div class="group-label">${group}</div>` : nothing}
-                ${items.map(cmd => {
-                  const idx = itemIndex++;
-                  return html`
-                    <div class="item ${idx === this._highlightedIndex ? 'highlighted' : ''}"
-                      part="item"
-                      @click=${() => this._selectCommand(cmd)}>
-                      <div class="item-content">
-                        <div class="item-label">${cmd.label}</div>
-                        ${cmd.description ? html`<div class="item-description">${cmd.description}</div>` : nothing}
+            : repeat(
+                Array.from(groups.entries()),
+                ([group]) => group ?? '__ungrouped__',
+                ([group, items]) => html`
+                  ${group ? html`<div class="group-label">${group}</div>` : nothing}
+                  ${repeat(items, cmd => cmd.id, cmd => {
+                    const idx = itemIndex++;
+                    return html`
+                      <div class="item ${idx === this._highlightedIndex ? 'highlighted' : ''}"
+                        part="item"
+                        @click=${() => this._selectCommand(cmd)}>
+                        <div class="item-content">
+                          <div class="item-label">${cmd.label}</div>
+                          ${cmd.description ? html`<div class="item-description">${cmd.description}</div>` : nothing}
+                        </div>
+                        ${cmd.shortcut ? html`<span class="item-shortcut">${this._renderShortcut(cmd.shortcut)}</span>` : nothing}
                       </div>
-                      ${cmd.shortcut ? html`<span class="item-shortcut">${this._renderShortcut(cmd.shortcut)}</span>` : nothing}
-                    </div>
-                  `;
-                })}
-              `)}
+                    `;
+                  })}
+                `,
+              )}
         </div>
 
         <div class="footer">

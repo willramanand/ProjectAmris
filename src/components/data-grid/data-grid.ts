@@ -1,18 +1,30 @@
 import { LitElement, css, html, nothing } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { styleMap } from 'lit/directives/style-map.js';
+import { repeat } from 'lit/directives/repeat.js';
 import { resetStyles } from '../../styles/reset.css.js';
 import '../checkbox/checkbox.js';
 
-export interface DataGridColumn {
+export type DataGridColumnType = 'string' | 'number' | 'date' | 'boolean';
+
+export interface DataGridColumn<T = Record<string, unknown>> {
   key: string;
   label: string;
   sortable?: boolean;
   width?: string;
   align?: 'start' | 'center' | 'end';
+  /** Cell value type for default sort comparator. Defaults to 'string'. */
+  type?: DataGridColumnType;
+  /** Custom comparator. Receives raw row objects so it can compare derived fields. */
+  compare?: (a: T, b: T) => number;
 }
 
 export type SortDirection = 'asc' | 'desc' | 'none';
+
+export type RowKey = string | number;
+export type GetRowId<T = Record<string, unknown>> = (row: T, index: number) => RowKey;
+
+const DEFAULT_GET_ROW_ID: GetRowId = (_row, index) => index;
 
 /**
  * Data Grid — a property-driven data table with sorting and selection.
@@ -55,9 +67,19 @@ export class AmDataGrid extends LitElement {
   @property({ type: Boolean, reflect: true }) compact = false;
   @property({ type: Boolean, reflect: true }) selectable = false;
 
+  /** Returns a stable id for a row. Used as repeat() key and selection key. */
+  @property({ attribute: false }) getRowId: GetRowId = DEFAULT_GET_ROW_ID;
+
+  /**
+   * Controlled selection. When provided, the grid emits `am-selection-change`
+   * but does not mutate internal selection state — caller must update this prop.
+   */
+  @property({ attribute: false }) selectedKeys: ReadonlyArray<RowKey> | null = null;
+
   @state() private _sortKey = '';
   @state() private _sortDir: SortDirection = 'none';
-  @state() private _selectedIndices = new Set<number>();
+  @state() private _internalSelected = new Set<RowKey>();
+  @state() private _focusedRowIndex = 0;
 
   static styles = [
     resetStyles,
@@ -83,7 +105,7 @@ export class AmDataGrid extends LitElement {
 
       th {
         padding: var(--am-space-3) var(--am-space-4);
-        text-align: left;
+        text-align: start;
         font-weight: var(--am-weight-semibold);
         font-size: var(--am-text-xs);
         color: var(--am-text-secondary);
@@ -109,7 +131,7 @@ export class AmDataGrid extends LitElement {
         width: 0.75rem;
         height: 0.75rem;
         vertical-align: -0.1em;
-        margin-left: 0.25rem;
+        margin-inline-start: 0.25rem;
       }
 
       td {
@@ -123,6 +145,11 @@ export class AmDataGrid extends LitElement {
       :host([hoverable]) tbody tr:hover { background: var(--am-hover-overlay); }
 
       tr.selected { background: var(--am-primary-subtle) !important; }
+
+      tbody tr:focus-visible {
+        outline: 2px solid var(--am-focus-ring, var(--am-primary));
+        outline-offset: -2px;
+      }
 
       :host([selectable]) tbody tr { cursor: pointer; }
 
@@ -141,17 +168,48 @@ export class AmDataGrid extends LitElement {
     `,
   ];
 
-  private get _sortedRows(): Record<string, unknown>[] {
-    if (this._sortKey && this._sortDir !== 'none') {
-      const key = this._sortKey;
-      const dir = this._sortDir === 'asc' ? 1 : -1;
-      return [...this.rows].sort((a, b) => {
-        const av = String(a[key] ?? '');
-        const bv = String(b[key] ?? '');
-        return av.localeCompare(bv, undefined, { numeric: true }) * dir;
-      });
+  willUpdate(changed: Map<string, unknown>) {
+    if (changed.has('rows')) {
+      const max = Math.max(0, this.rows.length - 1);
+      if (this._focusedRowIndex > max) this._focusedRowIndex = max;
     }
-    return this.rows;
+  }
+
+  private _comparatorFor(col: DataGridColumn): (a: Record<string, unknown>, b: Record<string, unknown>) => number {
+    if (col.compare) return col.compare;
+    const key = col.key;
+    switch (col.type) {
+      case 'number':
+        return (a, b) => Number(a[key] ?? 0) - Number(b[key] ?? 0);
+      case 'date':
+        return (a, b) => {
+          const av = a[key]; const bv = b[key];
+          const ad = av instanceof Date ? av.getTime() : Date.parse(String(av ?? ''));
+          const bd = bv instanceof Date ? bv.getTime() : Date.parse(String(bv ?? ''));
+          return (Number.isNaN(ad) ? 0 : ad) - (Number.isNaN(bd) ? 0 : bd);
+        };
+      case 'boolean':
+        return (a, b) => Number(Boolean(a[key])) - Number(Boolean(b[key]));
+      default:
+        return (a, b) => String(a[key] ?? '').localeCompare(
+          String(b[key] ?? ''),
+          undefined,
+          { numeric: true },
+        );
+    }
+  }
+
+  private get _sortedRows(): Record<string, unknown>[] {
+    if (!this._sortKey || this._sortDir === 'none') return this.rows;
+    const col = this.columns.find(c => c.key === this._sortKey);
+    if (!col) return this.rows;
+    const dir = this._sortDir === 'asc' ? 1 : -1;
+    const cmp = this._comparatorFor(col);
+    return [...this.rows].sort((a, b) => cmp(a, b) * dir);
+  }
+
+  private get _selectionSet(): Set<RowKey> {
+    return this.selectedKeys ? new Set(this.selectedKeys) : this._internalSelected;
   }
 
   private _handleSort(col: DataGridColumn) {
@@ -172,18 +230,75 @@ export class AmDataGrid extends LitElement {
     }));
   }
 
-  private _handleRowClick(index: number) {
+  private _toggleRow(row: Record<string, unknown>, id: RowKey, originalIndex: number) {
     if (!this.selectable) return;
 
-    const newSet = new Set(this._selectedIndices);
-    if (newSet.has(index)) newSet.delete(index);
-    else newSet.add(index);
-    this._selectedIndices = newSet;
+    const current = this._selectionSet;
+    const next = new Set(current);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+
+    if (this.selectedKeys === null) {
+      this._internalSelected = next;
+    }
 
     this.dispatchEvent(new CustomEvent('am-row-select', {
-      detail: { row: this.rows[index], index },
+      detail: { row, index: originalIndex, id, selected: next.has(id), keys: [...next] },
       bubbles: true, composed: true,
     }));
+    this.dispatchEvent(new CustomEvent('am-selection-change', {
+      detail: { keys: [...next] },
+      bubbles: true, composed: true,
+    }));
+  }
+
+  private _focusRowAt(index: number) {
+    const tbody = this.renderRoot.querySelector('tbody');
+    if (!tbody) return;
+    const rows = tbody.querySelectorAll<HTMLTableRowElement>('tr');
+    const clamped = Math.max(0, Math.min(index, rows.length - 1));
+    this._focusedRowIndex = clamped;
+    rows[clamped]?.focus();
+  }
+
+  private _handleRowKeydown(e: KeyboardEvent, row: Record<string, unknown>, id: RowKey, originalIndex: number, sortedIndex: number, total: number) {
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        this._focusedRowIndex = Math.min(sortedIndex + 1, total - 1);
+        this.updateComplete.then(() => this._focusRowAt(this._focusedRowIndex));
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        this._focusedRowIndex = Math.max(sortedIndex - 1, 0);
+        this.updateComplete.then(() => this._focusRowAt(this._focusedRowIndex));
+        break;
+      case 'Home':
+        e.preventDefault();
+        this._focusedRowIndex = 0;
+        this.updateComplete.then(() => this._focusRowAt(0));
+        break;
+      case 'End':
+        e.preventDefault();
+        this._focusedRowIndex = total - 1;
+        this.updateComplete.then(() => this._focusRowAt(total - 1));
+        break;
+      case ' ':
+      case 'Enter':
+        if (this.selectable) {
+          e.preventDefault();
+          this._toggleRow(row, id, originalIndex);
+        }
+        break;
+    }
+  }
+
+  private _ariaSortFor(col: DataGridColumn): 'ascending' | 'descending' | 'none' | undefined {
+    if (!col.sortable) return undefined;
+    if (this._sortKey !== col.key) return 'none';
+    if (this._sortDir === 'asc') return 'ascending';
+    if (this._sortDir === 'desc') return 'descending';
+    return 'none';
   }
 
   private _renderSortIcon(col: DataGridColumn) {
@@ -201,41 +316,71 @@ export class AmDataGrid extends LitElement {
   }
 
   render() {
-    const rows = this._sortedRows;
+    const sorted = this._sortedRows;
+    const selection = this._selectionSet;
+
+    // Pre-compute id + original index per row in O(n).
+    const indexById = new Map<Record<string, unknown>, number>();
+    this.rows.forEach((row, i) => indexById.set(row, i));
 
     return html`
-      <table part="table">
+      <table part="table" role="grid"
+        aria-rowcount=${this.rows.length}
+        aria-colcount=${this.columns.length + (this.selectable ? 1 : 0)}
+        aria-multiselectable=${this.selectable ? 'true' : 'false'}>
         <thead part="header">
-          <tr>
-            ${this.selectable ? html`<th class="checkbox-cell"></th>` : nothing}
+          <tr role="row">
+            ${this.selectable ? html`<th class="checkbox-cell" role="columnheader" aria-label="Select"></th>` : nothing}
             ${this.columns.map(col => html`
               <th part="header-cell"
+                role="columnheader"
+                aria-sort=${this._ariaSortFor(col) ?? nothing}
+                tabindex=${col.sortable ? '0' : nothing}
                 class="${col.sortable ? 'sortable' : ''} ${col.align === 'center' ? 'align-center' : col.align === 'end' ? 'align-end' : ''}"
                 style=${col.width ? styleMap({'--_col-width': col.width}) : ''}
-                @click=${() => this._handleSort(col)}>
+                @click=${() => this._handleSort(col)}
+                @keydown=${(e: KeyboardEvent) => {
+                  if (col.sortable && (e.key === 'Enter' || e.key === ' ')) {
+                    e.preventDefault();
+                    this._handleSort(col);
+                  }
+                }}>
                 ${col.label}${this._renderSortIcon(col)}
               </th>
             `)}
           </tr>
         </thead>
         <tbody part="body">
-          ${rows.map((row) => {
-            const originalIndex = this.rows.indexOf(row);
-            const selected = this._selectedIndices.has(originalIndex);
-            return html`
-              <tr part="row" class=${selected ? 'selected' : ''}
-                @click=${() => this._handleRowClick(originalIndex)}>
-                ${this.selectable ? html`<td class="checkbox-cell">
-                  <am-checkbox .checked=${selected} aria-label="Select row"></am-checkbox>
-                </td>` : nothing}
-                ${this.columns.map(col => html`
-                  <td part="cell" class=${col.align === 'center' ? 'align-center' : col.align === 'end' ? 'align-end' : ''}>
-                    ${row[col.key] ?? ''}
-                  </td>
-                `)}
-              </tr>
-            `;
-          })}
+          ${repeat(
+            sorted,
+            (row, i) => this.getRowId(row, indexById.get(row) ?? i),
+            (row, i) => {
+              const originalIndex = indexById.get(row) ?? i;
+              const id = this.getRowId(row, originalIndex);
+              const selected = selection.has(id);
+              const focused = i === this._focusedRowIndex;
+              return html`
+                <tr part="row"
+                  role="row"
+                  tabindex=${focused ? '0' : '-1'}
+                  aria-selected=${this.selectable ? (selected ? 'true' : 'false') : nothing}
+                  class=${selected ? 'selected' : ''}
+                  @click=${() => this._toggleRow(row, id, originalIndex)}
+                  @focus=${() => { this._focusedRowIndex = i; }}
+                  @keydown=${(e: KeyboardEvent) => this._handleRowKeydown(e, row, id, originalIndex, i, sorted.length)}>
+                  ${this.selectable ? html`<td class="checkbox-cell" role="gridcell">
+                    <am-checkbox .checked=${selected} aria-label="Select row"></am-checkbox>
+                  </td>` : nothing}
+                  ${this.columns.map(col => html`
+                    <td part="cell" role="gridcell"
+                      class=${col.align === 'center' ? 'align-center' : col.align === 'end' ? 'align-end' : ''}>
+                      ${row[col.key] ?? ''}
+                    </td>
+                  `)}
+                </tr>
+              `;
+            },
+          )}
         </tbody>
       </table>
     `;

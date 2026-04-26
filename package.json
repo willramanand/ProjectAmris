@@ -25,6 +25,23 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/amris-core.js"
     },
+    "./components/*": {
+      "types": "./dist/components/*/index.d.ts",
+      "import": "./dist/components/*/index.js"
+    },
+    "./styles/*": {
+      "types": "./dist/styles/*.d.ts",
+      "import": "./dist/styles/*.js"
+    },
+    "./styles/tokens.css": "./dist/styles/tokens.css",
+    "./tokens": {
+      "types": "./dist/tokens/index.d.ts",
+      "import": "./dist/tokens/index.js"
+    },
+    "./utilities/*": {
+      "types": "./dist/utilities/*.d.ts",
+      "import": "./dist/utilities/*.js"
+    },
     "./custom-elements.json": "./dist/custom-elements.json",
     "./package.json": "./package.json"
   },
@@ -34,12 +51,18 @@
   ],
   "sideEffects": [
     "./dist/amris.js",
-    "./dist/amris-core.js"
+    "./dist/amris-core.js",
+    "./dist/components/**/*.js",
+    "./dist/chunks/**/*.js"
   ],
   "scripts": {
     "dev": "vite --host",
-    "build": "tsc && vite build --mode core && vite build --mode all && tsc -p tsconfig.types.json && npm run build:manifest",
+    "build": "tsc && vite build && tsc -p tsconfig.types.json && npm run build:manifest && npm run build:tokens-css",
     "build:manifest": "cem analyze --config custom-elements-manifest.config.js",
+    "build:tokens-css": "node scripts/build-tokens-css.mjs",
+    "changeset": "changeset",
+    "version": "changeset version",
+    "release": "npm run build && changeset publish",
     "preview": "vite preview",
     "test": "vitest",
     "test:run": "vitest run",
@@ -52,6 +75,7 @@
     "@floating-ui/dom": "^1.7.6"
   },
   "devDependencies": {
+    "@changesets/cli": "^2.31.0",
     "@custom-elements-manifest/analyzer": "^0.11.0",
     "@lit-labs/rollup-plugin-minify-html-literals": "^0.1.1",
     "@storybook/web-components": "^10.3.0",
@@ -63,7 +87,7 @@
     "jsdom": "^29.0.0",
     "storybook": "^10.3.0",
     "terser": "^5.46.1",
-    "typescript": "~5.9.3",
+    "typescript": "^6.0.3",
     "vite": "^8.0.0",
     "vitest": "^4.1.0"
   },

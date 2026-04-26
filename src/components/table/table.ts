@@ -96,7 +96,7 @@ ${s} table {
 }
 ${s} th {
   padding: ${pad};
-  text-align: left;
+  text-align: start;
   font-weight: var(--am-weight-semibold, 600);
   color: var(--am-text-secondary);
   border-bottom: 1px solid var(--am-border);
@@ -124,6 +124,9 @@ ${s} tbody tr {
 }
 ${s} tbody tr:hover {
   background: var(--am-hover-overlay);
+}
+@media (prefers-reduced-motion: reduce) {
+  ${s} tbody tr { transition: none; }
 }`;
     }
 

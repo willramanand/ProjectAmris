@@ -1,6 +1,7 @@
 import { LitElement, css, html, nothing } from 'lit';
 import { customElement, property, query, state } from 'lit/decorators.js';
 import { styleMap } from 'lit/directives/style-map.js';
+import { repeat } from 'lit/directives/repeat.js';
 import { resetStyles } from '../../styles/reset.css.js';
 
 export interface UploadFile {
@@ -316,7 +317,7 @@ export class AmFileUpload extends LitElement {
 
       ${this._files.length > 0 ? html`
         <div class="file-list" part="file-list">
-          ${this._files.map(f => html`
+          ${repeat(this._files, f => f.id, f => html`
             <div class="file-item ${f.status === 'error' ? 'error' : ''}">
               <svg class="file-icon" viewBox="0 0 16 16" fill="none">
                 <path d="M4 1h5l4 4v9a1 1 0 01-1 1H4a1 1 0 01-1-1V2a1 1 0 011-1z" stroke="currentColor" stroke-width="1.2"/>

@@ -29,7 +29,7 @@ export class AmDivider extends LitElement {
     :host([orientation='vertical']) {
       display: inline-block;
       border: none;
-      border-left: var(--am-divider-width, 1px) solid
+      border-inline-start: var(--am-divider-width, 1px) solid
         var(--am-divider-color, var(--am-border));
       margin-inline: var(--am-divider-spacing, var(--am-space-4));
       align-self: stretch;

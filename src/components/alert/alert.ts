@@ -61,7 +61,7 @@ export class AmAlert extends LitElement {
 
       .icon { flex-shrink: 0; display: flex; padding-top: 0.0625rem; }
       .content { flex: 1; min-width: 0; }
-      .action { flex-shrink: 0; display: flex; margin-left: auto; }
+      .action { flex-shrink: 0; display: flex; margin-inline-start: auto; }
 
       .close-btn {
         all: unset;

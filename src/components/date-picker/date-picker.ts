@@ -154,7 +154,7 @@ export class AmDatePicker extends LitElement {
         width: 1px;
         height: 1em;
         vertical-align: text-bottom;
-        margin-left: -1px;
+        margin-inline-start: -1px;
         background: currentColor;
         animation: blink 1s step-end infinite;
       }
@@ -258,7 +258,6 @@ export class AmDatePicker extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
-    document.addEventListener('click', this._handleOutsideClick);
     this._parseValue();
   }
 
@@ -277,8 +276,10 @@ export class AmDatePicker extends LitElement {
     this._internals.setFormValue(this._hasValue ? this._formatValue() : '');
     if (changed.has('_open')) {
       if (this._open) {
+        document.addEventListener('click', this._handleOutsideClick);
         this._startAutoUpdate();
       } else {
+        document.removeEventListener('click', this._handleOutsideClick);
         this._cleanupAutoUpdate?.();
         this._cleanupAutoUpdate = null;
       }

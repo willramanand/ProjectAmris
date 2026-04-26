@@ -61,14 +61,28 @@ export class AmContextMenu extends LitElement {
   connectedCallback() {
     super.connectedCallback();
     this.addEventListener('contextmenu', this._handleContextMenu);
-    document.addEventListener('click', this._handleOutsideClick);
-    document.addEventListener('keydown', this._handleKeydown);
-    document.addEventListener('contextmenu', this._handleDocumentContext);
   }
 
   disconnectedCallback() {
     super.disconnectedCallback();
     this.removeEventListener('contextmenu', this._handleContextMenu);
+    this._detachGlobalListeners();
+  }
+
+  protected updated(changed: Map<string, unknown>) {
+    if (changed.has('open')) {
+      if (this.open) this._attachGlobalListeners();
+      else this._detachGlobalListeners();
+    }
+  }
+
+  private _attachGlobalListeners() {
+    document.addEventListener('click', this._handleOutsideClick);
+    document.addEventListener('keydown', this._handleKeydown);
+    document.addEventListener('contextmenu', this._handleDocumentContext);
+  }
+
+  private _detachGlobalListeners() {
     document.removeEventListener('click', this._handleOutsideClick);
     document.removeEventListener('keydown', this._handleKeydown);
     document.removeEventListener('contextmenu', this._handleDocumentContext);

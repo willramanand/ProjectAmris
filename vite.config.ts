@@ -1,5 +1,6 @@
 import { defineConfig, type Plugin } from 'vite';
 import { resolve } from 'path';
+import { readdirSync, statSync } from 'fs';
 import minifyHTML from '@lit-labs/rollup-plugin-minify-html-literals';
 
 function stripBlockComments(value: string): string {
@@ -157,30 +158,48 @@ function stripLitCssComments(): Plugin {
   };
 }
 
-function createLibraryBuild(entry: string, fileName: string, emptyOutDir: boolean) {
-  return {
-    plugins: [stripLitCssComments()],
-    build: {
-      outDir: 'dist',
-      emptyOutDir,
-      minify: 'terser' as const,
-      sourcemap: true,
-      lib: {
-        entry: resolve(__dirname, entry),
-        formats: ['es' as const],
-        fileName,
-      },
-      rollupOptions: {
-        external: ['lit', /^lit\//, /^@lit\//],
-        plugins: [minifyHTML()],
-      },
-    },
-  };
+function discoverComponentEntries(): Record<string, string> {
+  const dir = resolve(__dirname, 'src/components');
+  const entries: Record<string, string> = {};
+  for (const name of readdirSync(dir)) {
+    const full = resolve(dir, name);
+    if (!statSync(full).isDirectory()) continue;
+    const entry = resolve(full, 'index.ts');
+    try {
+      if (statSync(entry).isFile()) {
+        entries[`components/${name}/index`] = entry;
+      }
+    } catch {
+      // skip components without barrel entry file
+    }
+  }
+  return entries;
 }
 
-export default defineConfig(({ mode }) =>
-  mode === 'all'
-    ? createLibraryBuild('src/index.all.ts', 'amris', false)
-    : createLibraryBuild('src/index.ts', 'amris-core', true),
-);
+export default defineConfig(() => ({
+  plugins: [stripLitCssComments()],
+  build: {
+    outDir: 'dist',
+    emptyOutDir: true,
+    minify: 'terser' as const,
+    sourcemap: true,
+    lib: {
+      entry: {
+        amris: resolve(__dirname, 'src/index.all.ts'),
+        'amris-core': resolve(__dirname, 'src/index.ts'),
+        ...discoverComponentEntries(),
+      },
+      formats: ['es' as const],
+    },
+    rollupOptions: {
+      external: ['lit', /^lit\//, /^@lit\//, '@floating-ui/dom', /^@floating-ui\//],
+      plugins: [minifyHTML()],
+      output: {
+        entryFileNames: '[name].js',
+        chunkFileNames: 'chunks/[name]-[hash].js',
+        assetFileNames: 'assets/[name]-[hash][extname]',
+      },
+    },
+  },
+}));
 

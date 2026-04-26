@@ -292,7 +292,7 @@ export class AmTabs extends LitElement {
 
       :host([variant='vertical']) .panels {
         padding-top: 0;
-        padding-left: var(--am-space-4);
+        padding-inline-start: var(--am-space-4);
         flex: 1;
         min-width: 0;
       }

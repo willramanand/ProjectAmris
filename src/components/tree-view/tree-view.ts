@@ -48,7 +48,7 @@ export class AmTreeItem extends LitElement {
         width: 100%;
         box-sizing: border-box;
         padding: var(--am-space-1-5) var(--am-space-2);
-        padding-left: calc(var(--am-space-4) * var(--_depth, 0) + var(--am-space-2));
+        padding-inline-start: calc(var(--am-space-4) * var(--_depth, 0) + var(--am-space-2));
         font-family: var(--am-font-sans);
         font-size: var(--am-text-sm);
         color: var(--am-text);

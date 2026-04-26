@@ -12,8 +12,14 @@ export type ButtonVariant =
   | 'danger';
 export type ButtonSize = 'sm' | 'md' | 'lg';
 
+/**
+ * @cssprop --am-button-radius - Override corner radius (default: --am-radius-xl)
+ * @cssprop --am-button-font-weight - Override font weight (default: --am-weight-semibold)
+ */
 @customElement('am-button')
 export class AmButton extends LitElement {
+  static formAssociated = true;
+
   @property({ reflect: true })
   variant: ButtonVariant = 'primary';
 
@@ -29,8 +35,23 @@ export class AmButton extends LitElement {
   @property()
   type: 'button' | 'submit' | 'reset' = 'button';
 
+  @property() name = '';
+  @property() value = '';
+
   @property({ attribute: 'aria-label' })
-  override ariaLabel: string | null = null;
+  label: string | null = null;
+
+  private _internals: ElementInternals;
+
+  constructor() {
+    super();
+    this._internals = this.attachInternals();
+  }
+
+  /** The form this button is associated with, if any. */
+  get form(): HTMLFormElement | null {
+    return this._internals.form;
+  }
 
   static styles = [
     resetStyles,
@@ -242,13 +263,17 @@ export class AmButton extends LitElement {
     }
 
     if (this.type === 'submit') {
-      requestAssociatedFormSubmit(this, { event, disabled: this.disabled || this.loading });
+      requestAssociatedFormSubmit(this, {
+        event,
+        internals: this._internals,
+        disabled: this.disabled || this.loading,
+      });
       return;
     }
 
     if (this.type === 'reset') {
       event.preventDefault();
-      resetAssociatedForm(this);
+      resetAssociatedForm(this, this._internals);
     }
   }
 
@@ -258,7 +283,7 @@ export class AmButton extends LitElement {
         part="button"
         type=${this.type}
         ?disabled=${this.disabled}
-        aria-label=${this.ariaLabel || (this.loading ? 'Loading' : nothing)}
+        aria-label=${this.label || (this.loading ? 'Loading' : nothing)}
         aria-busy=${this.loading ? 'true' : nothing}
         class=${classMap({
           [this.size]: true,

@@ -1,6 +1,7 @@
 import { LitElement, css, html, nothing, type PropertyValues } from 'lit';
 import { customElement, property, query, state } from 'lit/decorators.js';
 import { computePosition, autoUpdate, flip, shift, offset, size as sizeMiddleware } from '@floating-ui/dom';
+import { repeat } from 'lit/directives/repeat.js';
 import { resetStyles } from '../../styles/reset.css.js';
 
 export type RichSelectSize = 'sm' | 'md' | 'lg';
@@ -396,10 +397,10 @@ export class AmRichSelect extends LitElement {
     };
 
     return html`
-      ${ungrouped.map(renderOption)}
-      ${[...groups.entries()].map(([group, opts]) => html`
+      ${repeat(ungrouped, opt => opt.value, renderOption)}
+      ${repeat([...groups.entries()], ([group]) => group, ([group, opts]) => html`
         <div class="group-label">${group}</div>
-        ${opts.map(renderOption)}
+        ${repeat(opts, opt => opt.value, renderOption)}
       `)}
     `;
   }
@@ -415,6 +416,7 @@ export class AmRichSelect extends LitElement {
         role="combobox"
         aria-expanded=${String(this._open)}
         aria-haspopup="listbox"
+        aria-invalid=${this.invalid ? 'true' : nothing}
         aria-label=${this.label || nothing}
         ?disabled=${this.disabled}
         @click=${this._toggleOpen}

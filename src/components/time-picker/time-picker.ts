@@ -168,7 +168,7 @@ export class AmTimePicker extends LitElement {
         width: 1px;
         height: 1em;
         vertical-align: text-bottom;
-        margin-left: -1px;
+        margin-inline-start: -1px;
         background: currentColor;
         animation: blink 1s step-end infinite;
       }

@@ -19,7 +19,10 @@
       "Bash(npm i:*)",
       "Bash(npx storybook:*)",
       "Bash(curl:*)",
-      "Bash(npx kill-port:*)"
+      "Bash(npx kill-port:*)",
+      "Bash(npm run *)",
+      "Bash(xargs -I{} dirname {})",
+      "Bash(xargs -I{} basename {})"
     ]
   }
 }

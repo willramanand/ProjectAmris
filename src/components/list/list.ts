@@ -96,7 +96,7 @@ export class AmListItem extends LitElement {
       }
 
       .suffix {
-        margin-left: auto;
+        margin-inline-start: auto;
       }
 
       @media (prefers-reduced-motion: reduce) {

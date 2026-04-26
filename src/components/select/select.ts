@@ -111,7 +111,7 @@ export class AmOption extends LitElement {
       new CustomEvent('am-select-option', {
         detail: { value: this.value },
         bubbles: true,
-        composed: true,
+        composed: false,
       }),
     );
   };
@@ -431,7 +431,6 @@ export class AmSelect extends LitElement {
   connectedCallback() {
     super.connectedCallback();
     this.addEventListener('am-select-option', this._handleOptionSelect as EventListener);
-    document.addEventListener('click', this._documentClickHandler);
   }
 
   disconnectedCallback() {
@@ -448,8 +447,10 @@ export class AmSelect extends LitElement {
     }
     if (changed.has('_open')) {
       if (this._open) {
+        document.addEventListener('click', this._documentClickHandler);
         this._startAutoUpdate();
       } else {
+        document.removeEventListener('click', this._documentClickHandler);
         this._cleanupAutoUpdate?.();
         this._cleanupAutoUpdate = null;
       }

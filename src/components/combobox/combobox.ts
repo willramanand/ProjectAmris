@@ -1,6 +1,7 @@
 import { LitElement, css, html, nothing, type PropertyValues } from 'lit';
 import { customElement, property, query, state } from 'lit/decorators.js';
 import { live } from 'lit/directives/live.js';
+import { repeat } from 'lit/directives/repeat.js';
 import { computePosition, autoUpdate, flip, shift, offset, size as sizeMiddleware } from '@floating-ui/dom';
 import { resetStyles } from '../../styles/reset.css.js';
 import { requestAssociatedFormSubmit } from '../../utilities/form-actions.js';
@@ -361,11 +362,6 @@ export class AmCombobox extends LitElement {
     return this._focused || this.value.length > 0;
   }
 
-  connectedCallback() {
-    super.connectedCallback();
-    document.addEventListener('click', this._handleDocumentClick);
-  }
-
   disconnectedCallback() {
     super.disconnectedCallback();
     document.removeEventListener('click', this._handleDocumentClick);
@@ -384,8 +380,10 @@ export class AmCombobox extends LitElement {
     }
     if (changed.has('_open')) {
       if (this._open) {
+        document.addEventListener('click', this._handleDocumentClick);
         this._startAutoUpdate();
       } else {
+        document.removeEventListener('click', this._handleDocumentClick);
         this._cleanupAutoUpdate?.();
         this._cleanupAutoUpdate = null;
       }
@@ -647,7 +645,9 @@ export class AmCombobox extends LitElement {
       </div>
       <div class="listbox ${this._open ? 'open' : ''}" part="listbox" role="listbox" tabindex="0" aria-label=${this.label || 'Options'}>
         ${filteredOptions.length > 0
-          ? filteredOptions.map(
+          ? repeat(
+              filteredOptions,
+              option => option,
               (option, i) => html`
                 <div
                   class="option ${i === this._highlightedIndex ? 'highlighted' : ''}"
@@ -655,7 +655,7 @@ export class AmCombobox extends LitElement {
                   aria-selected=${this.value === option ? 'true' : 'false'}
                   @click=${() => this._selectOption(option)}
                 >${option}</div>
-              `
+              `,
             )
           : html`<div class="empty" role="option" aria-disabled="true">No results</div>`}
       </div>
@@ -712,7 +712,9 @@ export class AmCombobox extends LitElement {
         </div>
         <div role="listbox" tabindex="0" aria-label=${this.label || 'Options'}>
           ${filtered.length > 0
-            ? filtered.map(
+            ? repeat(
+                filtered,
+                option => option,
                 (option, i) => html`
                   <div
                     class="option ${i === this._highlightedIndex ? 'highlighted' : ''}"
@@ -720,7 +722,7 @@ export class AmCombobox extends LitElement {
                     aria-selected=${this.value === option ? 'true' : 'false'}
                     @click=${() => this._selectOption(option)}
                   >${option}</div>
-                `
+                `,
               )
             : html`<div class="empty" role="option" aria-disabled="true">No results</div>`}
         </div>

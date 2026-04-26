@@ -6,7 +6,7 @@ export { resetStyles, focusRingStyles } from './styles/reset.css.js';
 export { squircleCorners } from './styles/corners.css.js';
 
 // Utilities
-export { uniqueId } from './utilities/unique-id.js';
+export { uniqueId, resetUniqueIdCounter } from './utilities/unique-id.js';
 
 // Components — Foundation
 export { AmThemeProvider } from './components/theme-provider/theme-provider.js';

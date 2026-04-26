@@ -117,7 +117,7 @@ export class AmMenuItem extends LitElement {
         display: inline-flex;
         align-items: center;
         flex-shrink: 0;
-        margin-left: auto;
+        margin-inline-start: auto;
         color: var(--am-text-tertiary);
       }
 

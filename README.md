@@ -55,7 +55,7 @@
 - Proper focus management in overlays
 
 ## Browser/runtime requirements
-- Modern evergreen browsers
+- Modern evergreen browsers — supported floor: **Chrome/Edge 111, Safari 16.4, Firefox 121** (see [BROWSER_SUPPORT.md](./BROWSER_SUPPORT.md))
 - ESM-first distribution
 - SSR-safe package behavior where possible
 - No framework-specific runtime requirement
@@ -643,6 +643,50 @@ A component is done when it has:
 - CSS variables documented
 - Example usage in plain HTML
 - Example usage in at least one framework
+
+---
+
+## 17a. SSR (Server-Side Rendering) — current status
+
+Amris is **client-only** today. Components ship as decorator-based Lit elements that call `attachInternals()` in their constructor, which throws under non-DOM SSR runtimes (Node, Deno, Bun without DOM shim). No Declarative Shadow DOM (DSD) authoring is in place yet.
+
+### What works
+- ESM imports under SSR bundlers (Next.js, Nuxt, SvelteKit) **as long as components are dynamically imported in client-only boundaries** (e.g. Next.js `dynamic(..., { ssr: false })`, SvelteKit `onMount`, `<ClientOnly>` in Nuxt).
+- Token CSS via `@willramanand/amris/styles/tokens.css` is fully SSR-safe — it is plain CSS, not a custom element.
+
+### What does not work
+- Rendering `<am-*>` tags during server render (will error on `attachInternals()` and the decorator-driven property initialization).
+- Hydration of pre-rendered shadow trees — there is no DSD output yet.
+
+### Recommended pattern
+
+```tsx
+// Next.js (App Router) — client component
+'use client';
+import '@willramanand/amris/components/button';
+
+export function MyButton() {
+  return <am-button>Click me</am-button>;
+}
+```
+
+```css
+/* Global tokens — safe to load on the server */
+@import '@willramanand/amris/styles/tokens.css';
+```
+
+### Determinism for server-rendered IDs
+
+When the server-render path **is** rendering Amris (e.g. via a future DSD build, or via a custom DOM shim), call `resetUniqueIdCounter()` at the start of each request to keep generated IDs deterministic and avoid client/server hydration mismatches:
+
+```ts
+import { resetUniqueIdCounter } from '@willramanand/amris/core';
+
+// in your request handler / middleware
+resetUniqueIdCounter();
+```
+
+DSD/`@lit-labs/ssr` integration is tracked as future work.
 
 ---
 

@@ -121,7 +121,7 @@ export class AmSideNav extends LitElement {
         width: var(--am-side-nav-width, 14rem);
         height: 100%;
         background: var(--am-surface);
-        border-right: var(--am-border-1) solid var(--am-border);
+        border-inline-end: var(--am-border-1) solid var(--am-border);
         font-family: var(--am-font-sans);
       }
 
