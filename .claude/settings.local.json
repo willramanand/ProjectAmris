@@ -22,7 +22,11 @@
       "Bash(npx kill-port:*)",
       "Bash(npm run *)",
       "Bash(xargs -I{} dirname {})",
-      "Bash(xargs -I{} basename {})"
+      "Bash(xargs -I{} basename {})",
+      "Bash(git tag *)",
+      "Bash(git push *)",
+      "Bash(git ls-remote *)",
+      "Bash(git fetch *)"
     ]
   }
 }

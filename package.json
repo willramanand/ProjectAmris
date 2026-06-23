@@ -75,9 +75,9 @@
     "@floating-ui/dom": "^1.7.6"
   },
   "devDependencies": {
-    "@changesets/cli": "^2.31.0",
+    "@changesets/cli": "^2.6.0",
     "@custom-elements-manifest/analyzer": "^0.11.0",
-    "@lit-labs/rollup-plugin-minify-html-literals": "^0.1.1",
+    "@lit-labs/rollup-plugin-minify-html-literals": "^0.2.0",
     "@storybook/web-components": "^10.3.0",
     "@storybook/web-components-vite": "^10.3.0",
     "@vitest/coverage-v8": "^4.1.0",
@@ -93,5 +93,9 @@
   },
   "peerDependencies": {
     "lit": "^3.3.2"
+  },
+  "allowScripts": {
+    "esbuild@0.28.1": true,
+    "rs-module-lexer@2.8.0": true
   }
 }
