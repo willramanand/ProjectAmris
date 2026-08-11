@@ -9,14 +9,14 @@ Requirements for the v1.0 release. Each maps to a roadmap phase. Grounded in `.p
 
 ### Testing & CI Gates
 
-- [ ] **TEST-01**: Every component has a dedicated test file (close the 20-component gap; 1:1 test-per-component)
-- [ ] **TEST-02**: Form-associated controls verified for real form submission and validation participation (real `ElementInternals`, not the jsdom mock)
+- [x] **TEST-01**: Every component has a dedicated test file (close the 20-component gap; 1:1 test-per-component)
+- [x] **TEST-02**: Form-associated controls verified for real form submission and validation participation (real `ElementInternals`, not the jsdom mock)
 - [ ] **TEST-03**: Overlay focus trap and focus restoration verified (dialog, drawer, command-palette, popover)
 - [ ] **TEST-04**: Async/dynamic option updates verified — combobox/select rapid updates with highlighted index clamped in bounds
 - [ ] **TEST-05**: Global listener lifecycle verified with teardown spies (attach on open, detach on close/disconnect)
-- [ ] **TEST-06**: Minimal real-browser test lane (Vitest 4 Browser Mode + Playwright/Chromium) covering the 4 jsdom-unprovable areas: ElementInternals/form, focus trap+restoration, real `<dialog>`/top-layer, floating-ui positioning + virtualization scroll/focus
-- [ ] **TEST-07**: Branch + per-directory coverage threshold enforced as a CI gate (`@vitest/coverage-v8`)
-- [ ] **TEST-08**: axe a11y scans run in the real browser (color-contrast/region rules enabled) and gate CI (`@axe-core/playwright`)
+- [x] **TEST-06**: Minimal real-browser test lane (Vitest 4 Browser Mode + Playwright/Chromium) covering the 4 jsdom-unprovable areas: ElementInternals/form, focus trap+restoration, real `<dialog>`/top-layer, floating-ui positioning + virtualization scroll/focus
+- [x] **TEST-07**: Branch + per-directory coverage threshold enforced as a CI gate (`@vitest/coverage-v8`)
+- [x] **TEST-08**: axe a11y scans run in the real browser (color-contrast/region rules enabled) and gate CI (`@axe-core/playwright`)
 
 ### API Cleanup & Freeze
 
@@ -35,7 +35,7 @@ Requirements for the v1.0 release. Each maps to a roadmap phase. Grounded in `.p
 
 ### Performance & Bundle
 
-- [ ] **PERF-01**: Bundle-size budgets enforced in CI — `size-limit`, minified+gzipped, per-entry (core/full/single-component), with a tree-shaking assertion that fails on regression
+- [x] **PERF-01**: Bundle-size budgets enforced in CI — `size-limit`, minified+gzipped, per-entry (core/full/single-component), with a tree-shaking assertion that fails on regression
 - [ ] **PERF-02**: List virtualization for `am-data-grid` (1000+ rows) via `@lit-labs/virtualizer`, opt-in/threshold, a11y-correct (`aria-setsize`/`aria-posinset`/`aria-rowcount`), selection/sort/focus identity-keyed
 - [ ] **PERF-03**: List virtualization for combobox/select option popups, a11y-correct (`aria-activedescendant` scrolls target into window), form-value integrity preserved
 - [ ] **PERF-04**: floating-ui `autoUpdate` gated to open transitions across all overlay components
@@ -99,15 +99,15 @@ Which phases cover which requirements. Populated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| TEST-01 | Phase 1 | Pending |
-| TEST-02 | Phase 1 | Pending |
+| TEST-01 | Phase 1 | Complete |
+| TEST-02 | Phase 1 | Complete |
 | TEST-03 | Phase 1 | Pending |
 | TEST-04 | Phase 1 | Pending |
 | TEST-05 | Phase 1 | Pending |
-| TEST-06 | Phase 1 | Pending |
-| TEST-07 | Phase 1 | Pending |
-| TEST-08 | Phase 1 | Pending |
-| PERF-01 | Phase 1 | Pending |
+| TEST-06 | Phase 1 | Complete |
+| TEST-07 | Phase 1 | Complete |
+| TEST-08 | Phase 1 | Complete |
+| PERF-01 | Phase 1 | Complete |
 | API-01 | Phase 2 | Pending |
 | API-02 | Phase 2 | Pending |
 | API-03 | Phase 2 | Pending |
@@ -133,6 +133,7 @@ Which phases cover which requirements. Populated during roadmap creation.
 | SHIP-04 | Phase 6 | Pending |
 
 **Coverage:**
+
 - v1 requirements: 32 total (8 TEST + 5 API + 4 FIX + 4 PERF + 4 FEAT + 3 DOCS + 4 SHIP)
 - Mapped to phases: 32 ✓
 - Unmapped: 0

@@ -2,18 +2,18 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 1
-current_phase_name: Test Coverage + CI Gates Foundation
-status: planning
-stopped_at: Phase 1 context gathered
-last_updated: "2026-08-11T03:36:55.573Z"
-last_activity: 2026-08-10
-last_activity_desc: Roadmap created (6 phases, 32 requirements mapped)
+current_phase: 01
+current_phase_name: test-coverage-ci-gates-foundation
+status: executing
+stopped_at: Completed 01-01-PLAN.md
+last_updated: "2026-08-11T22:07:36.436Z"
+last_activity: 2026-08-11
+last_activity_desc: Phase 01 execution started
 progress:
   total_phases: 6
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_plans: 8
+  completed_plans: 1
   percent: 0
 ---
 
@@ -24,16 +24,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-08-10)
 
 **Core value:** A frozen, dependable public API backed by real test coverage — consumers can drop `@willramanand/amris` into any app and trust it to be correct, accessible, and API-stable.
-**Current focus:** Phase 1 — Test Coverage + CI Gates Foundation
+**Current focus:** Phase 01 — test-coverage-ci-gates-foundation
 
 ## Current Position
 
-Phase: 1 of 6 (Test Coverage + CI Gates Foundation)
-Plan: 0 of TBD in current phase
-Status: Ready to plan
-Last activity: 2026-08-10 — Roadmap created (6 phases, 32 requirements mapped)
+Phase: 01 (test-coverage-ci-gates-foundation) — EXECUTING
+Plan: 2 of 8
+Status: Ready to execute
+Last activity: 2026-08-11 — Phase 01 execution started
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [█░░░░░░░░░] 13%
 
 ## Performance Metrics
 
@@ -55,6 +55,11 @@ Progress: [░░░░░░░░░░] 0%
 - Trend: —
 
 *Updated after each plan completion*
+**Per-Plan Metrics:**
+
+| Plan | Duration | Tasks | Files |
+|------|----------|-------|-------|
+| Phase 01 P01 | 12 | 3 tasks | 14 files |
 
 ## Accumulated Context
 
@@ -67,6 +72,8 @@ Recent decisions affecting current work:
 - Allow breaking API changes before the freeze — last chance to fix rough/inconsistent APIs (Phase 2 precedes the Phase 6 freeze).
 - Carve out a minimal real-browser test lane (Vitest Browser Mode + Playwright/Chromium) for the 4 load-bearing areas — jsdom cannot prove ElementInternals/focus/dialog/positioning (Phase 1).
 - Adopt a non-exported `src/internal/` boundary for feature machinery — keeps virtualization/validation/shortcut controllers off the frozen surface (Phase 4).
+- [Phase ?]: Vitest split into jsdom+browser projects; browser lane omits setupFiles for native ElementInternals (Pitfall 2)
+- [Phase ?]: Coverage folds over jsdom only (OQ-1); branch-gated with per-dir tiers at measured baseline (D-01/D-02)
 
 ### Pending Todos
 
@@ -81,6 +88,7 @@ None yet.
 - REQUIREMENTS.md coverage counter previously read "27 total," but there are 32 distinct v1 requirement IDs (8 TEST + 5 API + 4 FIX + 4 PERF + 4 FEAT + 3 DOCS + 4 SHIP). Traceability now reflects the true 32; counter corrected.
 - Phase 1 (browser-mode coverage instrumentation / provider pinning) and Phase 4a (virtualization a11y) are flagged for `--research-phase` during planning (research: STACK/virtualizer MEDIUM confidence).
 - Validation UX policy (hint-text vs error-text precedence, error-clearing) is undecided — settle during Phase 4 spec.
+- No form-associated control implements ElementInternals.setValidity — TEST-02 required-field validation deferred to Phase 4 (validation-UX policy)
 
 ## Deferred Items
 
@@ -92,6 +100,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-11T03:36:55.567Z
-Stopped at: Phase 1 context gathered
-Resume file: C:/repos/ProjectAmris/.planning/phases/01-test-coverage-ci-gates-foundation/01-CONTEXT.md
+Last session: 2026-08-11T22:07:25.935Z
+Stopped at: Completed 01-01-PLAN.md
+Resume file: None
