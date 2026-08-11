@@ -35,14 +35,17 @@ Consumers can drop `@willramanand/amris` into any app and trust the components t
 - ✓ Vitest + jsdom test harness with axe-core a11y scans — existing
 - ✓ Published to GitHub Packages as `@willramanand/amris`; Changesets versioning — existing
 
+<!-- Validated in Phase 1: Test Coverage + CI Gates Foundation (2026-08-11) -->
+
+- ✓ Every component guarded by a dedicated 1:1 test file (66 src dirs ↔ 66 `test/components/*.test.ts`); form-integration, focus-trap, listener-lifecycle, and async-update gaps covered by characterization tests — Phase 1
+- ✓ Minimal real-browser test lane (Vitest 4 Browser Mode + Playwright/Chromium) for the jsdom-unprovable areas: ElementInternals/form submission, focus trap + restoration, real `<dialog>`/top-layer, floating-ui positioning (virtualization scroll/focus deferred to Phase 4) — Phase 1
+- ✓ CI hard-blocks on coverage (branch + per-directory), bundle-size (size-limit + tree-shaking canary), and real-browser a11y (axe-in-browser) gates — Phase 1
+
 ### Active
 
 <!-- v1.0 hardening scope. Hypotheses until shipped and validated. -->
 
 - [ ] API audit: identify rough/inconsistent public APIs (prop names, event names, defaults); apply breaking cleanup, then freeze the v1.0 surface
-- [ ] Test coverage: add dedicated tests for the 20 untested components; close form-integration, focus-trap, listener-lifecycle, and async-update gaps
-- [ ] Minimal real-browser test lane (Vitest 4 Browser Mode + Playwright/Chromium) scoped to the 4 jsdom-unprovable areas: ElementInternals/form submission, focus trap + restoration, real `<dialog>`/top-layer, floating-ui positioning + virtualization scroll/focus
-- [ ] Enforce coverage (branch + per-directory), bundle-size (size-limit), and a11y (axe-in-browser) thresholds as CI gates before publish
 - [ ] Bug/leak fixes: track toast dismiss `setTimeout`; gate global listener attach/detach on open state; guard focus restoration against removed nodes; harden dialog animation cleanup
 - [ ] Performance: implement list virtualization for DataGrid/combobox (1000+ rows); gate floating-ui `autoUpdate` to open transitions; add bundle-size monitoring in CI
 - [ ] Feature: form controls display `ElementInternals.validationMessage`
@@ -108,4 +111,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-08-10 after initialization*
+*Last updated: 2026-08-11 after Phase 1 (Test Coverage + CI Gates Foundation) complete*
