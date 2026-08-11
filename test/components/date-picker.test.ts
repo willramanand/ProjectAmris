@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import '../../src/components/date-picker/date-picker';
 import { click, fixture, getMockInternals, keydown, oneEvent, shadowQuery, waitForUpdate } from '../helpers';
@@ -95,5 +95,46 @@ describe('am-date-picker', () => {
     await waitForUpdate(el);
 
     expect(dropdown(el).classList.contains('open')).toBe(false);
+  });
+});
+
+// TEST-05 — global-listener teardown spies (jsdom lifecycle lane).
+// am-date-picker attaches a document-level `click` listener when the calendar
+// dropdown opens and removes it when it closes (and on disconnect).
+describe('am-date-picker — document listener teardown (TEST-05)', () => {
+  function outsideClickHandler(el: DatePickerEl): EventListener {
+    return (el as unknown as { _handleOutsideClick: EventListener })._handleOutsideClick;
+  }
+
+  it('attaches a document click listener on open and removes it on close', async () => {
+    const el = await makeDatePicker();
+    const handler = outsideClickHandler(el);
+    const addSpy = vi.spyOn(document, 'addEventListener');
+    const removeSpy = vi.spyOn(document, 'removeEventListener');
+
+    await click(calendarIcon(el), el); // open
+    expect(dropdown(el).classList.contains('open')).toBe(true);
+    expect(addSpy).toHaveBeenCalledWith('click', handler);
+
+    // Close via an outside click.
+    document.body.dispatchEvent(new MouseEvent('click', { bubbles: true, composed: true }));
+    await waitForUpdate(el);
+    expect(dropdown(el).classList.contains('open')).toBe(false);
+    expect(removeSpy).toHaveBeenCalledWith('click', handler);
+
+    addSpy.mockRestore();
+    removeSpy.mockRestore();
+  });
+
+  it('detaches the document click listener on disconnect while open', async () => {
+    const el = await makeDatePicker();
+    await click(calendarIcon(el), el);
+    const handler = outsideClickHandler(el);
+
+    const removeSpy = vi.spyOn(document, 'removeEventListener');
+    el.remove();
+    await waitForUpdate(el);
+    expect(removeSpy).toHaveBeenCalledWith('click', handler);
+    removeSpy.mockRestore();
   });
 });
