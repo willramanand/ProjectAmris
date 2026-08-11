@@ -138,3 +138,61 @@ describe('am-rich-select', () => {
     expect(labels).toEqual(['Alice']);
   });
 });
+
+// TEST-04 — dynamic option-update index clamp (jsdom logic lane).
+// am-rich-select is data-driven via the `options` (RichOption[]) property.
+// Replacing it with a much shorter array while open must not surface an
+// out-of-bounds highlighted option. Asserts the observable bound (green-on-
+// arrival, D-05); see SUMMARY for the raw-state finding.
+describe('am-rich-select — dynamic option-update index clamp (TEST-04)', () => {
+  const BIG: RichOption[] = Array.from({ length: 30 }, (_, i) => ({ value: `v${i}`, label: `Option ${i}` }));
+
+  async function openWithBigOptions(): Promise<RichSelectEl> {
+    const el = await makeRichSelect();
+    el.options = [...BIG];
+    await waitForUpdate(el);
+    await click(trigger(el), el); // open
+    return el;
+  }
+
+  function highlightedDomIndex(el: RichSelectEl): number {
+    return listOptions(el).findIndex((o) => o.classList.contains('highlighted'));
+  }
+
+  it('keeps the highlighted index within bounds when options shrink while open', async () => {
+    const el = await openWithBigOptions();
+
+    // Highlight near the end of the large list.
+    (el as unknown as { _highlightedIndex: number })._highlightedIndex = BIG.length - 1;
+    await waitForUpdate(el);
+
+    el.options = [
+      { value: 'a', label: 'Alpha' },
+      { value: 'b', label: 'Beta' },
+    ];
+    await waitForUpdate(el);
+
+    const opts = listOptions(el);
+    expect(opts.length).toBe(2);
+    expect(highlightedDomIndex(el)).toBeLessThan(opts.length);
+    expect(opts.map((o) => o.querySelector('.option-label')?.textContent?.trim())).toEqual(['Alpha', 'Beta']);
+  });
+
+  it('holds bounds through rapid successive option replacements', async () => {
+    const el = await openWithBigOptions();
+    (el as unknown as { _highlightedIndex: number })._highlightedIndex = BIG.length - 1;
+    await waitForUpdate(el);
+
+    el.options = [
+      { value: 'x', label: 'X' },
+      { value: 'y', label: 'Y' },
+      { value: 'z', label: 'Z' },
+    ];
+    el.options = [{ value: 'solo', label: 'Solo' }];
+    await waitForUpdate(el);
+
+    const opts = listOptions(el);
+    expect(opts.length).toBe(1);
+    expect(highlightedDomIndex(el)).toBeLessThan(opts.length);
+  });
+});

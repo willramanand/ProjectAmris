@@ -378,3 +378,55 @@ describe('am-select', () => {
   });
 });
 
+// TEST-04 — dynamic option-update index clamp (jsdom logic lane).
+// am-select navigates over its slotted <am-option> children. Replacing that
+// slotted set with a shorter one while open must not leave a highlighted option
+// out of range. Asserts the observable bound (green-on-arrival, D-05).
+describe('am-select — dynamic option-update index clamp (TEST-04)', () => {
+  function makeOptions(n: number): string {
+    return Array.from({ length: n }, (_, i) => `<am-option value="v${i}">Opt ${i}</am-option>`).join('');
+  }
+
+  function currentOptions(el: HTMLElement): Array<HTMLElement & { highlighted: boolean }> {
+    return Array.from(el.querySelectorAll('am-option')) as Array<HTMLElement & { highlighted: boolean }>;
+  }
+
+  async function openBig(count: number): Promise<HTMLElement> {
+    const element = await fixture<HTMLElement>(`<am-select label="Big">${makeOptions(count)}</am-select>`);
+    const trigger = shadowQuery<HTMLButtonElement>(element, '.trigger');
+    await click(trigger, element); // open
+    return element;
+  }
+
+  it('keeps the highlighted index within bounds when the slotted set shrinks', async () => {
+    const element = await openBig(30);
+
+    // Highlight near the end of the large list.
+    (element as unknown as { _highlightedIndex: number })._highlightedIndex = 29;
+    await waitForUpdate(element);
+
+    // Replace slotted options with a much shorter set.
+    element.innerHTML = makeOptions(2);
+    await waitForUpdate(element);
+
+    const options = currentOptions(element);
+    expect(options.length).toBe(2);
+    // No option is highlighted out of range.
+    expect(options.findIndex((o) => o.highlighted)).toBeLessThan(options.length);
+  });
+
+  it('holds bounds through rapid successive slotted-set replacements', async () => {
+    const element = await openBig(30);
+    (element as unknown as { _highlightedIndex: number })._highlightedIndex = 29;
+    await waitForUpdate(element);
+
+    element.innerHTML = makeOptions(5);
+    element.innerHTML = makeOptions(1);
+    await waitForUpdate(element);
+
+    const options = currentOptions(element);
+    expect(options.length).toBe(1);
+    expect(options.findIndex((o) => o.highlighted)).toBeLessThan(options.length);
+  });
+});
+

@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import '../../src/components/combobox/combobox';
 import { click, fixture, getMockInternals, inputText, keydown, oneEvent, shadowQuery, waitForUpdate } from '../helpers';
@@ -138,5 +138,63 @@ describe('am-combobox', () => {
     expect(el.hasAttribute('invalid')).toBe(true);
     const input = getInput(el);
     expect(input.getAttribute('aria-invalid')).toBe('true');
+  });
+});
+
+// TEST-04 — async/dynamic option-update index clamp (jsdom logic lane).
+// Replacing `options` with a much shorter array while the listbox is open must
+// not surface an out-of-bounds highlighted option. These assert the observable
+// DOM bound (green-on-arrival, D-05); see SUMMARY for the raw-state finding.
+describe('am-combobox — dynamic option-update index clamp (TEST-04)', () => {
+  const BIG = Array.from({ length: 40 }, (_, i) => `Item ${i}`);
+
+  async function openWithBigOptions(): Promise<ComboboxEl> {
+    const el = await makeCombobox();
+    el.options = [...BIG];
+    await waitForUpdate(el);
+    const input = getInput(el);
+    input.focus();
+    input.dispatchEvent(new FocusEvent('focus', { bubbles: true, composed: true }));
+    await waitForUpdate(el);
+    return el;
+  }
+
+  function highlightedDomIndex(el: ComboboxEl): number {
+    return getOptions(el).findIndex((o) => o.classList.contains('highlighted'));
+  }
+
+  it('keeps the highlighted option within bounds when options shrink while open', async () => {
+    const el = await openWithBigOptions();
+
+    // Highlight near the end of the large list.
+    (el as unknown as { _highlightedIndex: number })._highlightedIndex = BIG.length - 1;
+    await waitForUpdate(el);
+
+    // Replace with a much shorter array.
+    el.options = ['Apple', 'Banana'];
+    await waitForUpdate(el);
+
+    const rendered = getOptions(el);
+    expect(rendered.length).toBe(2);
+    // No rendered option is highlighted out of range.
+    expect(highlightedDomIndex(el)).toBeLessThan(rendered.length);
+    // Stale options from the previous set do not linger.
+    expect(rendered.map((o) => o.textContent?.trim())).toEqual(['Apple', 'Banana']);
+  });
+
+  it('holds bounds through rapid successive option replacements', async () => {
+    const el = await openWithBigOptions();
+    (el as unknown as { _highlightedIndex: number })._highlightedIndex = BIG.length - 1;
+    await waitForUpdate(el);
+
+    // Replace twice in quick succession before the next render settles.
+    el.options = ['One', 'Two', 'Three'];
+    el.options = ['Solo'];
+    await waitForUpdate(el);
+
+    const rendered = getOptions(el);
+    expect(rendered.length).toBe(1);
+    expect(highlightedDomIndex(el)).toBeLessThan(rendered.length);
+    expect(rendered.map((o) => o.textContent?.trim())).toEqual(['Solo']);
   });
 });
