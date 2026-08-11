@@ -38,22 +38,26 @@ export default defineConfig({
       reporter: ['text', 'json-summary', 'html'],
       include: ['src/components/**', 'src/utilities/**'],
       exclude: ['**/*.stories.ts', 'test/**', 'dist/**', '**/index.ts'],
-      // Ratchet-from-baseline (D-01): floors sit just below the measured baseline
-      // so the gate is green-on-arrival (D-05) and fails on any regression.
+      // Ratchet-to-final-floor (D-01): now that all 23 splits + TEST-04/05
+      // assertions have landed, floors are lifted to the final measured floor
+      // (plan 08) — still green-on-arrival (D-05), fails on any regression.
       // Gate on branches explicitly (D-02). Complex interactive dirs are bucketed
-      // separately at their own (lower) measured branch floor so they can ratchet
-      // toward branch>=80 / lines-fns-stmts>=85 (D-03 ceiling) rather than gate there today.
+      // separately at their own measured floor so they ratchet toward the
+      // branch>=80 / lines-fns-stmts>=85 (D-03) ceiling as coverage allows.
       thresholds: {
-        // Global baseline (measured: br 67.21 / fn 81.77 / ln 83.32 / st 82.65)
-        branches: 63,
-        functions: 78,
-        lines: 80,
-        statements: 79,
-        // Per-directory tiers (D-02) — bucketed at each dir's own measured branch floor
-        'src/components/combobox/**': { branches: 44, functions: 48 }, // measured br 46.62
-        'src/components/select/**': { branches: 79 }, // measured br 81.65
-        'src/components/dialog/**': { branches: 92 }, // measured br 95
-        'src/components/date-picker/**': { branches: 50 }, // measured br 52.9
+        // Global final floor (measured: br 67.54 / fn 82.71 / ln 84.01 / st 83.21)
+        branches: 66,
+        functions: 81,
+        lines: 83,
+        statements: 82,
+        // Per-directory tiers (D-02) — each bucketed at its own measured floor.
+        // combobox / date-picker are still below the D-03 ceiling (interactive-heavy).
+        'src/components/combobox/**': { branches: 45, functions: 50 }, // measured br 46.62 / fn 51.28
+        'src/components/date-picker/**': { branches: 52, functions: 60 }, // measured br 54.19 / fn 64.1
+        // select has reached the full D-03 ceiling (branch>=80, lines/fns/stmts>=85).
+        'src/components/select/**': { branches: 80, functions: 85, lines: 85, statements: 85 }, // measured br 81.65 / fn 89.47 / ln 90.84 / st 89.61
+        // dialog sits well above the ceiling; keep its high floor rather than de-ratchet.
+        'src/components/dialog/**': { branches: 94, functions: 88, lines: 95, statements: 95 }, // measured br 95 / fn 90 / ln 97.5 / st 97.87
       },
     },
   },
