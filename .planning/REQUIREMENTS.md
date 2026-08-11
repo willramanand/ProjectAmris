@@ -99,13 +99,46 @@ Which phases cover which requirements. Populated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| (to be filled by roadmapper) | — | Pending |
+| TEST-01 | Phase 1 | Pending |
+| TEST-02 | Phase 1 | Pending |
+| TEST-03 | Phase 1 | Pending |
+| TEST-04 | Phase 1 | Pending |
+| TEST-05 | Phase 1 | Pending |
+| TEST-06 | Phase 1 | Pending |
+| TEST-07 | Phase 1 | Pending |
+| TEST-08 | Phase 1 | Pending |
+| PERF-01 | Phase 1 | Pending |
+| API-01 | Phase 2 | Pending |
+| API-02 | Phase 2 | Pending |
+| API-03 | Phase 2 | Pending |
+| API-04 | Phase 2 | Pending |
+| API-05 | Phase 2 | Pending |
+| FIX-01 | Phase 3 | Pending |
+| FIX-02 | Phase 3 | Pending |
+| FIX-03 | Phase 3 | Pending |
+| FIX-04 | Phase 3 | Pending |
+| PERF-02 | Phase 4 | Pending |
+| PERF-03 | Phase 4 | Pending |
+| PERF-04 | Phase 4 | Pending |
+| FEAT-01 | Phase 4 | Pending |
+| FEAT-02 | Phase 4 | Pending |
+| FEAT-03 | Phase 4 | Pending |
+| FEAT-04 | Phase 4 | Pending |
+| DOCS-01 | Phase 5 | Pending |
+| DOCS-02 | Phase 5 | Pending |
+| DOCS-03 | Phase 5 | Pending |
+| SHIP-01 | Phase 6 | Pending |
+| SHIP-02 | Phase 6 | Pending |
+| SHIP-03 | Phase 6 | Pending |
+| SHIP-04 | Phase 6 | Pending |
 
 **Coverage:**
-- v1 requirements: 27 total
-- Mapped to phases: 0 (pending roadmap)
-- Unmapped: 27 ⚠️
+- v1 requirements: 32 total (8 TEST + 5 API + 4 FIX + 4 PERF + 4 FEAT + 3 DOCS + 4 SHIP)
+- Mapped to phases: 32 ✓
+- Unmapped: 0
+
+> Note: an earlier draft of this file stated "27 total"; the actual count of distinct requirement IDs is 32. Counter corrected during roadmap creation.
 
 ---
 *Requirements defined: 2026-08-10*
-*Last updated: 2026-08-10 after initial definition*
+*Last updated: 2026-08-10 after roadmap creation (traceability populated, 32/32 mapped)*
