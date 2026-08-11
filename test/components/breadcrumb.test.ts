@@ -74,3 +74,20 @@ describe('am-breadcrumb', () => {
     expect(items[2].current).toBe(true);
   });
 });
+
+// Folded in from the retired grouped display-trivial.test.ts (plan 01-04): the
+// parent barrel imported above already registers am-breadcrumb-item.
+describe('am-breadcrumb-item (anchor vs current)', () => {
+  it('renders an anchor when href is set, plain span when current', async () => {
+    const link = await fixture<HTMLElement>(
+      '<am-breadcrumb-item href="/x">Home</am-breadcrumb-item>',
+    );
+    expect(link.shadowRoot?.querySelector('a')?.getAttribute('href')).toBe('/x');
+
+    const current = await fixture<HTMLElement>(
+      '<am-breadcrumb-item current>Now</am-breadcrumb-item>',
+    );
+    expect(current.hasAttribute('current')).toBe(true);
+    expect(current.shadowRoot?.querySelector('a')).toBeNull();
+  });
+});
