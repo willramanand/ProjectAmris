@@ -110,6 +110,26 @@ export function oneEvent<TDetail = unknown>(
   });
 }
 
+/**
+ * Return the innermost focused element, piercing shadow roots.
+ *
+ * Walks `document.activeElement` following `.shadowRoot?.activeElement` until no
+ * deeper active element exists, then returns that innermost node. When nothing
+ * is focused, browsers report `document.body` as `activeElement`; this returns
+ * it deterministically (or `null` if there is no active element at all). Used by
+ * later focus-restoration tests (plan 05) to assert the trapped element across
+ * shadow boundaries.
+ */
+export function deepActiveElement(): Element | null {
+  let active: Element | null = document.activeElement;
+
+  while (active?.shadowRoot?.activeElement) {
+    active = active.shadowRoot.activeElement;
+  }
+
+  return active;
+}
+
 export function getMockInternals(host: HTMLElement): MockElementInternals {
   const internals = host[internalsKey];
   if (!internals) {
