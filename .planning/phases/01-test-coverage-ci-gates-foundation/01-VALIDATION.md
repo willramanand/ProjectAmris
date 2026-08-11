@@ -39,19 +39,19 @@ created: 2026-08-10
 
 ## Per-Task Verification Map
 
-> Planner replaces these placeholder rows with the actual per-task IDs. One row per requirement anchor below.
+> Plan/wave anchors set from the approved 8-plan set. `/gsd-validate-phase` refines Task IDs to the executor's actual per-task commits and flips `nyquist_compliant`.
 
-| Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
-|---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| TBD | 01 | 1 | TEST-01 | — | N/A | unit (jsdom) | `npm test` | ❌ W0 | ⬜ pending |
-| TBD | TBD | TBD | TEST-02 | — | Real form submit/validation participation | browser | `npm run test:browser` | ❌ W0 | ⬜ pending |
-| TBD | TBD | TBD | TEST-03 | — | Focus trap + restoration | browser | `npm run test:browser` | ❌ W0 | ⬜ pending |
-| TBD | TBD | TBD | TEST-04 | — | Async option index clamp | unit (jsdom) | `npm test` | ❌ W0 | ⬜ pending |
-| TBD | TBD | TBD | TEST-05 | — | Listener attach/detach teardown spies | unit (jsdom) | `npm test` | ❌ W0 | ⬜ pending |
-| TBD | TBD | TBD | TEST-06 | — | 4 jsdom-unprovable areas in Chromium | browser | `npm run test:browser` | ❌ W0 | ⬜ pending |
-| TBD | TBD | TBD | TEST-07 | — | Branch + per-dir coverage gate | CI gate | `npm run test:coverage` | ❌ W0 | ⬜ pending |
-| TBD | TBD | TBD | TEST-08 | — | Real-browser axe (color-contrast/region) | a11y gate | `npm run test:a11y` (browser) | ❌ W0 | ⬜ pending |
-| TBD | TBD | TBD | PERF-01 | — | Per-entry size-limit + tree-shaking assertion | CI gate | `npx size-limit` | ❌ W0 | ⬜ pending |
+| Task ID | Plan(s) | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
+|---------|---------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
+| per-plan | 01,02,03,04,08 | 1–3 | TEST-01 | — | 23 dedicated 1:1 test files; 3 grouped files deleted | unit (jsdom) | `npm test` | ❌ W0 | ⬜ pending |
+| per-plan | 01,06 | 1–2 | TEST-02 | — | Real form submit/validation participation | browser | `npm run test:browser` | ❌ W0 | ⬜ pending |
+| per-plan | 05 | 2 | TEST-03 | — | Focus trap + restoration | browser | `npm run test:browser` | ❌ W0 | ⬜ pending |
+| per-plan | 07 | 2 | TEST-04 | — | Async option index clamp | unit (jsdom) | `npm test` | ❌ W0 | ⬜ pending |
+| per-plan | 07 | 2 | TEST-05 | — | Listener attach/detach teardown spies | unit (jsdom) | `npm test` | ❌ W0 | ⬜ pending |
+| per-plan | 01,05 | 1–2 | TEST-06 | — | 4 jsdom-unprovable areas in Chromium (virtualization scroll/focus sub-clause deferred to Phase 4 — feature not built yet) | browser | `npm run test:browser` | ❌ W0 | ⬜ pending |
+| per-plan | 01,08 | 1,3 | TEST-07 | — | Branch + per-dir coverage gate (jsdom project only, OQ-1) | CI gate | `npm run test:coverage` | ❌ W0 | ⬜ pending |
+| per-plan | 01 | 1 | TEST-08 | — | Real-browser in-browser axe-core, color-contrast/region re-enabled (OQ-2) | a11y gate | `npm run test:a11y` (browser) | ❌ W0 | ⬜ pending |
+| per-plan | 01,08 | 1,3 | PERF-01 | — | Per-entry size-limit + tree-shaking canary | CI gate | `npx size-limit` | ❌ W0 | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 

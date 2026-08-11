@@ -31,7 +31,15 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Global listener lifecycle and async/dynamic option updates are covered: teardown spies confirm attach-on-open / detach-on-close, and rapid combobox/select option updates keep the highlighted index clamped in bounds.
   4. CI fails when branch or per-directory coverage drops below threshold, and when any per-entry bundle (core/full/single-component, minified+gzipped) exceeds its `size-limit` budget or a tree-shaking regression is detected.
   5. axe a11y scans run in the real browser (color-contrast/region rules enabled) and gate CI.
-**Plans**: TBD
+**Plans**: 8 plans
+- [ ] 01-01-PLAN.md — Tracer: hybrid jsdom+Chromium Vitest projects, coverage/size/a11y gates, misc-display split, CI jobs — proven green end-to-end
+- [ ] 01-02-PLAN.md — Split layout-primitives into 5 dedicated 1:1 test files (stack, grid, surface, panel, card)
+- [ ] 01-03-PLAN.md — Split display-trivial (part A): app-shell, button-group, empty-state, error-text, field, hint-text, label, nav-bar
+- [ ] 01-04-PLAN.md — Split display-trivial (part B) + behavioral split-view + breadcrumb-item; progress-ring, side-nav, stat, status-dot, timeline, visually-hidden
+- [ ] 01-05-PLAN.md — Real-browser fidelity: overlay focus trap+restoration, native dialog/top-layer, floating-ui positioning
+- [ ] 01-06-PLAN.md — Real-browser form-association coverage for all form-associated controls (real ElementInternals/FormData)
+- [ ] 01-07-PLAN.md — jsdom async index-clamp (TEST-04) + global-listener teardown spies (TEST-05)
+- [ ] 01-08-PLAN.md — Finalize gates: full size-limit budget set + tree-shaking canary, coverage ratchet, retire last grouped file, prove pipeline green
 
 ### Phase 2: API Cleanup + CEM Baseline
 **Goal**: The public surface is normalized dimension-by-dimension and captured in a committed, reviewable CEM baseline, so the v1.0 freeze can snapshot a consistent, diffable contract.
@@ -97,7 +105,7 @@ Phase 2 (API cleanup) and Phase 3 (leak fixes) both depend only on Phase 1 and m
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Test Coverage + CI Gates Foundation | 0/TBD | Not started | - |
+| 1. Test Coverage + CI Gates Foundation | 0/8 | Not started | - |
 | 2. API Cleanup + CEM Baseline | 0/TBD | Not started | - |
 | 3. Reliability & Leak Fixes | 0/TBD | Not started | - |
 | 4. Performance & Feature Capabilities | 0/TBD | Not started | - |
