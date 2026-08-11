@@ -12,8 +12,8 @@ Requirements for the v1.0 release. Each maps to a roadmap phase. Grounded in `.p
 - [x] **TEST-01**: Every component has a dedicated test file (close the 20-component gap; 1:1 test-per-component)
 - [x] **TEST-02**: Form-associated controls verified for real form submission and validation participation (real `ElementInternals`, not the jsdom mock)
 - [x] **TEST-03**: Overlay focus trap and focus restoration verified (dialog, drawer, command-palette, popover)
-- [ ] **TEST-04**: Async/dynamic option updates verified — combobox/select rapid updates with highlighted index clamped in bounds
-- [ ] **TEST-05**: Global listener lifecycle verified with teardown spies (attach on open, detach on close/disconnect)
+- [x] **TEST-04**: Async/dynamic option updates verified — combobox/select rapid updates with highlighted index clamped in bounds
+- [x] **TEST-05**: Global listener lifecycle verified with teardown spies (attach on open, detach on close/disconnect)
 - [x] **TEST-06**: Minimal real-browser test lane (Vitest 4 Browser Mode + Playwright/Chromium) covering the 4 jsdom-unprovable areas: ElementInternals/form, focus trap+restoration, real `<dialog>`/top-layer, floating-ui positioning + virtualization scroll/focus
 - [x] **TEST-07**: Branch + per-directory coverage threshold enforced as a CI gate (`@vitest/coverage-v8`)
 - [x] **TEST-08**: axe a11y scans run in the real browser (color-contrast/region rules enabled) and gate CI (`@axe-core/playwright`)
@@ -102,8 +102,8 @@ Which phases cover which requirements. Populated during roadmap creation.
 | TEST-01 | Phase 1 | Complete |
 | TEST-02 | Phase 1 | Complete |
 | TEST-03 | Phase 1 | Complete |
-| TEST-04 | Phase 1 | Pending |
-| TEST-05 | Phase 1 | Pending |
+| TEST-04 | Phase 1 | Complete |
+| TEST-05 | Phase 1 | Complete |
 | TEST-06 | Phase 1 | Complete |
 | TEST-07 | Phase 1 | Complete |
 | TEST-08 | Phase 1 | Complete |
