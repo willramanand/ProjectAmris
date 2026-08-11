@@ -41,7 +41,8 @@ Consumers can drop `@willramanand/amris` into any app and trust the components t
 
 - [ ] API audit: identify rough/inconsistent public APIs (prop names, event names, defaults); apply breaking cleanup, then freeze the v1.0 surface
 - [ ] Test coverage: add dedicated tests for the 20 untested components; close form-integration, focus-trap, listener-lifecycle, and async-update gaps
-- [ ] Enforce a coverage threshold as a CI gate before publish
+- [ ] Minimal real-browser test lane (Vitest 4 Browser Mode + Playwright/Chromium) scoped to the 4 jsdom-unprovable areas: ElementInternals/form submission, focus trap + restoration, real `<dialog>`/top-layer, floating-ui positioning + virtualization scroll/focus
+- [ ] Enforce coverage (branch + per-directory), bundle-size (size-limit), and a11y (axe-in-browser) thresholds as CI gates before publish
 - [ ] Bug/leak fixes: track toast dismiss `setTimeout`; gate global listener attach/detach on open state; guard focus restoration against removed nodes; harden dialog animation cleanup
 - [ ] Performance: implement list virtualization for DataGrid/combobox (1000+ rows); gate floating-ui `autoUpdate` to open transitions; add bundle-size monitoring in CI
 - [ ] Feature: form controls display `ElementInternals.validationMessage`
@@ -56,7 +57,7 @@ Consumers can drop `@willramanand/amris` into any app and trust the components t
 - New components beyond the current ~67 — feature freeze; 1.0 hardens what exists, prevents sprawl
 - Framework-specific wrapper packages (React/Vue/Angular bindings) — custom elements already interop; wrappers are a post-1.0 concern
 - SSR / server rendering support — Vite 8 build targets client ESM; not a 1.0 goal
-- Automated real-browser (non-jsdom) test infrastructure — covered by manual cross-browser testing per BROWSER_SUPPORT.md; deferred to v2 (LOW priority in CONCERNS)
+- Full automated real-browser test matrix (whole suite, multi-engine incl. WebKit) — a minimal Chromium lane covers the 4 load-bearing areas (see Active); the full matrix stays deferred to v2 per research (avoid over-tooling a 1.0)
 - Figma sync, CLI tooling, design-tool integrations — out of the library's 1.0 remit
 
 ## Context
@@ -86,6 +87,8 @@ Consumers can drop `@willramanand/amris` into any app and trust the components t
 | Include validation messages, list virtualization, and keyboard-shortcut registry in 1.0 | The three CONCERNS "missing critical features" are load-bearing for real consumers | — Pending |
 | Enforce coverage + bundle-size + a11y gates in CI | Automate the confidence needed to freeze and publish | — Pending |
 | Feature-freeze the component set at ~67 | Prevent sprawl; 1.0 hardens existing surface | — Pending |
+| Carve out a minimal real-browser test lane (Vitest Browser Mode + Playwright/Chromium) for 4 load-bearing areas | jsdom mocks ElementInternals/focus/dialog/positioning; a form-heavy 1.0 cannot be credibly frozen on mocks. Narrows the earlier "no non-jsdom infra" boundary | — Pending |
+| Adopt a new non-exported `src/internal/` boundary for feature machinery | Keeps virtualization/validation/shortcut controllers off the frozen CEM/public surface so 1.0 stays small and diffable | — Pending |
 
 ## Evolution
 
