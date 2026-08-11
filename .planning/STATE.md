@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 01
 current_phase_name: test-coverage-ci-gates-foundation
 status: executing
-stopped_at: Completed 01-01-PLAN.md
-last_updated: "2026-08-11T22:07:36.436Z"
+stopped_at: Completed 01-02-PLAN.md
+last_updated: "2026-08-11T22:11:39.347Z"
 last_activity: 2026-08-11
 last_activity_desc: Phase 01 execution started
 progress:
   total_phases: 6
   completed_phases: 0
   total_plans: 8
-  completed_plans: 1
+  completed_plans: 2
   percent: 0
 ---
 
@@ -29,11 +29,11 @@ See: .planning/PROJECT.md (updated 2026-08-10)
 ## Current Position
 
 Phase: 01 (test-coverage-ci-gates-foundation) — EXECUTING
-Plan: 2 of 8
+Plan: 3 of 8
 Status: Ready to execute
 Last activity: 2026-08-11 — Phase 01 execution started
 
-Progress: [█░░░░░░░░░] 13%
+Progress: [███░░░░░░░] 25%
 
 ## Performance Metrics
 
@@ -60,6 +60,7 @@ Progress: [█░░░░░░░░░] 13%
 | Plan | Duration | Tasks | Files |
 |------|----------|-------|-------|
 | Phase 01 P01 | 12 | 3 tasks | 14 files |
+| Phase 01 P02 | 1min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -74,6 +75,7 @@ Recent decisions affecting current work:
 - Adopt a non-exported `src/internal/` boundary for feature machinery — keeps virtualization/validation/shortcut controllers off the frozen surface (Phase 4).
 - [Phase ?]: Vitest split into jsdom+browser projects; browser lane omits setupFiles for native ElementInternals (Pitfall 2)
 - [Phase ?]: Coverage folds over jsdom only (OQ-1); branch-gated with per-dir tiers at measured baseline (D-01/D-02)
+- [Phase ?]: Layout primitives (stack/grid/surface/panel/card) split into dedicated 1:1 jsdom test files; grouped layout-primitives.test.ts retired with zero coverage loss
 
 ### Pending Todos
 
@@ -100,6 +102,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-11T22:07:25.935Z
-Stopped at: Completed 01-01-PLAN.md
+Last session: 2026-08-11T22:11:39.339Z
+Stopped at: Completed 01-02-PLAN.md
 Resume file: None
