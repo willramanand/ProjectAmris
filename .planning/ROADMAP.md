@@ -13,7 +13,7 @@ Amris v1.0 is a **brownfield hardening milestone** that takes an existing ~67-co
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Test Coverage + CI Gates Foundation** - Close the test gap and stand up coverage/bundle-size/real-browser-a11y CI gates that guard all downstream breaking work
+- [x] **Phase 1: Test Coverage + CI Gates Foundation** - Close the test gap and stand up coverage/bundle-size/real-browser-a11y CI gates that guard all downstream breaking work (completed 2026-08-11)
 - [ ] **Phase 2: API Cleanup + CEM Baseline** - Normalize the public surface and commit a reviewable CEM baseline so the freeze can snapshot a consistent contract
 - [ ] **Phase 3: Reliability & Leak Fixes** - Fix known timer/listener/focus/animation lifecycle leaks under one discipline, verified with teardown spies
 - [ ] **Phase 4: Performance & Feature Capabilities** - Deliver virtualization, validation-message display, and the keyboard-shortcut registry on the `src/internal/` boundary
@@ -125,7 +125,7 @@ Phase 2 (API cleanup) and Phase 3 (leak fixes) both depend only on Phase 1 and m
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Test Coverage + CI Gates Foundation | 8/8 | In Progress|  |
+| 1. Test Coverage + CI Gates Foundation | 8/8 | Complete    | 2026-08-11 |
 | 2. API Cleanup + CEM Baseline | 0/TBD | Not started | - |
 | 3. Reliability & Leak Fixes | 0/TBD | Not started | - |
 | 4. Performance & Feature Capabilities | 0/TBD | Not started | - |
