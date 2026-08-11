@@ -198,3 +198,53 @@ describe('am-combobox — dynamic option-update index clamp (TEST-04)', () => {
     expect(rendered.map((o) => o.textContent?.trim())).toEqual(['Solo']);
   });
 });
+
+// TEST-05 — global-listener teardown spies (jsdom lifecycle lane).
+// am-combobox attaches a document-level `click` listener when the listbox opens
+// and removes it when it closes (and on disconnect). Spies confirm attach-on-
+// open / detach-on-close and a balanced cycle.
+describe('am-combobox — document listener teardown (TEST-05)', () => {
+  function documentClickHandler(el: ComboboxEl): EventListener {
+    return (el as unknown as { _handleDocumentClick: EventListener })._handleDocumentClick;
+  }
+
+  async function open(el: ComboboxEl): Promise<void> {
+    const input = getInput(el);
+    input.focus();
+    input.dispatchEvent(new FocusEvent('focus', { bubbles: true, composed: true }));
+    await waitForUpdate(el);
+  }
+
+  it('attaches a document click listener on open and removes it on close', async () => {
+    const el = await makeCombobox();
+    const handler = documentClickHandler(el);
+    const addSpy = vi.spyOn(document, 'addEventListener');
+    const removeSpy = vi.spyOn(document, 'removeEventListener');
+
+    await open(el);
+    expect(addSpy).toHaveBeenCalledWith('click', handler);
+
+    await keydown(getInput(el), 'Escape', el);
+    expect(removeSpy).toHaveBeenCalledWith('click', handler);
+
+    // Attach/detach counts for this handler are balanced across the cycle.
+    const adds = addSpy.mock.calls.filter(([type, fn]) => type === 'click' && fn === handler).length;
+    const removes = removeSpy.mock.calls.filter(([type, fn]) => type === 'click' && fn === handler).length;
+    expect(adds).toBe(removes);
+
+    addSpy.mockRestore();
+    removeSpy.mockRestore();
+  });
+
+  it('detaches the document click listener on disconnect while open', async () => {
+    const el = await makeCombobox();
+    const handler = documentClickHandler(el);
+    await open(el);
+
+    const removeSpy = vi.spyOn(document, 'removeEventListener');
+    el.remove();
+    await waitForUpdate(el);
+    expect(removeSpy).toHaveBeenCalledWith('click', handler);
+    removeSpy.mockRestore();
+  });
+});

@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import '../../src/components/context-menu/context-menu';
 import '../../src/components/menu/menu';
@@ -71,5 +71,58 @@ describe('am-context-menu', () => {
     const menu = el.querySelector('am-menu');
     expect(menu).toBeTruthy();
     expect(menu?.getAttribute('slot')).toBe('menu');
+  });
+});
+
+// TEST-05 — global-listener teardown spies (jsdom lifecycle lane).
+// am-context-menu attaches document-level `click`, `keydown`, and `contextmenu`
+// listeners when it opens and removes them when it closes (and on disconnect).
+describe('am-context-menu — document listener teardown (TEST-05)', () => {
+  function handlers(el: ContextMenuEl): { click: EventListener; keydown: EventListener; contextmenu: EventListener } {
+    const priv = el as unknown as {
+      _handleOutsideClick: EventListener;
+      _handleKeydown: EventListener;
+      _handleDocumentContext: EventListener;
+    };
+    return { click: priv._handleOutsideClick, keydown: priv._handleKeydown, contextmenu: priv._handleDocumentContext };
+  }
+
+  it('attaches document listeners on open and removes them on close', async () => {
+    const el = await makeContextMenu();
+    const { click: clickHandler, keydown: keyHandler, contextmenu: ctxHandler } = handlers(el);
+    const addSpy = vi.spyOn(document, 'addEventListener');
+    const removeSpy = vi.spyOn(document, 'removeEventListener');
+
+    dispatchContext(el);
+    await waitForUpdate(el);
+    expect(el.open).toBe(true);
+    expect(addSpy).toHaveBeenCalledWith('click', clickHandler);
+    expect(addSpy).toHaveBeenCalledWith('keydown', keyHandler);
+    expect(addSpy).toHaveBeenCalledWith('contextmenu', ctxHandler);
+
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    await waitForUpdate(el);
+    expect(el.open).toBe(false);
+    expect(removeSpy).toHaveBeenCalledWith('click', clickHandler);
+    expect(removeSpy).toHaveBeenCalledWith('keydown', keyHandler);
+    expect(removeSpy).toHaveBeenCalledWith('contextmenu', ctxHandler);
+
+    addSpy.mockRestore();
+    removeSpy.mockRestore();
+  });
+
+  it('detaches document listeners on disconnect while open', async () => {
+    const el = await makeContextMenu();
+    dispatchContext(el);
+    await waitForUpdate(el);
+    const { click: clickHandler, keydown: keyHandler, contextmenu: ctxHandler } = handlers(el);
+
+    const removeSpy = vi.spyOn(document, 'removeEventListener');
+    el.remove();
+    await waitForUpdate(el);
+    expect(removeSpy).toHaveBeenCalledWith('click', clickHandler);
+    expect(removeSpy).toHaveBeenCalledWith('keydown', keyHandler);
+    expect(removeSpy).toHaveBeenCalledWith('contextmenu', ctxHandler);
+    removeSpy.mockRestore();
   });
 });
