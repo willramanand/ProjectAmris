@@ -12,6 +12,8 @@ dist
 dist-ssr
 coverage
 .gsd
+.vitest-attachments
+test/browser/__screenshots__
 *.local
 
 # Editor directories and files
