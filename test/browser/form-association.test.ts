@@ -8,6 +8,14 @@ import '../../src/components/switch/switch';
 import '../../src/components/number-field/number-field';
 import '../../src/components/search-field/search-field';
 import '../../src/components/slider/slider';
+import '../../src/components/select/select';
+import '../../src/components/combobox/combobox';
+import '../../src/components/rich-select/rich-select';
+import '../../src/components/input-otp/input-otp';
+import '../../src/components/date-picker/date-picker';
+import '../../src/components/time-picker/time-picker';
+import '../../src/components/color-picker/color-picker';
+import '../../src/components/file-upload/file-upload';
 import { fixture } from '../helpers';
 
 /**
@@ -217,6 +225,146 @@ describe('form-association (real ElementInternals)', () => {
       // input cannot join the outer light-DOM form, so its value never reaches
       // FormData. Documented for the owning phase; not fixed here.
       expect(new FormData(form).get('q')).toBeNull();
+    });
+  });
+
+  describe('am-select', () => {
+    it('submits the selected option value through native setFormValue', async () => {
+      const form = await fixture<HTMLFormElement>(
+        `<form>
+          <am-select name="country" value="us">
+            <am-option value="us">United States</am-option>
+            <am-option value="ca">Canada</am-option>
+          </am-select>
+        </form>`,
+      );
+      await settle(form.querySelector('am-select'));
+
+      expect(new FormData(form).get('country')).toBe('us');
+    });
+
+    it('reflects a value change after mount', async () => {
+      const form = await fixture<HTMLFormElement>(
+        `<form>
+          <am-select name="country" value="us">
+            <am-option value="us">United States</am-option>
+            <am-option value="ca">Canada</am-option>
+          </am-select>
+        </form>`,
+      );
+      const select = form.querySelector('am-select') as HTMLElement & {
+        value: string;
+        updateComplete: Promise<unknown>;
+      };
+      select.value = 'ca';
+      await select.updateComplete;
+
+      expect(new FormData(form).get('country')).toBe('ca');
+    });
+  });
+
+  describe('am-combobox', () => {
+    it('submits its value through native setFormValue', async () => {
+      const form = await fixture<HTMLFormElement>(
+        '<form><am-combobox name="fruit" value="Apple"></am-combobox></form>',
+      );
+      await settle(form.querySelector('am-combobox'));
+
+      expect(new FormData(form).get('fruit')).toBe('Apple');
+    });
+  });
+
+  describe('am-rich-select', () => {
+    it('submits its value through native setFormValue', async () => {
+      const form = await fixture<HTMLFormElement>(
+        '<form><am-rich-select name="assignee" value="alice"></am-rich-select></form>',
+      );
+      await settle(form.querySelector('am-rich-select'));
+
+      expect(new FormData(form).get('assignee')).toBe('alice');
+    });
+  });
+
+  describe('am-input-otp', () => {
+    it('submits the typed code through native setFormValue', async () => {
+      const form = await fixture<HTMLFormElement>(
+        '<form><am-input-otp name="code" length="4"></am-input-otp></form>',
+      );
+      const otp = form.querySelector('am-input-otp') as HTMLElement & {
+        value: string;
+        updateComplete: Promise<unknown>;
+      };
+      await otp.updateComplete;
+
+      const inputs = otp.shadowRoot!.querySelectorAll('input');
+      const digits = ['1', '2', '3', '4'];
+      for (let i = 0; i < digits.length; i++) {
+        inputs[i].value = digits[i];
+        inputs[i].dispatchEvent(new Event('input', { bubbles: true }));
+        await otp.updateComplete;
+      }
+
+      expect(new FormData(form).get('code')).toBe('1234');
+    });
+  });
+
+  describe('am-date-picker', () => {
+    it('submits its ISO date value through native setFormValue', async () => {
+      const form = await fixture<HTMLFormElement>(
+        '<form><am-date-picker name="dob" value="2026-08-11"></am-date-picker></form>',
+      );
+      await settle(form.querySelector('am-date-picker'));
+
+      expect(new FormData(form).get('dob')).toBe('2026-08-11');
+    });
+  });
+
+  describe('am-time-picker', () => {
+    it('submits its HH:MM value through native setFormValue', async () => {
+      const form = await fixture<HTMLFormElement>(
+        '<form><am-time-picker name="start" value="14:30"></am-time-picker></form>',
+      );
+      await settle(form.querySelector('am-time-picker'));
+
+      expect(new FormData(form).get('start')).toBe('14:30');
+    });
+  });
+
+  describe('am-color-picker', () => {
+    it('submits its hex value through native setFormValue', async () => {
+      const form = await fixture<HTMLFormElement>(
+        '<form><am-color-picker name="brand" value="#ff0000"></am-color-picker></form>',
+      );
+      await settle(form.querySelector('am-color-picker'));
+
+      expect(new FormData(form).get('brand')).toBe('#ff0000');
+    });
+  });
+
+  describe('am-file-upload', () => {
+    it('FINDING: does NOT participate in the form — not form-associated, no name', async () => {
+      const form = await fixture<HTMLFormElement>(
+        '<form><am-file-upload name="doc"></am-file-upload></form>',
+      );
+      const upload = form.querySelector('am-file-upload') as HTMLElement & {
+        updateComplete: Promise<unknown>;
+      };
+      await upload.updateComplete;
+
+      // Drive a real file through the browser's native DataTransfer (this API is
+      // genuinely available in Chromium, unlike the jsdom mock the plan warns of).
+      const dt = new DataTransfer();
+      dt.items.add(new File(['hello'], 'note.txt', { type: 'text/plain' }));
+      const fileInput = upload.shadowRoot!.querySelector('input[type="file"]') as HTMLInputElement;
+      Object.defineProperty(fileInput, 'files', { value: dt.files, configurable: true });
+      fileInput.dispatchEvent(new Event('change', { bubbles: true }));
+      await upload.updateComplete;
+
+      // FINDING: am-file-upload is NOT `formAssociated`, exposes no `name`
+      // property, and never calls setFormValue. Even with a real file attached
+      // it contributes nothing to FormData. Documented for the owning phase;
+      // not fixed here (test-only phase).
+      expect(new FormData(form).get('doc')).toBeNull();
     });
   });
 });
