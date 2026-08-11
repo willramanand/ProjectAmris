@@ -1,6 +1,10 @@
 import type { LitElement } from 'lit';
 
-import { internalsKey, type MockElementInternals } from './setup';
+// Type-only import — fully erased at build time, so importing these shared
+// helpers carries NO module-level side effect into the browser project. The
+// jsdom project loads the real mock via its own `setupFiles` (Pitfall 2 — the
+// browser lane must stay mock-free / native).
+import type { MockElementInternals } from './setup';
 
 export async function mount<T extends HTMLElement>(element: T): Promise<T> {
   document.body.append(element);
@@ -130,8 +134,15 @@ export function deepActiveElement(): Element | null {
   return active;
 }
 
+// The jsdom setup (test/setup.ts) stores the mock under this global symbol.
+// Resolve it via Symbol.for rather than importing setup.ts so the shared
+// helpers stay free of setup.ts's module-level side effects (Pitfall 2).
+const INTERNALS_KEY = Symbol.for('amris.test.elementInternals');
+
 export function getMockInternals(host: HTMLElement): MockElementInternals {
-  const internals = host[internalsKey];
+  const internals = (host as unknown as Record<symbol, MockElementInternals | undefined>)[
+    INTERNALS_KEY
+  ];
   if (!internals) {
     throw new Error('Mock ElementInternals not found on host.');
   }

@@ -2,16 +2,24 @@ import axe, { type Result } from 'axe-core';
 
 /**
  * Run axe-core against an element and return any violations.
- * Disables rules that don't apply in jsdom (no computed styles).
+ *
+ * In the jsdom lane, `color-contrast` and `region` are disabled by default
+ * (jsdom has no computed styles / layout). The browser lane passes
+ * `{ includeDefaultDisabled: false }` so those two rules actually execute
+ * against real Chromium computed styles (TEST-08, OQ-2 — in-browser axe-core).
  */
 export async function checkA11y(
   element: HTMLElement,
   disabledRules: string[] = [],
+  options: { includeDefaultDisabled?: boolean } = {},
 ): Promise<Result[]> {
-  const defaultDisabled = [
-    'color-contrast',        // jsdom has no computed styles
-    'region',                // component-level testing, not page-level
-  ];
+  const { includeDefaultDisabled = true } = options;
+  const defaultDisabled = includeDefaultDisabled
+    ? [
+        'color-contrast', // jsdom has no computed styles
+        'region', // component-level testing, not page-level
+      ]
+    : [];
 
   const rules: Record<string, { enabled: boolean }> = {};
   for (const rule of [...defaultDisabled, ...disabledRules]) {

@@ -5,6 +5,11 @@ on:
   push:
     branches: [main]
 
+# Least-privilege: this PR-triggered workflow is read-only. No packages:write /
+# publish here — publishing is a separate Phase 6 concern (threat T-01-01).
+permissions:
+  contents: read
+
 jobs:
   verify:
     runs-on: ubuntu-latest
@@ -21,8 +26,45 @@ jobs:
       - name: Typecheck
         run: npx tsc --noEmit
 
-      - name: Test
-        run: npm run test:run
+      - name: Test (jsdom + coverage gate)
+        run: npx vitest run --project jsdom --coverage
 
       - name: Build
         run: npm run build
+
+  browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Install Chromium
+        run: npx playwright install chromium
+
+      - name: Browser lane (real ElementInternals + in-browser axe)
+        run: npm run test:browser
+
+  size:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # size-limit@13 requires Node >=22.18; the rest of CI stays on Node 20.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Bundle-size budget
+        run: npm run size

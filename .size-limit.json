@@ -1,0 +1,8 @@
+[
+  {
+    "name": "core bundle",
+    "path": "dist/amris-core.js",
+    "ignore": ["lit", "@floating-ui/dom"],
+    "limit": "20 kB"
+  }
+]
