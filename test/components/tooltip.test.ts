@@ -1,9 +1,18 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import '../../src/components/tooltip/tooltip';
 import { fixture, shadowQuery, waitForUpdate } from '../helpers';
 
 describe('am-tooltip', () => {
+  // Safety net (WR-07): the timer-based tests below enable fake timers inline
+  // and only restore them at the end. If any assertion between throws, the
+  // inline vi.useRealTimers() is skipped and fake timers would bleed into the
+  // next test. restoreMocks restores spies, not the timer mode — so restore it
+  // here unconditionally after every test.
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it('renders a tooltip element with role="tooltip"', async () => {
     const element = await fixture<HTMLElement>(
       `<am-tooltip content="Help text">
