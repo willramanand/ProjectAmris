@@ -27,7 +27,19 @@ describe('am-breadcrumb-item', () => {
       '<am-breadcrumb-item current>Current</am-breadcrumb-item>',
     );
 
-    expect(element.hasAttribute('current')).toBe(true);
+    // The separator is always rendered (it is decorative) but CSS-hidden for
+    // the current item via `:host([current]) .separator { display: none }`.
+    // jsdom does not apply shadow-DOM :host() rules, so assert both the
+    // decorative element and that the component actually ships the hide rule.
+    const separator = element.shadowRoot?.querySelector('.separator');
+    expect(separator).not.toBeNull();
+    expect(separator?.getAttribute('aria-hidden')).toBe('true');
+
+    const styles = (element.constructor as unknown as { styles?: unknown }).styles;
+    const styleText = (Array.isArray(styles) ? styles : [styles])
+      .map((s) => (s as { cssText?: string } | undefined)?.cssText ?? '')
+      .join('\n');
+    expect(styleText).toMatch(/:host\(\[current\]\)\s*\.separator\s*\{\s*display:\s*none/);
   });
 });
 
