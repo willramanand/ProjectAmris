@@ -45,11 +45,13 @@ export default defineConfig({
       // separately at their own measured floor so they ratchet toward the
       // branch>=80 / lines-fns-stmts>=85 (D-03) ceiling as coverage allows.
       thresholds: {
-        // Global final floor (measured: br 67.54 / fn 82.71 / ln 84.01 / st 83.21)
-        branches: 66,
-        functions: 81,
-        lines: 83,
-        statements: 82,
+        // Global final floor (measured: br 67.76 / fn 83.02 / ln 84.33 / st 83.5).
+        // Floors sit just under measured so any real regression trips the gate
+        // (WR-05); remaining buffer ~br 0.76 / fn 1.0 / ln 0.33 / st 0.5.
+        branches: 67,
+        functions: 82,
+        lines: 84,
+        statements: 83,
         // Per-directory tiers (D-02) — each bucketed at its own measured floor.
         // combobox / date-picker are still below the D-03 ceiling (interactive-heavy).
         'src/components/combobox/**': { branches: 45, functions: 50 }, // measured br 46.62 / fn 51.28
