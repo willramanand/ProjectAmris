@@ -5,9 +5,23 @@ import { fixture, waitForUpdate } from '../helpers';
 
 describe('am-stack', () => {
   it('reflects direction, align, justify, gap, wrap', async () => {
-    const el = await fixture<HTMLElement>(
-      '<am-stack direction="horizontal" align="center" justify="between" gap="4" wrap><span>a</span></am-stack>',
-    );
+    // Drive the properties (not markup) so the assertion exercises the
+    // component's `reflect: true` rather than the HTML parser.
+    const el = await fixture<
+      HTMLElement & {
+        direction: string;
+        align: string;
+        justify: string;
+        gap: string;
+        wrap: boolean;
+      }
+    >('<am-stack><span>a</span></am-stack>');
+    el.direction = 'horizontal';
+    el.align = 'center';
+    el.justify = 'between';
+    el.gap = '4';
+    el.wrap = true;
+    await waitForUpdate(el);
     expect(el.getAttribute('direction')).toBe('horizontal');
     expect(el.getAttribute('align')).toBe('center');
     expect(el.getAttribute('justify')).toBe('between');

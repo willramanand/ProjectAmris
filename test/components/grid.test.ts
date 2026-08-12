@@ -1,11 +1,16 @@
 import { describe, expect, it } from 'vitest';
 
 import '../../src/components/grid/grid';
-import { fixture } from '../helpers';
+import { fixture, waitForUpdate } from '../helpers';
 
 describe('am-grid', () => {
   it('reflects columns and gap', async () => {
-    const el = await fixture<HTMLElement>('<am-grid columns="3" gap="6"></am-grid>');
+    // Drive the properties (not markup) so the assertion exercises the
+    // component's `reflect: true` rather than the HTML parser.
+    const el = await fixture<HTMLElement & { columns: string; gap: string }>('<am-grid></am-grid>');
+    el.columns = '3';
+    el.gap = '6';
+    await waitForUpdate(el);
     expect(el.getAttribute('columns')).toBe('3');
     expect(el.getAttribute('gap')).toBe('6');
   });
