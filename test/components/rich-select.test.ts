@@ -174,8 +174,21 @@ describe('am-rich-select — dynamic option-update index clamp (TEST-04)', () =>
 
     const opts = listOptions(el);
     expect(opts.length).toBe(2);
-    expect(highlightedDomIndex(el)).toBeLessThan(opts.length);
     expect(opts.map((o) => o.querySelector('.option-label')?.textContent?.trim())).toEqual(['Alpha', 'Beta']);
+    // The stale index-29 highlight must not survive onto the 2-option list.
+    // (`highlightedDomIndex` is < length by construction, so assert the
+    // concrete `-1` — no rendered option is left highlighted at all.)
+    expect(highlightedDomIndex(el)).toBe(-1);
+
+    // Navigating clamps the highlight back into range — it lands on a real,
+    // in-bounds option rather than dereferencing the stale index.
+    await keydown(trigger(el), 'ArrowDown', el);
+    const navIdx = highlightedDomIndex(el);
+    expect(navIdx).toBeGreaterThanOrEqual(0);
+    expect(navIdx).toBeLessThan(listOptions(el).length);
+    const rawIndex = (el as unknown as { _highlightedIndex: number })._highlightedIndex;
+    expect(rawIndex).toBeGreaterThanOrEqual(0);
+    expect(rawIndex).toBeLessThan(listOptions(el).length);
   });
 
   it('holds bounds through rapid successive option replacements', async () => {
@@ -193,6 +206,16 @@ describe('am-rich-select — dynamic option-update index clamp (TEST-04)', () =>
 
     const opts = listOptions(el);
     expect(opts.length).toBe(1);
-    expect(highlightedDomIndex(el)).toBeLessThan(opts.length);
+    // No stale highlight lingers after the rapid shrink.
+    expect(highlightedDomIndex(el)).toBe(-1);
+
+    // A navigation keystroke clamps the highlight into the 1-option range.
+    await keydown(trigger(el), 'ArrowDown', el);
+    const navIdx = highlightedDomIndex(el);
+    expect(navIdx).toBeGreaterThanOrEqual(0);
+    expect(navIdx).toBeLessThan(listOptions(el).length);
+    const rawIndex = (el as unknown as { _highlightedIndex: number })._highlightedIndex;
+    expect(rawIndex).toBeGreaterThanOrEqual(0);
+    expect(rawIndex).toBeLessThan(listOptions(el).length);
   });
 });

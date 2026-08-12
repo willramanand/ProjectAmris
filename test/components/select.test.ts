@@ -411,8 +411,24 @@ describe('am-select — dynamic option-update index clamp (TEST-04)', () => {
 
     const options = currentOptions(element);
     expect(options.length).toBe(2);
-    // No option is highlighted out of range.
-    expect(options.findIndex((o) => o.highlighted)).toBeLessThan(options.length);
+    // The stale index-29 highlight must not survive onto the shrunken list:
+    // no rendered option is left highlighted out of range. (`findIndex` alone
+    // is < length by construction, so assert the concrete `-1` instead.)
+    expect(options.findIndex((o) => o.highlighted)).toBe(-1);
+
+    // Navigating must clamp back into range rather than dereferencing the
+    // stale index — the highlight lands on a real, in-bounds option, and the
+    // raw `_highlightedIndex` state is itself valid.
+    const trigger = shadowQuery<HTMLButtonElement>(element, '.trigger');
+    await keydown(trigger, 'ArrowDown', element);
+
+    const navOptions = currentOptions(element);
+    const highlighted = navOptions.findIndex((o) => o.highlighted);
+    expect(highlighted).toBeGreaterThanOrEqual(0);
+    expect(highlighted).toBeLessThan(navOptions.length);
+    const rawIndex = (element as unknown as { _highlightedIndex: number })._highlightedIndex;
+    expect(rawIndex).toBeGreaterThanOrEqual(0);
+    expect(rawIndex).toBeLessThan(navOptions.length);
   });
 
   it('holds bounds through rapid successive slotted-set replacements', async () => {
@@ -426,7 +442,20 @@ describe('am-select — dynamic option-update index clamp (TEST-04)', () => {
 
     const options = currentOptions(element);
     expect(options.length).toBe(1);
-    expect(options.findIndex((o) => o.highlighted)).toBeLessThan(options.length);
+    // No stale highlight lingers after the rapid shrink.
+    expect(options.findIndex((o) => o.highlighted)).toBe(-1);
+
+    // A navigation keystroke clamps the highlight into the 1-option range.
+    const trigger = shadowQuery<HTMLButtonElement>(element, '.trigger');
+    await keydown(trigger, 'ArrowDown', element);
+
+    const navOptions = currentOptions(element);
+    const highlighted = navOptions.findIndex((o) => o.highlighted);
+    expect(highlighted).toBeGreaterThanOrEqual(0);
+    expect(highlighted).toBeLessThan(navOptions.length);
+    const rawIndex = (element as unknown as { _highlightedIndex: number })._highlightedIndex;
+    expect(rawIndex).toBeGreaterThanOrEqual(0);
+    expect(rawIndex).toBeLessThan(navOptions.length);
   });
 });
 

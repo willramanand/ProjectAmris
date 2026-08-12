@@ -176,10 +176,22 @@ describe('am-combobox — dynamic option-update index clamp (TEST-04)', () => {
 
     const rendered = getOptions(el);
     expect(rendered.length).toBe(2);
-    // No rendered option is highlighted out of range.
-    expect(highlightedDomIndex(el)).toBeLessThan(rendered.length);
     // Stale options from the previous set do not linger.
     expect(rendered.map((o) => o.textContent?.trim())).toEqual(['Apple', 'Banana']);
+    // The stale index-39 highlight must not survive onto the 2-option list.
+    // (`highlightedDomIndex` is < length by construction, so assert the
+    // concrete `-1` — no rendered option is left highlighted at all.)
+    expect(highlightedDomIndex(el)).toBe(-1);
+
+    // Navigating clamps the highlight back into range — it lands on a real,
+    // in-bounds option rather than dereferencing the stale index.
+    await keydown(getInput(el), 'ArrowDown', el);
+    const navIdx = highlightedDomIndex(el);
+    expect(navIdx).toBeGreaterThanOrEqual(0);
+    expect(navIdx).toBeLessThan(getOptions(el).length);
+    const rawIndex = (el as unknown as { _highlightedIndex: number })._highlightedIndex;
+    expect(rawIndex).toBeGreaterThanOrEqual(0);
+    expect(rawIndex).toBeLessThan(getOptions(el).length);
   });
 
   it('holds bounds through rapid successive option replacements', async () => {
@@ -194,8 +206,18 @@ describe('am-combobox — dynamic option-update index clamp (TEST-04)', () => {
 
     const rendered = getOptions(el);
     expect(rendered.length).toBe(1);
-    expect(highlightedDomIndex(el)).toBeLessThan(rendered.length);
     expect(rendered.map((o) => o.textContent?.trim())).toEqual(['Solo']);
+    // No stale highlight lingers after the rapid shrink.
+    expect(highlightedDomIndex(el)).toBe(-1);
+
+    // A navigation keystroke clamps the highlight into the 1-option range.
+    await keydown(getInput(el), 'ArrowDown', el);
+    const navIdx = highlightedDomIndex(el);
+    expect(navIdx).toBeGreaterThanOrEqual(0);
+    expect(navIdx).toBeLessThan(getOptions(el).length);
+    const rawIndex = (el as unknown as { _highlightedIndex: number })._highlightedIndex;
+    expect(rawIndex).toBeGreaterThanOrEqual(0);
+    expect(rawIndex).toBeLessThan(getOptions(el).length);
   });
 });
 
