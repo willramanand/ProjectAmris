@@ -99,6 +99,19 @@ describe('am-combobox', () => {
     const el = await makeCombobox('disabled');
     const input = getInput(el);
     expect(input.disabled).toBe(true);
+
+    // A disabled combobox must not open. The native disabled <input> is what
+    // blocks user interaction, so exercise the real focus()/click() methods
+    // (which honour `disabled`) rather than synthetic events, and confirm the
+    // listbox never expands.
+    input.focus();
+    await waitForUpdate(el);
+    input.click();
+    await waitForUpdate(el);
+
+    expect(input.getAttribute('aria-expanded')).toBe('false');
+    const listbox = el.shadowRoot?.querySelector('.listbox');
+    expect(listbox?.classList.contains('open')).toBe(false);
   });
 
   it('does not filter and emits am-search in async mode', async () => {
