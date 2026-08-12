@@ -139,12 +139,21 @@ export function deepActiveElement(): Element | null {
 // helpers stay free of setup.ts's module-level side effects (Pitfall 2).
 const INTERNALS_KEY = Symbol.for('amris.test.elementInternals');
 
+// The jsdom lane pins attachInternals() to MockElementInternals (test/setup.ts),
+// so any component that called attachInternals() during construction exposes the
+// mock under INTERNALS_KEY. This helper is jsdom-lane only: it does not work in
+// the browser lane, which uses native ElementInternals and omits setup.ts.
 export function getMockInternals(host: HTMLElement): MockElementInternals {
   const internals = (host as unknown as Record<symbol, MockElementInternals | undefined>)[
     INTERNALS_KEY
   ];
   if (!internals) {
-    throw new Error('Mock ElementInternals not found on host.');
+    throw new Error(
+      'Mock ElementInternals not found on host. The jsdom lane pins ' +
+        'attachInternals() to MockElementInternals (test/setup.ts); a missing ' +
+        'mock means the host never called attachInternals(), or setup.ts was not ' +
+        'loaded (e.g. this ran outside the jsdom project / in the browser lane).',
+    );
   }
 
   return internals;

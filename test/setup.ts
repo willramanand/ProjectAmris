@@ -110,23 +110,23 @@ declare global {
   }
 }
 
-const nativeAttachInternals = HTMLElement.prototype.attachInternals;
-
+// jsdom lane only: this file is the jsdom project's setupFile; the browser lane
+// deliberately omits setupFiles so it exercises native Chromium ElementInternals.
+//
+// jsdom's form-associated ElementInternals support is incomplete — notably
+// `setFormValue` is not implemented as of the pinned jsdom (^29) — and the whole
+// jsdom form suite reads component form state through MockElementInternals via
+// getMockInternals() (test/helpers.ts). Previously this override probed jsdom's
+// native implementation and only fell back to the mock when `setFormValue` was
+// missing. That coupled the suite to jsdom NOT implementing setFormValue: a
+// future jsdom that added it would silently take the native branch and break
+// every getMockInternals() call site with a confusing error (WR-08). Pin the
+// jsdom lane to the mock unconditionally instead — behaviour-identical on the
+// current jsdom, and no longer dependent on jsdom's form-support version.
+// Real form-association fidelity is covered by the browser lane.
 Object.defineProperty(HTMLElement.prototype, 'attachInternals', {
   configurable: true,
   value(this: HTMLElement) {
-    try {
-      const internals = nativeAttachInternals?.call(this);
-      if (
-        internals &&
-        typeof (internals as Partial<ElementInternals>).setFormValue === 'function'
-      ) {
-        return internals;
-      }
-    } catch {
-      // Fall back to a mock when jsdom throws or returns a partial implementation.
-    }
-
     if (!this[internalsKey]) {
       this[internalsKey] = new MockElementInternals();
     }
