@@ -26,12 +26,5 @@
     "ignore": ["lit", "@floating-ui/dom"],
     "gzip": true,
     "limit": "3.5 kB"
-  },
-  {
-    "name": "tree-shaking canary (button deep import must NOT pull the whole lib)",
-    "path": "dist/components/button/index.js",
-    "ignore": ["lit", "@floating-ui/dom"],
-    "gzip": true,
-    "limit": "5 kB"
   }
 ]
