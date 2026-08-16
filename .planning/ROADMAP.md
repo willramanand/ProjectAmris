@@ -59,7 +59,17 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. Slot names, `::part()` names, and `--am-*` tokens are enumerated and treated as frozen public surface.
   5. `api/custom-elements.baseline.json` is committed and a report-only surface diff runs in CI during cleanup.
 
-**Plans**: TBD
+**Plans**: 9 plans
+
+- [ ] 02-01-PLAN.md — Tracer: CEM baseline + report-only surface-diff comparator + comparator unit test + CI job (API-05)
+- [ ] 02-02-PLAN.md — Consistency audit: 7 dimension matrices + rename mapping + frozen-surface enumeration → api/AUDIT.md (API-01, API-04)
+- [ ] 02-03-PLAN.md — Rename wave A: overlay lifecycle events (am-show/am-hide → am-open/am-close) + Changeset + baseline (API-02)
+- [ ] 02-04-PLAN.md — Rename wave B: selection events (select → am-change, data-grid reconcile) + Changeset + baseline (API-02)
+- [ ] 02-05-PLAN.md — Rename wave C: D-03 full normalization (tabs change/toggle + prop/boolean outliers) + Changeset + baseline (API-02)
+- [ ] 02-06-PLAN.md — Refactor tracer: create 3 shared controllers in src/internal/ + wire combobox, behavior-preserving (API-03)
+- [ ] 02-07-PLAN.md — Refactor expansion: select + date-picker onto controllers + pure date-utils helper (API-03)
+- [ ] 02-08-PLAN.md — Refactor: time-picker pure time-utils helper (no floating-ui) (API-03)
+- [ ] 02-09-PLAN.md — Freeze slot/part/token surface + final baseline + phase gate (API-04, API-05)
 
 ### Phase 3: Reliability & Leak Fixes
 
@@ -126,7 +136,7 @@ Phase 2 (API cleanup) and Phase 3 (leak fixes) both depend only on Phase 1 and m
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Test Coverage + CI Gates Foundation | 8/8 | Complete    | 2026-08-11 |
-| 2. API Cleanup + CEM Baseline | 0/TBD | Not started | - |
+| 2. API Cleanup + CEM Baseline | 0/9 | Planned | - |
 | 3. Reliability & Leak Fixes | 0/TBD | Not started | - |
 | 4. Performance & Feature Capabilities | 0/TBD | Not started | - |
 | 5. Documentation | 0/TBD | Not started | - |
