@@ -60,15 +60,37 @@ Decimal phases appear between their surrounding integers in numeric order.
   5. `api/custom-elements.baseline.json` is committed and a report-only surface diff runs in CI during cleanup.
 
 **Plans**: 9 plans
+**Wave 1**
 
 - [ ] 02-01-PLAN.md — Tracer: CEM baseline + report-only surface-diff comparator + comparator unit test + CI job (API-05)
 - [ ] 02-02-PLAN.md — Consistency audit: 7 dimension matrices + rename mapping + frozen-surface enumeration → api/AUDIT.md (API-01, API-04)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 02-03-PLAN.md — Rename wave A: overlay lifecycle events (am-show/am-hide → am-open/am-close) + Changeset + baseline (API-02)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 02-04-PLAN.md — Rename wave B: selection events (select → am-change, data-grid reconcile) + Changeset + baseline (API-02)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
 - [ ] 02-05-PLAN.md — Rename wave C: D-03 full normalization (tabs change/toggle + prop/boolean outliers) + Changeset + baseline (API-02)
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
 - [ ] 02-06-PLAN.md — Refactor tracer: create 3 shared controllers in src/internal/ + wire combobox, behavior-preserving (API-03)
+
+**Wave 6** *(blocked on Wave 5 completion)*
+
 - [ ] 02-07-PLAN.md — Refactor expansion: select + date-picker onto controllers + pure date-utils helper (API-03)
+
+**Wave 7** *(blocked on Wave 6 completion)*
+
 - [ ] 02-08-PLAN.md — Refactor: time-picker pure time-utils helper (no floating-ui) (API-03)
+
+**Wave 8** *(blocked on Wave 7 completion)*
+
 - [ ] 02-09-PLAN.md — Freeze slot/part/token surface + final baseline + phase gate (API-04, API-05)
 
 ### Phase 3: Reliability & Leak Fixes
