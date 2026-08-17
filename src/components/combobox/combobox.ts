@@ -6,6 +6,8 @@ import { size as sizeMiddleware } from '@floating-ui/dom';
 import { resetStyles } from '../../styles/reset.css.js';
 import { requestAssociatedFormSubmit } from '../../utilities/form-actions.js';
 import { FloatingPositionController } from '../../internal/controllers/floating-position.js';
+import { ListboxNavController } from '../../internal/controllers/listbox-nav.js';
+import { filterOptions } from '../../internal/controllers/option-filter.js';
 
 export type ComboboxSize = 'sm' | 'md' | 'lg';
 
@@ -108,6 +110,29 @@ export class AmCombobox extends LitElement {
         },
       }),
     ],
+  });
+
+  /**
+   * Listbox keyboard navigation delegated to the shared controller. It reads
+   * and writes this component's own `_highlightedIndex` / `_open` state and
+   * navigates over the same client-filtered list the input renders. The Enter
+   * fallback (form submit) and option selection stay host-owned via callbacks.
+   */
+  private _listboxNav = new ListboxNavController(this, {
+    getOptions: () => filterOptions(this._allOptions, this.value, this.remote),
+    getIndex: () => this._highlightedIndex,
+    setIndex: (index: number) => { this._highlightedIndex = index; },
+    getOpen: () => this._open,
+    setOpen: (open: boolean) => { this._open = open; },
+    onSelect: (option: string) => this._selectOption(option),
+    onEnterWithoutSelection: (e: KeyboardEvent) => {
+      requestAssociatedFormSubmit(this, {
+        event: e,
+        internals: this.internals,
+        disabled: this.disabled,
+        readonly: this.readonly,
+      });
+    },
   });
 
   constructor() {
@@ -455,52 +480,7 @@ export class AmCombobox extends LitElement {
   }
 
   private _handleKeydown(e: KeyboardEvent) {
-    const filtered = this.remote
-      ? this._allOptions
-      : this._allOptions.filter(o => o.toLowerCase().includes(this.value.toLowerCase()));
-
-    switch (e.key) {
-      case 'ArrowDown':
-        e.preventDefault();
-        if (!this._open) {
-          this._open = true;
-        }
-        this._highlightedIndex = Math.min(this._highlightedIndex + 1, filtered.length - 1);
-        break;
-
-      case 'ArrowUp':
-        e.preventDefault();
-        this._highlightedIndex = Math.max(this._highlightedIndex - 1, 0);
-        break;
-
-      case 'Enter':
-        if (this._open && this._highlightedIndex >= 0 && this._highlightedIndex < filtered.length) {
-          e.preventDefault();
-          this._selectOption(filtered[this._highlightedIndex]);
-          break;
-        }
-
-        requestAssociatedFormSubmit(this, {
-          event: e,
-          internals: this.internals,
-          disabled: this.disabled,
-          readonly: this.readonly,
-        });
-        break;
-
-      case 'Escape':
-        if (this._open) {
-          e.preventDefault();
-          this._open = false;
-          this._highlightedIndex = -1;
-        }
-        break;
-
-      case 'Tab':
-        this._open = false;
-        this._highlightedIndex = -1;
-        break;
-    }
+    this._listboxNav.handleKeydown(e);
   }
 
   private _selectOption(option: string) {
@@ -551,9 +531,9 @@ export class AmCombobox extends LitElement {
   }
 
   private get _selectFilteredOptions(): string[] {
-    if (!this._dropdownQuery) return this._allOptions;
-    const q = this._dropdownQuery.toLowerCase();
-    return this._allOptions.filter(o => o.toLowerCase().includes(q));
+    // Select-mode search is always client-side (never remote); an empty query
+    // matches everything, preserving the prior "return all when blank" behavior.
+    return filterOptions(this._allOptions, this._dropdownQuery, false);
   }
 
   private _toggleSelect() {
@@ -585,9 +565,7 @@ export class AmCombobox extends LitElement {
     const hasLabel = !!this.label;
     const floated = hasLabel && this._floated;
     // In remote mode, show all options as-is (server already filtered them)
-    const filteredOptions = this.remote
-      ? this._allOptions
-      : this._allOptions.filter(o => o.toLowerCase().includes(this.value.toLowerCase()));
+    const filteredOptions = filterOptions(this._allOptions, this.value, this.remote);
 
     const wrapperClasses = [
       'wrapper',
