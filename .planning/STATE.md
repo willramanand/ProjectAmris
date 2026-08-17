@@ -117,7 +117,7 @@ None yet.
 - Validation UX policy (hint-text vs error-text precedence, error-clearing) is undecided — settle during Phase 4 spec.
 - No form-associated control implements ElementInternals.setValidity — TEST-02 required-field validation deferred to Phase 4 (validation-UX policy)
 - am-search-field and am-file-upload are NOT form-associated (no ElementInternals; file-upload has no name) — do not participate in FormData. Finding for validation/form phase.
-- 02-06: pre-existing tsc --noEmit errors in data-grid.ts (unused _toggleRow params, from commit 2f20e2f/02-04) block a clean full-project typecheck; logged to deferred-items.md, fix before Plan 09 freeze / npm run build
+- ~~02-06: pre-existing tsc --noEmit errors in data-grid.ts (unused _toggleRow params, from commit 2f20e2f/02-04)~~ **RESOLVED** in commit bbe853e — params underscore-prefixed; `tsc --noEmit` exit 0.
 
 ## Deferred Items
 
