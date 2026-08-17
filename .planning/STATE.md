@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 02
 current_phase_name: api-cleanup-cem-baseline
 status: executing
-stopped_at: Completed 02-05-PLAN.md
-last_updated: "2026-08-17T04:16:44.785Z"
+stopped_at: Completed 02-06-PLAN.md
+last_updated: "2026-08-17T04:26:09.701Z"
 last_activity: 2026-08-16
 last_activity_desc: Phase 02 execution started
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 17
-  completed_plans: 13
+  completed_plans: 14
   percent: 17
 ---
 
@@ -29,11 +29,11 @@ See: .planning/PROJECT.md (updated 2026-08-10)
 ## Current Position
 
 Phase: 02 (api-cleanup-cem-baseline) — EXECUTING
-Plan: 6 of 9
+Plan: 7 of 9
 Status: Ready to execute
 Last activity: 2026-08-16 — Phase 02 execution started
 
-Progress: [████████░░] 76%
+Progress: [████████░░] 82%
 
 ## Performance Metrics
 
@@ -72,6 +72,7 @@ Progress: [████████░░] 76%
 | Phase 02 P03 | 4 | 2 tasks | 7 files |
 | Phase 02 P04 | 4min | 3 tasks | 5 files |
 | Phase 02 P05 | 4min | 2 tasks | 5 files |
+| Phase 02 P06 | 5min | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -98,6 +99,8 @@ Recent decisions affecting current work:
 - [Phase ?]: 02-03: overlay lifecycle events renamed am-show/am-hide -> am-open/am-close on dropdown/popover/context-menu (D-01/D-04 hard rename); one wave Changeset (minor, pre-1.0); baseline re-committed (D-14)
 - [Phase ?]: 02-04: selection events normalized under D-02 change-vs-select split — am-select-option -> am-change (am-option); am-row-select + am-selection-change -> single am-change with aggregate detail { keys } (am-data-grid); old names removed, no alias (D-04); one Changeset; baseline re-committed (D-14)
 - [Phase ?]: 02-05: final rename wave (D-03) — tabs am-tab-change -> am-change; combobox select -> searchInTrigger (search-in-trigger) and async -> remote; expand-state am-toggle preserved; old names removed (D-04); one Changeset; baseline re-committed (D-14)
+- [Phase ?]: 02-06: established non-exported src/internal/ boundary with 3 shared units — FloatingPositionController, ListboxNavController, option-filter pure module; combobox delegates positioning/nav/filtering behavior-preservingly, Phase 1 tests green with zero edits (API-03/D-07/D-08/D-09/D-10)
+- [Phase ?]: 02-06: option-filter is a pure module not a controller (D-07 — stateless); ListboxNav operates on host's _highlightedIndex via callbacks to keep it observable @state and preserve un-clamp-on-replace; autoUpdate left ungated (Phase 3 FIX-02 / Phase 4 PERF-04 seams preserved)
 
 ### Pending Todos
 
@@ -114,6 +117,7 @@ None yet.
 - Validation UX policy (hint-text vs error-text precedence, error-clearing) is undecided — settle during Phase 4 spec.
 - No form-associated control implements ElementInternals.setValidity — TEST-02 required-field validation deferred to Phase 4 (validation-UX policy)
 - am-search-field and am-file-upload are NOT form-associated (no ElementInternals; file-upload has no name) — do not participate in FormData. Finding for validation/form phase.
+- 02-06: pre-existing tsc --noEmit errors in data-grid.ts (unused _toggleRow params, from commit 2f20e2f/02-04) block a clean full-project typecheck; logged to deferred-items.md, fix before Plan 09 freeze / npm run build
 
 ## Deferred Items
 
@@ -125,6 +129,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-17T04:16:36.289Z
-Stopped at: Completed 02-05-PLAN.md
+Last session: 2026-08-17T04:25:53.396Z
+Stopped at: Completed 02-06-PLAN.md
 Resume file: None
