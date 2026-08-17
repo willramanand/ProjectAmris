@@ -60,6 +60,7 @@
     "build": "tsc && vite build && tsc -p tsconfig.types.json && npm run build:manifest && npm run build:tokens-css",
     "build:manifest": "cem analyze --config custom-elements-manifest.config.js",
     "build:tokens-css": "node scripts/build-tokens-css.mjs",
+    "diff:surface": "node scripts/cem-diff.mjs api/custom-elements.baseline.json dist/custom-elements.json",
     "changeset": "changeset",
     "version": "changeset version",
     "release": "npm run build && changeset publish",

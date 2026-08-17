@@ -69,7 +69,7 @@ jobs:
       # phase — NOT continue-on-error — so Phase 6's enforcing flip is a one-line
       # script change, not a workflow edit.
       - name: Surface diff (report-only)
-        run: node scripts/cem-diff.mjs api/custom-elements.baseline.json dist/custom-elements.json
+        run: npm run diff:surface
 
   size:
     runs-on: ubuntu-latest
