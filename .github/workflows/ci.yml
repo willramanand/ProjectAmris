@@ -50,6 +50,27 @@ jobs:
       - name: Browser lane (real ElementInternals + in-browser axe)
         run: npm run test:browser
 
+  surface-diff:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Build manifest
+        run: npm run build:manifest # emits dist/custom-elements.json
+
+      # Report-only surface diff (D-13). The script itself always exits 0 this
+      # phase — NOT continue-on-error — so Phase 6's enforcing flip is a one-line
+      # script change, not a workflow edit.
+      - name: Surface diff (report-only)
+        run: node scripts/cem-diff.mjs api/custom-elements.baseline.json dist/custom-elements.json
+
   size:
     runs-on: ubuntu-latest
     steps:
