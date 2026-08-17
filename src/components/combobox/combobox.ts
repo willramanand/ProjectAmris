@@ -2,9 +2,10 @@ import { LitElement, css, html, nothing, type PropertyValues } from 'lit';
 import { customElement, property, query, state } from 'lit/decorators.js';
 import { live } from 'lit/directives/live.js';
 import { repeat } from 'lit/directives/repeat.js';
-import { computePosition, autoUpdate, flip, shift, offset, size as sizeMiddleware } from '@floating-ui/dom';
+import { size as sizeMiddleware } from '@floating-ui/dom';
 import { resetStyles } from '../../styles/reset.css.js';
 import { requestAssociatedFormSubmit } from '../../utilities/form-actions.js';
+import { FloatingPositionController } from '../../internal/controllers/floating-position.js';
 
 export type ComboboxSize = 'sm' | 'md' | 'lg';
 
@@ -85,7 +86,29 @@ export class AmCombobox extends LitElement {
   @query('.dropdown-search') private _dropdownSearchEl!: HTMLInputElement;
 
   private internals: ElementInternals;
-  private _cleanupAutoUpdate: (() => void) | null = null;
+
+  /**
+   * Floating positioning delegated to the shared controller. Options mirror the
+   * component's previous inline setup exactly: anchored to `.wrapper`, fixed
+   * strategy, 4px offset, plus a `size` middleware that matches the listbox
+   * width to the reference. autoUpdate stays ungated (behavior-preserving).
+   */
+  private _floatingController = new FloatingPositionController(this, {
+    reference: () => this.shadowRoot?.querySelector('.wrapper') as HTMLElement | null,
+    floating: () => this.listboxEl,
+    placement: 'bottom-start',
+    strategy: 'fixed',
+    offset: 4,
+    middleware: [
+      sizeMiddleware({
+        apply({ rects, elements }) {
+          Object.assign(elements.floating.style, {
+            width: `${rects.reference.width}px`,
+          });
+        },
+      }),
+    ],
+  });
 
   constructor() {
     super();
@@ -364,9 +387,9 @@ export class AmCombobox extends LitElement {
 
   disconnectedCallback() {
     super.disconnectedCallback();
+    // The floating autoUpdate teardown is mirrored in the controller's
+    // hostDisconnected (invoked during super.disconnectedCallback above).
     document.removeEventListener('click', this._handleDocumentClick);
-    this._cleanupAutoUpdate?.();
-    this._cleanupAutoUpdate = null;
   }
 
   protected updated(changed: PropertyValues) {
@@ -381,20 +404,12 @@ export class AmCombobox extends LitElement {
     if (changed.has('_open')) {
       if (this._open) {
         document.addEventListener('click', this._handleDocumentClick);
-        this._startAutoUpdate();
+        this._floatingController.start();
       } else {
         document.removeEventListener('click', this._handleDocumentClick);
-        this._cleanupAutoUpdate?.();
-        this._cleanupAutoUpdate = null;
+        this._floatingController.stop();
       }
     }
-  }
-
-  private _startAutoUpdate() {
-    this._cleanupAutoUpdate?.();
-    const wrapper = this.shadowRoot?.querySelector('.wrapper') as HTMLElement;
-    if (!wrapper || !this.listboxEl) return;
-    this._cleanupAutoUpdate = autoUpdate(wrapper, this.listboxEl, () => this._updatePosition());
   }
 
   private _handleDocumentClick = (e: MouseEvent) => {
@@ -559,34 +574,6 @@ export class AmCombobox extends LitElement {
         this.inputEl?.focus();
       }
     }
-  }
-
-  private async _updatePosition() {
-    const wrapper = this.shadowRoot?.querySelector('.wrapper') as HTMLElement;
-    if (!wrapper || !this.listboxEl) return;
-
-    const { x, y } = await computePosition(
-      wrapper,
-      this.listboxEl,
-      {
-        placement: 'bottom-start',
-        strategy: 'fixed',
-        middleware: [
-          offset(4),
-          flip(),
-          shift({ padding: 8 }),
-          sizeMiddleware({
-            apply({ rects, elements }) {
-              Object.assign(elements.floating.style, {
-                width: `${rects.reference.width}px`,
-              });
-            },
-          }),
-        ],
-      }
-    );
-
-    Object.assign(this.listboxEl.style, { left: `${x}px`, top: `${y}px` });
   }
 
   /** Programmatically focus the input. */
