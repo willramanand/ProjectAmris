@@ -1,7 +1,8 @@
 import { LitElement, css, html, nothing, type PropertyValues } from 'lit';
 import { customElement, property, query, state } from 'lit/decorators.js';
-import { computePosition, autoUpdate, flip, shift, offset } from '@floating-ui/dom';
 import { resetStyles } from '../../styles/reset.css.js';
+import { FloatingPositionController } from '../../internal/controllers/floating-position.js';
+import { clampDay, daysInMonth, formatDate, parseDate } from '../../internal/helpers/date-utils.js';
 import '../calendar/calendar.js';
 
 export type DatePickerSize = 'sm' | 'md' | 'lg';
@@ -56,8 +57,21 @@ export class AmDatePicker extends LitElement {
   @query('.dropdown') private _dropdown!: HTMLElement;
 
   private _internals: ElementInternals;
-  private _cleanupAutoUpdate: (() => void) | null = null;
   private _bufferTimer: ReturnType<typeof setTimeout> | null = null;
+
+  /**
+   * Dropdown positioning delegated to the shared controller. Options mirror the
+   * previous inline setup exactly: anchored to `.wrapper`, `.dropdown` floating,
+   * bottom-start, fixed strategy, 4px offset, no extra middleware. autoUpdate
+   * stays ungated (behavior-preserving, D-10).
+   */
+  private _floatingController = new FloatingPositionController(this, {
+    reference: () => this._wrapper,
+    floating: () => this._dropdown,
+    placement: 'bottom-start',
+    strategy: 'fixed',
+    offset: 4,
+  });
 
   constructor() {
     super();
@@ -264,8 +278,8 @@ export class AmDatePicker extends LitElement {
   disconnectedCallback() {
     super.disconnectedCallback();
     document.removeEventListener('click', this._handleOutsideClick);
-    this._cleanupAutoUpdate?.();
-    this._cleanupAutoUpdate = null;
+    // The floating autoUpdate teardown is mirrored in the controller's
+    // hostDisconnected (invoked during super.disconnectedCallback above).
     if (this._bufferTimer) clearTimeout(this._bufferTimer);
   }
 
@@ -277,19 +291,12 @@ export class AmDatePicker extends LitElement {
     if (changed.has('_open')) {
       if (this._open) {
         document.addEventListener('click', this._handleOutsideClick);
-        this._startAutoUpdate();
+        this._floatingController.start();
       } else {
         document.removeEventListener('click', this._handleOutsideClick);
-        this._cleanupAutoUpdate?.();
-        this._cleanupAutoUpdate = null;
+        this._floatingController.stop();
       }
     }
-  }
-
-  private _startAutoUpdate() {
-    this._cleanupAutoUpdate?.();
-    if (!this._wrapper || !this._dropdown) return;
-    this._cleanupAutoUpdate = autoUpdate(this._wrapper, this._dropdown, () => this._updatePosition());
   }
 
   private _handleOutsideClick = (e: MouseEvent) => {
@@ -301,7 +308,7 @@ export class AmDatePicker extends LitElement {
   /* ---- Value parsing / formatting ---- */
 
   private _daysInMonth(month: number, year: number): number {
-    return new Date(year, month, 0).getDate();
+    return daysInMonth(month, year);
   }
 
   private _parseValue() {
@@ -309,25 +316,21 @@ export class AmDatePicker extends LitElement {
       this._hasValue = false;
       return;
     }
-    const match = this.value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-    if (match) {
-      this._year = parseInt(match[1], 10);
-      this._month = Math.max(1, Math.min(12, parseInt(match[2], 10)));
-      this._day = Math.max(1, Math.min(this._daysInMonth(this._month, this._year), parseInt(match[3], 10)));
+    const parsed = parseDate(this.value);
+    if (parsed) {
+      this._year = parsed.year;
+      this._month = parsed.month;
+      this._day = parsed.day;
       this._hasValue = true;
     }
   }
 
   private _formatValue(): string {
-    const yyyy = String(this._year).padStart(4, '0');
-    const mm = String(this._month).padStart(2, '0');
-    const dd = String(this._day).padStart(2, '0');
-    return `${yyyy}-${mm}-${dd}`;
+    return formatDate(this._year, this._month, this._day);
   }
 
   private _clampDay() {
-    const maxDay = this._daysInMonth(this._month, this._year);
-    if (this._day > maxDay) this._day = maxDay;
+    this._day = clampDay(this._day, this._month, this._year);
   }
 
   private _emitChange() {
@@ -532,18 +535,6 @@ export class AmDatePicker extends LitElement {
     this._open = false;
     this.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
     this.dispatchEvent(new Event('change', { bubbles: true, composed: true }));
-  }
-
-  /* ---- Floating UI ---- */
-
-  private async _updatePosition() {
-    if (!this._wrapper || !this._dropdown) return;
-    const { x, y } = await computePosition(this._wrapper, this._dropdown, {
-      placement: 'bottom-start',
-      strategy: 'fixed',
-      middleware: [offset(4), flip(), shift({ padding: 8 })],
-    });
-    Object.assign(this._dropdown.style, { left: `${x}px`, top: `${y}px` });
   }
 
   /* ---- Rendering ---- */
