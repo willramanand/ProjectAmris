@@ -299,6 +299,8 @@ export type ToastPlacement = 'top-center' | 'top-right' | 'bottom-center' | 'bot
  *
  * @slot - Toast elements
  *
+ * @cssprop --am-z-toast - Stacking order (z-index) of the toast region; defaults to 1500 (same layer as tooltips)
+ *
  * @example
  * ```html
  * <am-toast-region placement="bottom-center"></am-toast-region>
