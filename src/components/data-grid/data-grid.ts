@@ -230,7 +230,7 @@ export class AmDataGrid extends LitElement {
     }));
   }
 
-  private _toggleRow(row: Record<string, unknown>, id: RowKey, originalIndex: number) {
+  private _toggleRow(_row: Record<string, unknown>, id: RowKey, _originalIndex: number) {
     if (!this.selectable) return;
 
     const current = this._selectionSet;
