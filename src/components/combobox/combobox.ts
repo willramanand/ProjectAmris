@@ -12,7 +12,7 @@ export type ComboboxSize = 'sm' | 'md' | 'lg';
  * Combobox — a text input with a filterable dropdown list.
  * Typing filters the available options; selecting an option sets the value.
  *
- * When `async` is set, client-side filtering is disabled. Instead, the
+ * When `remote` is set, client-side filtering is disabled. Instead, the
  * component fires `am-search` events and expects the consumer to update
  * the `options` property with results from an external source.
  *
@@ -29,9 +29,9 @@ export type ComboboxSize = 'sm' | 'md' | 'lg';
  * <am-combobox label="Country" .options=${['Canada', 'Chile', 'China']}></am-combobox>
  * ```
  *
- * @example Async mode
+ * @example Remote mode
  * ```html
- * <am-combobox async label="Search users" placeholder="Type a name..."></am-combobox>
+ * <am-combobox remote label="Search users" placeholder="Type a name..."></am-combobox>
  * <script>
  *   const cb = document.querySelector('am-combobox');
  *   cb.addEventListener('am-search', async (e) => {
@@ -60,7 +60,7 @@ export class AmCombobox extends LitElement {
   @property({ type: Boolean, reflect: true }) required = false;
 
   /** When true, disables client-side filtering and fires `am-search` events instead. */
-  @property({ type: Boolean, reflect: true }) async = false;
+  @property({ type: Boolean, reflect: true }) remote = false;
 
   /** Shows a loading spinner (useful in async mode while fetching results). */
   @property({ type: Boolean, reflect: true }) loading = false;
@@ -69,7 +69,7 @@ export class AmCombobox extends LitElement {
   @property({ type: Number, attribute: 'min-chars' }) minChars = 1;
 
   /** When true, uses a select-style trigger with search inside the dropdown. */
-  @property({ type: Boolean, reflect: true }) select = false;
+  @property({ type: Boolean, reflect: true, attribute: 'search-in-trigger' }) searchInTrigger = false;
 
   /** List of available options. Set via property, not attribute. */
   @property({ type: Array }) options: string[] = [];
@@ -373,8 +373,8 @@ export class AmCombobox extends LitElement {
     if (changed.has('value')) {
       this.internals.setFormValue(this.value);
     }
-    // In async mode, open the dropdown when new options arrive while focused
-    if (this.async && changed.has('options') && this.options.length > 0 && this._focused) {
+    // In remote mode, open the dropdown when new options arrive while focused
+    if (this.remote && changed.has('options') && this.options.length > 0 && this._focused) {
       this._open = true;
       this._highlightedIndex = -1;
     }
@@ -410,7 +410,7 @@ export class AmCombobox extends LitElement {
     this.value = input.value;
     this._highlightedIndex = -1;
 
-    if (this.async) {
+    if (this.remote) {
       if (this.value.length >= this.minChars) {
         this.dispatchEvent(new CustomEvent('am-search', { detail: { query: this.value }, bubbles: true, composed: true }));
       } else {
@@ -426,7 +426,7 @@ export class AmCombobox extends LitElement {
 
   private _handleFocus() {
     this._focused = true;
-    if (this.async) {
+    if (this.remote) {
       if (this._allOptions.length > 0 && this.value.length >= this.minChars) {
         this._open = true;
       }
@@ -440,7 +440,7 @@ export class AmCombobox extends LitElement {
   }
 
   private _handleKeydown(e: KeyboardEvent) {
-    const filtered = this.async
+    const filtered = this.remote
       ? this._allOptions
       : this._allOptions.filter(o => o.toLowerCase().includes(this.value.toLowerCase()));
 
@@ -493,8 +493,8 @@ export class AmCombobox extends LitElement {
     this._open = false;
     this._highlightedIndex = -1;
     this._dropdownQuery = '';
-    if (!this.select) this.inputEl?.focus();
-    if (!this.select && this.inputEl) {
+    if (!this.searchInTrigger) this.inputEl?.focus();
+    if (!this.searchInTrigger && this.inputEl) {
       this.inputEl.value = this.value;
       this.inputEl.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
       this.inputEl.dispatchEvent(new Event('change', { bubbles: true, composed: true }));
@@ -553,7 +553,7 @@ export class AmCombobox extends LitElement {
 
   private _handleWrapperClick() {
     if (!this.disabled && !this.readonly) {
-      if (this.select) {
+      if (this.searchInTrigger) {
         this._toggleSelect();
       } else {
         this.inputEl?.focus();
@@ -593,12 +593,12 @@ export class AmCombobox extends LitElement {
   focus(options?: FocusOptions) { this.inputEl?.focus(options); }
 
   render() {
-    if (this.select) return this._renderSelectMode();
+    if (this.searchInTrigger) return this._renderSelectMode();
 
     const hasLabel = !!this.label;
     const floated = hasLabel && this._floated;
-    // In async mode, show all options as-is (server already filtered them)
-    const filteredOptions = this.async
+    // In remote mode, show all options as-is (server already filtered them)
+    const filteredOptions = this.remote
       ? this._allOptions
       : this._allOptions.filter(o => o.toLowerCase().includes(this.value.toLowerCase()));
 

@@ -203,7 +203,7 @@ export class AmTabPanel extends LitElement {
  *
  * @csspart nav - The tab navigation bar
  *
- * @fires am-tab-change - Fires when the active tab changes with { panel } detail
+ * @fires am-change - Fires when the active tab changes with { panel } detail
  *
  * @example
  * ```html
@@ -373,7 +373,7 @@ export class AmTabs extends LitElement {
     if (panel === this.activePanel) return;
     this.activePanel = panel;
     this._syncTabs();
-    this.dispatchEvent(new CustomEvent('am-tab-change', { detail: { panel }, bubbles: true, composed: true }));
+    this.dispatchEvent(new CustomEvent('am-change', { detail: { panel }, bubbles: true, composed: true }));
   }
 
   private _handleSlotChange() {

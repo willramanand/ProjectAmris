@@ -6,11 +6,11 @@ import { click, fixture, getMockInternals, inputText, keydown, oneEvent, shadowQ
 type ComboboxEl = HTMLElement & {
   value: string;
   options: string[];
-  async: boolean;
+  remote: boolean;
   loading: boolean;
   disabled: boolean;
   readonly: boolean;
-  select: boolean;
+  searchInTrigger: boolean;
 };
 
 const FRUITS = ['Apple', 'Apricot', 'Banana', 'Blueberry', 'Cherry'];
@@ -114,8 +114,8 @@ describe('am-combobox', () => {
     expect(listbox?.classList.contains('open')).toBe(false);
   });
 
-  it('does not filter and emits am-search in async mode', async () => {
-    const el = await makeCombobox('async');
+  it('does not filter and emits am-search in remote mode', async () => {
+    const el = await makeCombobox('remote');
     const input = getInput(el);
 
     input.focus();

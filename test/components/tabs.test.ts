@@ -36,12 +36,12 @@ describe('am-tabs', () => {
     expect(panels[1].active).toBe(false);
   });
 
-  it('switches tab on click and emits am-tab-change', async () => {
+  it('switches tab on click and emits am-change', async () => {
     const element = await createTabs();
 
     const tabs = element.querySelectorAll('am-tab') as NodeListOf<HTMLElement>;
 
-    const eventPromise = oneEvent<{ panel: string }>(element, 'am-tab-change');
+    const eventPromise = oneEvent<{ panel: string }>(element, 'am-change');
     await click(tabs[1], element);
     const event = await eventPromise;
 
@@ -88,7 +88,7 @@ describe('am-tabs', () => {
 
     const tabs = element.querySelectorAll('am-tab') as NodeListOf<HTMLElement>;
 
-    const eventPromise = oneEvent<{ panel: string }>(element, 'am-tab-change');
+    const eventPromise = oneEvent<{ panel: string }>(element, 'am-change');
     await keydown(tabs[0], 'ArrowRight', element);
     const event = await eventPromise;
 
@@ -104,7 +104,7 @@ describe('am-tabs', () => {
     await click(tabs[1], element);
     expect(element.activePanel).toBe('two');
 
-    const eventPromise = oneEvent<{ panel: string }>(element, 'am-tab-change');
+    const eventPromise = oneEvent<{ panel: string }>(element, 'am-change');
     await keydown(tabs[1], 'ArrowLeft', element);
     const event = await eventPromise;
 
@@ -121,7 +121,7 @@ describe('am-tabs', () => {
     expect(element.activePanel).toBe('two');
 
     // ArrowRight should wrap to first tab (skipping disabled tab three)
-    const eventPromise = oneEvent<{ panel: string }>(element, 'am-tab-change');
+    const eventPromise = oneEvent<{ panel: string }>(element, 'am-change');
     await keydown(tabs[1], 'ArrowRight', element);
     const event = await eventPromise;
 
@@ -137,7 +137,7 @@ describe('am-tabs', () => {
     await click(tabs[1], element);
     expect(element.activePanel).toBe('two');
 
-    const eventPromise = oneEvent<{ panel: string }>(element, 'am-tab-change');
+    const eventPromise = oneEvent<{ panel: string }>(element, 'am-change');
     await keydown(tabs[1], 'Home', element);
     const event = await eventPromise;
 
@@ -150,7 +150,7 @@ describe('am-tabs', () => {
     const tabs = element.querySelectorAll('am-tab') as NodeListOf<HTMLElement>;
 
     // End should go to last enabled tab (tab two, since three is disabled)
-    const eventPromise = oneEvent<{ panel: string }>(element, 'am-tab-change');
+    const eventPromise = oneEvent<{ panel: string }>(element, 'am-change');
     await keydown(tabs[0], 'End', element);
     const event = await eventPromise;
 
@@ -166,7 +166,7 @@ describe('am-tabs', () => {
     const tabs = element.querySelectorAll('am-tab') as NodeListOf<HTMLElement>;
 
     // ArrowDown should navigate forward in vertical mode
-    const eventPromise = oneEvent<{ panel: string }>(element, 'am-tab-change');
+    const eventPromise = oneEvent<{ panel: string }>(element, 'am-change');
     await keydown(tabs[0], 'ArrowDown', element);
     const event = await eventPromise;
 
@@ -182,7 +182,7 @@ describe('am-tabs', () => {
     await click(tabs[1], element);
     expect(element.activePanel).toBe('two');
 
-    const eventPromise = oneEvent<{ panel: string }>(element, 'am-tab-change');
+    const eventPromise = oneEvent<{ panel: string }>(element, 'am-change');
     await keydown(tabs[1], 'ArrowUp', element);
     const event = await eventPromise;
 
@@ -212,12 +212,12 @@ describe('am-tabs', () => {
     expect(tabs[1].selected).toBe(true);
   });
 
-  it('does not emit am-tab-change when clicking already active tab', async () => {
+  it('does not emit am-change when clicking already active tab', async () => {
     const element = await createTabs();
 
     const tabs = element.querySelectorAll('am-tab') as NodeListOf<HTMLElement>;
     let fired = false;
-    element.addEventListener('am-tab-change', () => { fired = true; });
+    element.addEventListener('am-change', () => { fired = true; });
 
     // Click the already-active first tab
     await click(tabs[0], element);
