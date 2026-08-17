@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 02
 current_phase_name: api-cleanup-cem-baseline
 status: executing
-stopped_at: Completed 02-03-PLAN.md
-last_updated: "2026-08-17T03:48:33.160Z"
+stopped_at: Completed 02-04-PLAN.md
+last_updated: "2026-08-17T04:07:58.148Z"
 last_activity: 2026-08-16
 last_activity_desc: Phase 02 execution started
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 17
-  completed_plans: 11
+  completed_plans: 12
   percent: 17
 ---
 
@@ -29,11 +29,11 @@ See: .planning/PROJECT.md (updated 2026-08-10)
 ## Current Position
 
 Phase: 02 (api-cleanup-cem-baseline) — EXECUTING
-Plan: 4 of 9
+Plan: 5 of 9
 Status: Ready to execute
 Last activity: 2026-08-16 — Phase 02 execution started
 
-Progress: [███████░░░] 65%
+Progress: [███████░░░] 71%
 
 ## Performance Metrics
 
@@ -70,6 +70,7 @@ Progress: [███████░░░] 65%
 | Phase 02 P01 | 3 | 3 tasks | 5 files |
 | Phase 02 P02 | 14 | 3 tasks | 2 files |
 | Phase 02 P03 | 4 | 2 tasks | 7 files |
+| Phase 02 P04 | 4min | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -94,6 +95,7 @@ Recent decisions affecting current work:
 - [Phase ?]: 02-02: Rename mapping rows PENDING-DECISION — targets (open/close, change/select, change/toggle) confirmed at each rename wave checkpoint (Plans 03-05)
 - [Phase ?]: 02-02: Audit gap detector flagged --am-z-toast used in toast css but never defined/@cssprop-tagged — pre-freeze action for Plan 09
 - [Phase ?]: 02-03: overlay lifecycle events renamed am-show/am-hide -> am-open/am-close on dropdown/popover/context-menu (D-01/D-04 hard rename); one wave Changeset (minor, pre-1.0); baseline re-committed (D-14)
+- [Phase ?]: 02-04: selection events normalized under D-02 change-vs-select split — am-select-option -> am-change (am-option); am-row-select + am-selection-change -> single am-change with aggregate detail { keys } (am-data-grid); old names removed, no alias (D-04); one Changeset; baseline re-committed (D-14)
 
 ### Pending Todos
 
@@ -121,6 +123,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-17T03:48:33.149Z
-Stopped at: Completed 02-03-PLAN.md
+Last session: 2026-08-17T04:07:47.282Z
+Stopped at: Completed 02-04-PLAN.md
 Resume file: None
