@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 02
 current_phase_name: api-cleanup-cem-baseline
 status: executing
-stopped_at: Completed 02-06-PLAN.md
-last_updated: "2026-08-17T04:26:09.701Z"
+stopped_at: Completed 02-07-PLAN.md
+last_updated: "2026-08-17T04:39:04.204Z"
 last_activity: 2026-08-16
 last_activity_desc: Phase 02 execution started
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 17
-  completed_plans: 14
+  completed_plans: 15
   percent: 17
 ---
 
@@ -29,11 +29,11 @@ See: .planning/PROJECT.md (updated 2026-08-10)
 ## Current Position
 
 Phase: 02 (api-cleanup-cem-baseline) — EXECUTING
-Plan: 7 of 9
+Plan: 8 of 9
 Status: Ready to execute
 Last activity: 2026-08-16 — Phase 02 execution started
 
-Progress: [████████░░] 82%
+Progress: [█████████░] 88%
 
 ## Performance Metrics
 
@@ -73,6 +73,7 @@ Progress: [████████░░] 82%
 | Phase 02 P04 | 4min | 3 tasks | 5 files |
 | Phase 02 P05 | 4min | 2 tasks | 5 files |
 | Phase 02 P06 | 5min | 3 tasks | 4 files |
+| Phase 02 P07 | 4min | 3 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -101,6 +102,8 @@ Recent decisions affecting current work:
 - [Phase ?]: 02-05: final rename wave (D-03) — tabs am-tab-change -> am-change; combobox select -> searchInTrigger (search-in-trigger) and async -> remote; expand-state am-toggle preserved; old names removed (D-04); one Changeset; baseline re-committed (D-14)
 - [Phase ?]: 02-06: established non-exported src/internal/ boundary with 3 shared units — FloatingPositionController, ListboxNavController, option-filter pure module; combobox delegates positioning/nav/filtering behavior-preservingly, Phase 1 tests green with zero edits (API-03/D-07/D-08/D-09/D-10)
 - [Phase ?]: 02-06: option-filter is a pure module not a controller (D-07 — stateless); ListboxNav operates on host's _highlightedIndex via callbacks to keep it observable @state and preserve un-clamp-on-replace; autoUpdate left ungated (Phase 3 FIX-02 / Phase 4 PERF-04 seams preserved)
+- [Phase ?]: 02-07: select + date-picker delegate dropdown positioning to the shared FloatingPositionController; date-picker date math extracted to pure src/internal/helpers/date-utils.ts (API-03/D-07/D-08). Behavior-preserving — full suite (jsdom+Chromium) green, zero test edits, surface unchanged.
+- [Phase ?]: 02-07: select nav kept inline and no shared controller edited — select's element-based wraparound keyboard nav is a different model from combobox's string-clamp ListboxNav, and select has no option filtering; delegating only genuine (positioning) duplication keeps combobox untouched (D-08/A3 discretion).
 
 ### Pending Todos
 
@@ -129,6 +132,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-17T04:25:53.396Z
-Stopped at: Completed 02-06-PLAN.md
+Last session: 2026-08-17T04:38:50.864Z
+Stopped at: Completed 02-07-PLAN.md
 Resume file: None
