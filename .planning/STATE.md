@@ -5,16 +5,16 @@ milestone_name: milestone
 current_phase: 02
 current_phase_name: api-cleanup-cem-baseline
 status: executing
-stopped_at: Completed 02-08-PLAN.md
-last_updated: "2026-08-17T04:43:42.524Z"
-last_activity: 2026-08-16
+stopped_at: Completed 02-09-PLAN.md (phase 02 closing gate — surface FROZEN)
+last_updated: "2026-08-17T22:45:32.648Z"
+last_activity: 2026-08-17
 last_activity_desc: Phase 02 execution started
 progress:
   total_phases: 6
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 17
-  completed_plans: 16
-  percent: 17
+  completed_plans: 17
+  percent: 33
 ---
 
 # Project State
@@ -28,12 +28,12 @@ See: .planning/PROJECT.md (updated 2026-08-10)
 
 ## Current Position
 
-Phase: 02 (api-cleanup-cem-baseline) — EXECUTING
-Plan: 9 of 9
-Status: Ready to execute
-Last activity: 2026-08-16 — Phase 02 execution started
+Phase: 02 (api-cleanup-cem-baseline) — COMPLETE
+Plan: 9 of 9 (all plans complete)
+Status: Phase 02 complete — surface FROZEN, final baseline committed
+Last activity: 2026-08-17 — Phase 02 closing gate executed (02-09)
 
-Progress: [█████████░] 94%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -75,6 +75,7 @@ Progress: [█████████░] 94%
 | Phase 02 P06 | 5min | 3 tasks | 4 files |
 | Phase 02 P07 | 4min | 3 tasks | 3 files |
 | Phase 02 P08 | 3min | 2 tasks | 2 files |
+| Phase 02 P09 | 6min | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -106,6 +107,7 @@ Recent decisions affecting current work:
 - [Phase ?]: 02-07: select + date-picker delegate dropdown positioning to the shared FloatingPositionController; date-picker date math extracted to pure src/internal/helpers/date-utils.ts (API-03/D-07/D-08). Behavior-preserving — full suite (jsdom+Chromium) green, zero test edits, surface unchanged.
 - [Phase ?]: 02-07: select nav kept inline and no shared controller edited — select's element-based wraparound keyboard nav is a different model from combobox's string-clamp ListboxNav, and select has no option filtering; delegating only genuine (positioning) duplication keeps combobox untouched (D-08/A3 discretion).
 - [Phase ?]: 02-08: time-picker refactored via pure src/internal/helpers/time-utils.ts (parse/format + clock arithmetic, D-07/D-08). No listbox and no @floating-ui/dom, so neither ListboxNavController nor FloatingPositionController applied (Pitfall 5) — completes the Big-4 refactor. Behavior-preserving: full jsdom+Chromium suite green, zero test edits, surface unchanged.
+- [Phase ?]: 02-09: froze public slot/::part()/--am-* token surface (212 global + 54 per-component tokens, 21 slots, 76 parts) as v1.0 contract (D-11); tagged --am-z-toast @cssprop on am-toast-region (freeze-all-documented); final baseline re-committed, diff:surface clean, surface-diff CI stays report-only (D-13)
 
 ### Pending Todos
 
@@ -134,6 +136,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-17T04:43:42.515Z
-Stopped at: Completed 02-08-PLAN.md
+Last session: 2026-08-17T22:45:32.305Z
+Stopped at: Completed 02-09-PLAN.md (phase 02 closing gate — surface FROZEN)
 Resume file: None

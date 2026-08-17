@@ -59,7 +59,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. Slot names, `::part()` names, and `--am-*` tokens are enumerated and treated as frozen public surface.
   5. `api/custom-elements.baseline.json` is committed and a report-only surface diff runs in CI during cleanup.
 
-**Plans**: 8/9 plans executed
+**Plans**: 9/9 plans executed
 **Wave 1**
 
 - [x] 02-01-PLAN.md — Tracer: CEM baseline + report-only surface-diff comparator + comparator unit test + CI job (API-05)
@@ -91,7 +91,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 **Wave 8** *(blocked on Wave 7 completion)*
 
-- [ ] 02-09-PLAN.md — Freeze slot/part/token surface + final baseline + phase gate (API-04, API-05)
+- [x] 02-09-PLAN.md — Freeze slot/part/token surface + final baseline + phase gate (API-04, API-05)
 
 ### Phase 3: Reliability & Leak Fixes
 
@@ -158,7 +158,7 @@ Phase 2 (API cleanup) and Phase 3 (leak fixes) both depend only on Phase 1 and m
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Test Coverage + CI Gates Foundation | 8/8 | Complete    | 2026-08-11 |
-| 2. API Cleanup + CEM Baseline | 8/9 | In Progress|  |
+| 2. API Cleanup + CEM Baseline | 9/9 | In Progress|  |
 | 3. Reliability & Leak Fixes | 0/TBD | Not started | - |
 | 4. Performance & Feature Capabilities | 0/TBD | Not started | - |
 | 5. Documentation | 0/TBD | Not started | - |
