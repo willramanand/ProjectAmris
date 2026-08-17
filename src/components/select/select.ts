@@ -1,7 +1,8 @@
 import { LitElement, css, html, nothing, type PropertyValues } from 'lit';
 import { customElement, property, query, queryAssignedElements, state } from 'lit/decorators.js';
-import { computePosition, autoUpdate, flip, shift, offset, size } from '@floating-ui/dom';
+import { size } from '@floating-ui/dom';
 import { resetStyles } from '../../styles/reset.css.js';
+import { FloatingPositionController } from '../../internal/controllers/floating-position.js';
 
 export type SelectSize = 'sm' | 'md' | 'lg';
 
@@ -203,7 +204,29 @@ export class AmSelect extends LitElement {
 
   private internals: ElementInternals;
   private _documentClickHandler = this._handleDocumentClick.bind(this);
-  private _cleanupAutoUpdate: (() => void) | null = null;
+
+  /**
+   * Floating positioning delegated to the shared controller. Options mirror the
+   * component's previous inline setup exactly: anchored to `.trigger`, fixed
+   * strategy, 4px offset, plus a `size` middleware that matches the listbox
+   * width to the trigger. autoUpdate stays ungated (behavior-preserving, D-10).
+   */
+  private _floatingController = new FloatingPositionController(this, {
+    reference: () => this.triggerEl,
+    floating: () => this.listboxEl,
+    placement: 'bottom-start',
+    strategy: 'fixed',
+    offset: 4,
+    middleware: [
+      size({
+        apply({ rects, elements }) {
+          Object.assign(elements.floating.style, {
+            width: `${rects.reference.width}px`,
+          });
+        },
+      }),
+    ],
+  });
 
   constructor() {
     super();
@@ -439,7 +462,8 @@ export class AmSelect extends LitElement {
     super.disconnectedCallback();
     this.removeEventListener('am-change', this._handleOptionSelect as EventListener);
     document.removeEventListener('click', this._documentClickHandler);
-    this._cleanupAutoUpdate?.();
+    // The floating autoUpdate teardown is mirrored in the controller's
+    // hostDisconnected (invoked during super.disconnectedCallback above).
   }
 
   protected updated(changed: PropertyValues) {
@@ -450,55 +474,18 @@ export class AmSelect extends LitElement {
     if (changed.has('_open')) {
       if (this._open) {
         document.addEventListener('click', this._documentClickHandler);
-        this._startAutoUpdate();
+        this._floatingController.start();
       } else {
         document.removeEventListener('click', this._documentClickHandler);
-        this._cleanupAutoUpdate?.();
-        this._cleanupAutoUpdate = null;
+        this._floatingController.stop();
       }
     }
-  }
-
-  private _startAutoUpdate() {
-    this._cleanupAutoUpdate?.();
-    if (!this.triggerEl || !this.listboxEl) return;
-    this._cleanupAutoUpdate = autoUpdate(this.triggerEl, this.listboxEl, () => this._updatePosition());
   }
 
   private _syncOptionSelected() {
     const options = this._options ?? [];
     options.forEach(opt => {
       opt.selected = opt.value === this.value;
-    });
-  }
-
-  private async _updatePosition() {
-    if (!this.triggerEl || !this.listboxEl) return;
-
-    const { x, y } = await computePosition(
-      this.triggerEl,
-      this.listboxEl,
-      {
-        placement: 'bottom-start',
-        strategy: 'fixed',
-        middleware: [
-          offset(4),
-          flip(),
-          shift({ padding: 8 }),
-          size({
-            apply({ rects, elements }) {
-              Object.assign(elements.floating.style, {
-                width: `${rects.reference.width}px`,
-              });
-            },
-          }),
-        ],
-      },
-    );
-
-    Object.assign(this.listboxEl.style, {
-      left: `${x}px`,
-      top: `${y}px`,
     });
   }
 
