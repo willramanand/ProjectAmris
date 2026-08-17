@@ -373,3 +373,286 @@ checkpoint before landing (D-04 hard rename, no aliases). This plan renames noth
 | `am-tree-view` | `am-toggle` | `am-toggle (keep)` | D-03 expand-state → am-toggle (distinct from value-change) | PENDING-DECISION |
 | `am-combobox` | `select (boolean prop)` | `proposed: `search-in-trigger` / `combo`` | D-03 boolean prop collides with <am-select> element name | PENDING-DECISION |
 | `am-combobox` | `async (boolean prop)` | `proposed: keep or `remote`` | D-03 boolean-naming — `async` reads as a reserved concept | PENDING-DECISION |
+
+## Surface dimension matrices (slot / part / token)
+
+### Slot matrix (`@slot` per component)
+
+| Component | Slots |
+| --------- | ----- |
+| `am-accordion` | (default) |
+| `am-accordion-item` | (default), header |
+| `am-alert` | (default), action, icon |
+| `am-app-shell` | (default), footer, header, sidebar |
+| `am-avatar` | (default) |
+| `am-badge` | (default), prefix |
+| `am-breadcrumb` | (default) |
+| `am-breadcrumb-item` | (default) |
+| `am-button` | — |
+| `am-button-group` | (default) |
+| `am-calendar` | — |
+| `am-card` | (default), footer, header |
+| `am-checkbox` | (default) |
+| `am-color-picker` | — |
+| `am-combobox` | — |
+| `am-command-palette` | — |
+| `am-context-menu` | (default), menu |
+| `am-data-grid` | — |
+| `am-date-picker` | — |
+| `am-dialog` | (default), footer, header |
+| `am-divider` | — |
+| `am-drawer` | (default), footer, header |
+| `am-dropdown` | (default), content |
+| `am-empty-state` | (default), action, heading, icon |
+| `am-error-text` | (default) |
+| `am-field` | (default), error, hint, label |
+| `am-file-upload` | — |
+| `am-grid` | (default) |
+| `am-hint-text` | (default) |
+| `am-icon` | (default) |
+| `am-icon-button` | (default) |
+| `am-input` | prefix, suffix |
+| `am-input-otp` | — |
+| `am-label` | (default) |
+| `am-link-button` | (default), prefix, suffix |
+| `am-list` | (default) |
+| `am-list-item` | (default), description, prefix, suffix |
+| `am-menu` | (default) |
+| `am-menu-divider` | — |
+| `am-menu-item` | (default), prefix, suffix |
+| `am-nav-bar` | (default), actions, brand |
+| `am-number-field` | — |
+| `am-option` | (default) |
+| `am-pagination` | — |
+| `am-panel` | (default), header |
+| `am-popover` | (default), content |
+| `am-progress` | — |
+| `am-progress-ring` | (default) |
+| `am-radio` | (default) |
+| `am-radio-group` | (default) |
+| `am-rich-select` | — |
+| `am-search-field` | — |
+| `am-select` | (default) |
+| `am-side-nav` | (default), footer, header |
+| `am-side-nav-item` | (default), prefix |
+| `am-skeleton` | — |
+| `am-slider` | — |
+| `am-spinner` | — |
+| `am-split-view` | end, start |
+| `am-stack` | (default) |
+| `am-stat` | (default), description, icon, label |
+| `am-status-dot` | (default) |
+| `am-surface` | (default) |
+| `am-switch` | (default) |
+| `am-tab` | (default) |
+| `am-tab-panel` | (default) |
+| `am-table` | (default) |
+| `am-tabs` | (default), nav |
+| `am-textarea` | — |
+| `am-theme-provider` | (default) |
+| `am-time-picker` | — |
+| `am-timeline` | (default) |
+| `am-timeline-item` | (default), heading, icon, timestamp |
+| `am-toast` | (default), icon |
+| `am-toast-region` | (default) |
+| `am-tooltip` | (default) |
+| `am-tree-item` | (default), icon |
+| `am-tree-view` | (default) |
+| `am-visually-hidden` | (default) |
+
+### `::part()` matrix (`@csspart` per component)
+
+| Component | Parts |
+| --------- | ----- |
+| `am-accordion` | — |
+| `am-accordion-item` | body, chevron, header |
+| `am-alert` | action, alert, content, icon |
+| `am-app-shell` | footer, header, main, sidebar |
+| `am-avatar` | fallback, image, initials |
+| `am-badge` | badge, remove |
+| `am-breadcrumb` | nav |
+| `am-breadcrumb-item` | link, separator |
+| `am-button` | — |
+| `am-button-group` | group |
+| `am-calendar` | day, grid, header |
+| `am-card` | body, card, footer, header |
+| `am-checkbox` | control, label |
+| `am-color-picker` | panel, swatch |
+| `am-combobox` | input, label, listbox |
+| `am-command-palette` | dialog, input, item, list |
+| `am-context-menu` | panel |
+| `am-data-grid` | body, cell, header, header-cell, row, table |
+| `am-date-picker` | calendar, input |
+| `am-dialog` | backdrop, body, close, dialog, footer, header |
+| `am-divider` | — |
+| `am-drawer` | body, close, dialog, footer, header |
+| `am-dropdown` | panel |
+| `am-empty-state` | action, body, container, heading, icon |
+| `am-error-text` | — |
+| `am-field` | field |
+| `am-file-upload` | dropzone, file-list |
+| `am-grid` | — |
+| `am-hint-text` | — |
+| `am-icon` | svg |
+| `am-icon-button` | button |
+| `am-input` | clear, input, label, wrapper |
+| `am-input-otp` | cell |
+| `am-label` | label |
+| `am-link-button` | label, link |
+| `am-list` | list |
+| `am-list-item` | content, item, prefix, suffix |
+| `am-menu` | — |
+| `am-menu-divider` | — |
+| `am-menu-item` | — |
+| `am-nav-bar` | actions, brand, items, nav |
+| `am-number-field` | decrement, increment, input |
+| `am-option` | — |
+| `am-pagination` | — |
+| `am-panel` | body, header, panel |
+| `am-popover` | arrow, popover |
+| `am-progress` | fill, track |
+| `am-progress-ring` | fill, track |
+| `am-radio` | control, label |
+| `am-radio-group` | — |
+| `am-rich-select` | listbox, trigger |
+| `am-search-field` | clear, input, wrapper |
+| `am-select` | clear, label, listbox, trigger |
+| `am-side-nav` | nav |
+| `am-side-nav-item` | item |
+| `am-skeleton` | skeleton |
+| `am-slider` | input |
+| `am-spinner` | — |
+| `am-split-view` | divider, end, start |
+| `am-stack` | stack |
+| `am-stat` | description, label, stat, trend, value |
+| `am-status-dot` | dot, label |
+| `am-surface` | surface |
+| `am-switch` | label, thumb, track |
+| `am-tab` | tab |
+| `am-tab-panel` | — |
+| `am-table` | table |
+| `am-tabs` | nav |
+| `am-textarea` | clear, label, textarea, wrapper |
+| `am-theme-provider` | — |
+| `am-time-picker` | input |
+| `am-timeline` | — |
+| `am-timeline-item` | content, dot, item |
+| `am-toast` | toast |
+| `am-toast-region` | — |
+| `am-tooltip` | arrow, tooltip |
+| `am-tree-item` | children, label |
+| `am-tree-view` | — |
+| `am-visually-hidden` | — |
+
+### `--am-*` token matrix (per-component `@cssprop`)
+
+Global semantic tokens are enumerated in the frozen-surface section below; this
+matrix lists the per-component `--am-{component}-*` tokens each element documents.
+
+| Component | Per-component `--am-*` tokens (`@cssprop`) |
+| --------- | ------------------------------------------ |
+| `am-accordion` | — |
+| `am-accordion-item` | — |
+| `am-alert` | --am-alert-radius |
+| `am-app-shell` | --am-app-shell-header-height, --am-app-shell-sidebar-width |
+| `am-avatar` | --am-avatar-radius, --am-avatar-size |
+| `am-badge` | — |
+| `am-breadcrumb` | --am-breadcrumb-separator |
+| `am-breadcrumb-item` | — |
+| `am-button` | --am-button-font-weight, --am-button-radius |
+| `am-button-group` | — |
+| `am-calendar` | — |
+| `am-card` | --am-card-padding, --am-card-radius |
+| `am-checkbox` | — |
+| `am-color-picker` | — |
+| `am-combobox` | — |
+| `am-command-palette` | — |
+| `am-context-menu` | — |
+| `am-data-grid` | — |
+| `am-date-picker` | — |
+| `am-dialog` | --am-dialog-padding, --am-dialog-radius |
+| `am-divider` | --am-divider-color, --am-divider-spacing, --am-divider-width |
+| `am-drawer` | --am-drawer-size |
+| `am-dropdown` | — |
+| `am-empty-state` | — |
+| `am-error-text` | — |
+| `am-field` | --am-field-gap |
+| `am-file-upload` | — |
+| `am-grid` | --am-grid-gap, --am-grid-min |
+| `am-hint-text` | — |
+| `am-icon` | --am-icon-color, --am-icon-size |
+| `am-icon-button` | --am-icon-button-radius |
+| `am-input` | --am-input-radius |
+| `am-input-otp` | — |
+| `am-label` | — |
+| `am-link-button` | --am-button-radius |
+| `am-list` | --am-list-divider |
+| `am-list-item` | — |
+| `am-menu` | — |
+| `am-menu-divider` | — |
+| `am-menu-item` | — |
+| `am-nav-bar` | --am-nav-bar-height, --am-nav-bar-padding |
+| `am-number-field` | — |
+| `am-option` | — |
+| `am-pagination` | — |
+| `am-panel` | --am-panel-padding, --am-panel-radius |
+| `am-popover` | — |
+| `am-progress` | --am-progress-color, --am-progress-radius |
+| `am-progress-ring` | --am-progress-ring-color, --am-progress-ring-size |
+| `am-radio` | — |
+| `am-radio-group` | — |
+| `am-rich-select` | — |
+| `am-search-field` | — |
+| `am-select` | — |
+| `am-side-nav` | --am-side-nav-width |
+| `am-side-nav-item` | — |
+| `am-skeleton` | --am-skeleton-color, --am-skeleton-highlight, --am-skeleton-radius |
+| `am-slider` | — |
+| `am-spinner` | --am-spinner-color, --am-spinner-size, --am-spinner-track, --am-spinner-width |
+| `am-split-view` | --am-split-view-divider-size, --am-split-view-min |
+| `am-stack` | --am-stack-gap |
+| `am-stat` | — |
+| `am-status-dot` | --am-status-dot-color, --am-status-dot-size |
+| `am-surface` | --am-surface-padding, --am-surface-radius |
+| `am-switch` | — |
+| `am-tab` | — |
+| `am-tab-panel` | — |
+| `am-table` | --am-table-radius |
+| `am-tabs` | — |
+| `am-textarea` | --am-textarea-min-height, --am-textarea-radius |
+| `am-theme-provider` | — |
+| `am-time-picker` | — |
+| `am-timeline` | — |
+| `am-timeline-item` | — |
+| `am-toast` | — |
+| `am-toast-region` | — |
+| `am-tooltip` | --am-tooltip-bg, --am-tooltip-color, --am-tooltip-radius |
+| `am-tree-item` | — |
+| `am-tree-view` | — |
+| `am-visually-hidden` | — |
+
+## Frozen public surface (API-04, D-11)
+
+The union below is the surface to be declared frozen at Plan 09. It aggregates all
+documented slots, `::part()`s, global semantic `--am-*` tokens, and per-component
+`--am-{component}-*` `@cssprop` tokens.
+
+- **Global `--am-*` tokens** (212, from src/tokens/{primitives,semantic,dark}.css.ts): `--am-active-overlay`, `--am-border`, `--am-border-0`, `--am-border-1`, `--am-border-2`, `--am-border-strong`, `--am-border-subtle`, `--am-color-danger-100`, `--am-color-danger-200`, `--am-color-danger-300`, `--am-color-danger-400`, `--am-color-danger-50`, `--am-color-danger-500`, `--am-color-danger-600`, `--am-color-danger-700`, `--am-color-danger-800`, `--am-color-danger-900`, `--am-color-danger-950`, `--am-color-info-100`, `--am-color-info-200`, `--am-color-info-300`, `--am-color-info-400`, `--am-color-info-50`, `--am-color-info-500`, `--am-color-info-600`, `--am-color-info-700`, `--am-color-info-800`, `--am-color-info-900`, `--am-color-info-950`, `--am-color-neutral-0`, `--am-color-neutral-100`, `--am-color-neutral-1000`, `--am-color-neutral-150`, `--am-color-neutral-200`, `--am-color-neutral-300`, `--am-color-neutral-400`, `--am-color-neutral-50`, `--am-color-neutral-500`, `--am-color-neutral-600`, `--am-color-neutral-700`, `--am-color-neutral-800`, `--am-color-neutral-850`, `--am-color-neutral-900`, `--am-color-neutral-950`, `--am-color-primary-100`, `--am-color-primary-200`, `--am-color-primary-300`, `--am-color-primary-400`, `--am-color-primary-50`, `--am-color-primary-500`, `--am-color-primary-600`, `--am-color-primary-700`, `--am-color-primary-800`, `--am-color-primary-900`, `--am-color-primary-950`, `--am-color-secondary-100`, `--am-color-secondary-200`, `--am-color-secondary-300`, `--am-color-secondary-400`, `--am-color-secondary-50`, `--am-color-secondary-500`, `--am-color-secondary-600`, `--am-color-secondary-700`, `--am-color-secondary-800`, `--am-color-secondary-900`, `--am-color-secondary-950`, `--am-color-success-100`, `--am-color-success-200`, `--am-color-success-300`, `--am-color-success-400`, `--am-color-success-50`, `--am-color-success-500`, `--am-color-success-600`, `--am-color-success-700`, `--am-color-success-800`, `--am-color-success-900`, `--am-color-success-950`, `--am-color-warning-100`, `--am-color-warning-200`, `--am-color-warning-300`, `--am-color-warning-400`, `--am-color-warning-50`, `--am-color-warning-500`, `--am-color-warning-600`, `--am-color-warning-700`, `--am-color-warning-800`, `--am-color-warning-900`, `--am-color-warning-950`, `--am-danger`, `--am-danger-active`, `--am-danger-hover`, `--am-danger-subtle`, `--am-danger-text`, `--am-disabled-opacity`, `--am-duration-fast`, `--am-duration-instant`, `--am-duration-normal`, `--am-duration-slow`, `--am-duration-slower`, `--am-ease-default`, `--am-ease-in`, `--am-ease-in-out`, `--am-ease-out`, `--am-ease-spring`, `--am-focus-ring`, `--am-focus-ring-offset`, `--am-focus-ring-width`, `--am-font-mono`, `--am-font-sans`, `--am-hover-overlay`, `--am-info`, `--am-info-subtle`, `--am-info-text`, `--am-leading-none`, `--am-leading-normal`, `--am-leading-relaxed`, `--am-leading-snug`, `--am-leading-tight`, `--am-neutral-subtle`, `--am-primary`, `--am-primary-active`, `--am-primary-hover`, `--am-primary-subtle`, `--am-primary-subtle-hover`, `--am-primary-subtle-text`, `--am-primary-text`, `--am-radius-2xl`, `--am-radius-3xl`, `--am-radius-full`, `--am-radius-lg`, `--am-radius-md`, `--am-radius-none`, `--am-radius-sm`, `--am-radius-xl`, `--am-secondary`, `--am-secondary-active`, `--am-secondary-hover`, `--am-secondary-subtle`, `--am-secondary-subtle-hover`, `--am-secondary-text`, `--am-shadow-2xl`, `--am-shadow-lg`, `--am-shadow-md`, `--am-shadow-none`, `--am-shadow-overlay`, `--am-shadow-raised`, `--am-shadow-sm`, `--am-shadow-surface`, `--am-shadow-xl`, `--am-shadow-xs`, `--am-size-lg`, `--am-size-md`, `--am-size-sm`, `--am-space-0`, `--am-space-0-5`, `--am-space-1`, `--am-space-1-5`, `--am-space-10`, `--am-space-12`, `--am-space-16`, `--am-space-2`, `--am-space-2-5`, `--am-space-20`, `--am-space-24`, `--am-space-3`, `--am-space-4`, `--am-space-5`, `--am-space-6`, `--am-space-8`, `--am-space-px`, `--am-success`, `--am-success-subtle`, `--am-success-text`, `--am-surface`, `--am-surface-overlay`, `--am-surface-raised`, `--am-surface-sunken`, `--am-text`, `--am-text-2xl`, `--am-text-3xl`, `--am-text-4xl`, `--am-text-5xl`, `--am-text-6xl`, `--am-text-base`, `--am-text-disabled`, `--am-text-inverse`, `--am-text-lg`, `--am-text-link`, `--am-text-secondary`, `--am-text-sm`, `--am-text-tertiary`, `--am-text-xl`, `--am-text-xs`, `--am-tracking-normal`, `--am-tracking-tight`, `--am-tracking-tighter`, `--am-tracking-wide`, `--am-tracking-wider`, `--am-warning`, `--am-warning-subtle`, `--am-warning-text`, `--am-weight-bold`, `--am-weight-medium`, `--am-weight-regular`, `--am-weight-semibold`, `--am-z-base`, `--am-z-dropdown`, `--am-z-modal`, `--am-z-overlay`, `--am-z-popover`, `--am-z-sticky`, `--am-z-tooltip`
+
+- **Per-component `--am-*` tokens** (53, CEM `@cssprop`): `--am-alert-radius`, `--am-app-shell-header-height`, `--am-app-shell-sidebar-width`, `--am-avatar-radius`, `--am-avatar-size`, `--am-breadcrumb-separator`, `--am-button-font-weight`, `--am-button-radius`, `--am-card-padding`, `--am-card-radius`, `--am-dialog-padding`, `--am-dialog-radius`, `--am-divider-color`, `--am-divider-spacing`, `--am-divider-width`, `--am-drawer-size`, `--am-field-gap`, `--am-grid-gap`, `--am-grid-min`, `--am-icon-button-radius`, `--am-icon-color`, `--am-icon-size`, `--am-input-radius`, `--am-list-divider`, `--am-nav-bar-height`, `--am-nav-bar-padding`, `--am-panel-padding`, `--am-panel-radius`, `--am-progress-color`, `--am-progress-radius`, `--am-progress-ring-color`, `--am-progress-ring-size`, `--am-side-nav-width`, `--am-skeleton-color`, `--am-skeleton-highlight`, `--am-skeleton-radius`, `--am-spinner-color`, `--am-spinner-size`, `--am-spinner-track`, `--am-spinner-width`, `--am-split-view-divider-size`, `--am-split-view-min`, `--am-stack-gap`, `--am-status-dot-color`, `--am-status-dot-size`, `--am-surface-padding`, `--am-surface-radius`, `--am-table-radius`, `--am-textarea-min-height`, `--am-textarea-radius`, `--am-tooltip-bg`, `--am-tooltip-color`, `--am-tooltip-radius`
+
+- **Slots** (21, unique names): `(default)`, `action`, `actions`, `brand`, `content`, `description`, `end`, `error`, `footer`, `header`, `heading`, `hint`, `icon`, `label`, `menu`, `nav`, `prefix`, `sidebar`, `start`, `suffix`, `timestamp`
+
+- **`::part()` names** (76, unique): `action`, `actions`, `alert`, `arrow`, `backdrop`, `badge`, `body`, `brand`, `button`, `calendar`, `card`, `cell`, `chevron`, `children`, `clear`, `close`, `container`, `content`, `control`, `day`, `decrement`, `description`, `dialog`, `divider`, `dot`, `dropzone`, `end`, `fallback`, `field`, `file-list`, `fill`, `footer`, `grid`, `group`, `header`, `header-cell`, `heading`, `icon`, `image`, `increment`, `initials`, `input`, `item`, `items`, `label`, `link`, `list`, `listbox`, `main`, `nav`, `panel`, `popover`, `prefix`, `remove`, `row`, `separator`, `sidebar`, `skeleton`, `stack`, `start`, `stat`, `suffix`, `surface`, `svg`, `swatch`, `tab`, `table`, `textarea`, `thumb`, `toast`, `tooltip`, `track`, `trend`, `trigger`, `value`, `wrapper`
+
+### Undocumented-but-used tokens (gap)
+
+Tokens referenced inside a component's `css``` template but neither defined as a
+global token nor tagged with `@cssprop` — invisible to the CEM freeze surface
+(RESEARCH A2). Flag for `@cssprop` tagging before the freeze. **This plan does NOT
+add the tags** — that is a freeze-prep decision resolved at Plan 09.
+
+| Component | Undocumented `--am-*` tokens (used, not `@cssprop`-tagged) |
+| --------- | ---------------------------------------------------------- |
+| `am-toast` | `--am-z-toast` |
+| `am-toast-region` | `--am-z-toast` |

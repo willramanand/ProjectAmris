@@ -60,6 +60,41 @@ function dispatchedFor(modulePath) {
   return dispatchedByFile.get(abs) ?? new Set();
 }
 
+// --- Global --am-* token source of truth (src/tokens/*.css.ts). ---
+// Reuse the css`` extraction approach from scripts/build-tokens-css.mjs.
+const TOKEN_SOURCES = [
+  'src/tokens/primitives.css.ts',
+  'src/tokens/semantic.css.ts',
+  'src/tokens/dark.css.ts',
+];
+const cssBlocks = (src) => [...src.matchAll(/css`([\s\S]*?)`/g)].map((m) => m[1]);
+const globalTokens = new Set();
+for (const rel of TOKEN_SOURCES) {
+  const src = readFileSync(resolve(root, rel), 'utf8');
+  for (const block of cssBlocks(src))
+    for (const m of block.matchAll(/(--am-[\w-]+)\s*:/g)) globalTokens.add(m[1]);
+}
+
+// --- --am-* tokens REFERENCED inside each component's css`` templates. ---
+// Used to surface tokens consumed/exposed but never @cssprop-tagged (RESEARCH A2).
+const referencedByFile = new Map(); // absolute path -> Set<tokenName>
+for (const f of componentFiles) {
+  const src = readFileSync(f, 'utf8');
+  const set = new Set();
+  for (const block of cssBlocks(src))
+    for (const m of block.matchAll(/var\(\s*(--am-[\w-]+)/g)) set.add(m[1]);
+  referencedByFile.set(f, set);
+}
+function referencedFor(modulePath) {
+  if (!modulePath) return new Set();
+  return referencedByFile.get(resolve(root, modulePath)) ?? new Set();
+}
+
+// All --am-* cssProperties documented anywhere in the CEM (per-component @cssprop).
+const cemTokens = new Set();
+for (const { decl } of elements)
+  for (const p of decl.cssProperties ?? []) cemTokens.add(p.name);
+
 const uniq = (a) => [...new Set(a)].sort();
 const cemEvents = (d) => (d.events ?? []).map((e) => e.name);
 const publicFields = (d) =>
@@ -262,6 +297,108 @@ function renameMapping() {
 }
 
 // ---------------------------------------------------------------------------
+// Surface matrices (slots / parts / tokens) + frozen-surface enumeration (API-04).
+// ---------------------------------------------------------------------------
+const cemNames = (arr) => uniq((arr ?? []).map((x) => (x.name === '' ? '(default)' : x.name)));
+
+function slotMatrix() {
+  const lines = [
+    '### Slot matrix (`@slot` per component)',
+    '',
+    '| Component | Slots |',
+    '| --------- | ----- |',
+  ];
+  for (const { tagName, decl } of elements)
+    lines.push(`| \`${tagName}\` | ${cell(cemNames(decl.slots).join(', '))} |`);
+  return lines.join('\n');
+}
+
+function partMatrix() {
+  const lines = [
+    '### `::part()` matrix (`@csspart` per component)',
+    '',
+    '| Component | Parts |',
+    '| --------- | ----- |',
+  ];
+  for (const { tagName, decl } of elements)
+    lines.push(`| \`${tagName}\` | ${cell(cemNames(decl.cssParts).join(', '))} |`);
+  return lines.join('\n');
+}
+
+function tokenMatrix() {
+  const lines = [
+    '### `--am-*` token matrix (per-component `@cssprop`)',
+    '',
+    'Global semantic tokens are enumerated in the frozen-surface section below; this',
+    'matrix lists the per-component `--am-{component}-*` tokens each element documents.',
+    '',
+    '| Component | Per-component `--am-*` tokens (`@cssprop`) |',
+    '| --------- | ------------------------------------------ |',
+  ];
+  for (const { tagName, decl } of elements)
+    lines.push(`| \`${tagName}\` | ${cell(cemNames(decl.cssProperties).join(', '))} |`);
+  return lines.join('\n');
+}
+
+function frozenSurface() {
+  const allSlots = new Set();
+  const allParts = new Set();
+  const allComponentTokens = new Set();
+  for (const { decl } of elements) {
+    for (const s of cemNames(decl.slots)) allSlots.add(s);
+    for (const p of cemNames(decl.cssParts)) allParts.add(p);
+    for (const t of decl.cssProperties ?? []) allComponentTokens.add(t.name);
+  }
+  const list = (s) => (s.size ? uniq([...s]).map((x) => `\`${x}\``).join(', ') : '—');
+  return [
+    '## Frozen public surface (API-04, D-11)',
+    '',
+    'The union below is the surface to be declared frozen at Plan 09. It aggregates all',
+    'documented slots, `::part()`s, global semantic `--am-*` tokens, and per-component',
+    '`--am-{component}-*` `@cssprop` tokens.',
+    '',
+    `- **Global \`--am-*\` tokens** (${globalTokens.size}, from src/tokens/{primitives,semantic,dark}.css.ts): ${list(globalTokens)}`,
+    '',
+    `- **Per-component \`--am-*\` tokens** (${allComponentTokens.size}, CEM \`@cssprop\`): ${list(allComponentTokens)}`,
+    '',
+    `- **Slots** (${allSlots.size}, unique names): ${list(allSlots)}`,
+    '',
+    `- **\`::part()\` names** (${allParts.size}, unique): ${list(allParts)}`,
+  ].join('\n');
+}
+
+function undocumentedTokenGap() {
+  // Tokens referenced in a component's css`` but neither a global token nor a
+  // CEM cssProperty — invisible to the freeze because they lack a @cssprop tag.
+  const rows = [];
+  for (const { tagName, modulePath } of elements) {
+    const refs = referencedFor(modulePath);
+    const gap = uniq(
+      [...refs].filter((t) => !globalTokens.has(t) && !cemTokens.has(t)),
+    );
+    if (gap.length) rows.push([tagName, gap]);
+  }
+  const lines = [
+    '### Undocumented-but-used tokens (gap)',
+    '',
+    'Tokens referenced inside a component\'s `css``` template but neither defined as a',
+    'global token nor tagged with `@cssprop` — invisible to the CEM freeze surface',
+    '(RESEARCH A2). Flag for `@cssprop` tagging before the freeze. **This plan does NOT',
+    'add the tags** — that is a freeze-prep decision resolved at Plan 09.',
+    '',
+  ];
+  if (!rows.length) {
+    lines.push('_None found — every `--am-*` token referenced in a component `css``` is either a global token or a documented `@cssprop`._');
+    return lines.join('\n');
+  }
+  lines.push('| Component | Undocumented `--am-*` tokens (used, not `@cssprop`-tagged) |');
+  lines.push('| --------- | ---------------------------------------------------------- |');
+  for (const [tag, gap] of rows)
+    lines.push(`| \`${tag}\` | ${gap.map((t) => `\`${t}\``).join(', ')} |`);
+  return lines.join('\n');
+}
+
+// ---------------------------------------------------------------------------
 // Assemble api/AUDIT.md.
 // ---------------------------------------------------------------------------
 const sections = [];
@@ -282,6 +419,18 @@ sections.push('');
 sections.push(defaultMatrix());
 sections.push('');
 sections.push(renameMapping());
+sections.push('');
+sections.push('## Surface dimension matrices (slot / part / token)');
+sections.push('');
+sections.push(slotMatrix());
+sections.push('');
+sections.push(partMatrix());
+sections.push('');
+sections.push(tokenMatrix());
+sections.push('');
+sections.push(frozenSurface());
+sections.push('');
+sections.push(undocumentedTokenGap());
 sections.push('');
 
 mkdirSync(dirname(OUT), { recursive: true });
