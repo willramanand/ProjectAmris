@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 02
 current_phase_name: api-cleanup-cem-baseline
 status: executing
-stopped_at: Completed 02-01-PLAN.md
-last_updated: "2026-08-17T00:37:47.849Z"
+stopped_at: Completed 02-02-PLAN.md
+last_updated: "2026-08-17T00:45:53.167Z"
 last_activity: 2026-08-16
 last_activity_desc: Phase 02 execution started
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 17
-  completed_plans: 9
+  completed_plans: 10
   percent: 17
 ---
 
@@ -29,11 +29,11 @@ See: .planning/PROJECT.md (updated 2026-08-10)
 ## Current Position
 
 Phase: 02 (api-cleanup-cem-baseline) — EXECUTING
-Plan: 2 of 9
+Plan: 3 of 9
 Status: Ready to execute
 Last activity: 2026-08-16 — Phase 02 execution started
 
-Progress: [█████░░░░░] 53%
+Progress: [██████░░░░] 59%
 
 ## Performance Metrics
 
@@ -68,6 +68,7 @@ Progress: [█████░░░░░] 53%
 | Phase 01 P07 | 4min | 3 tasks | 8 files |
 | Phase 01 P08 | 7min | 3 tasks | 3 files |
 | Phase 02 P01 | 3 | 3 tasks | 5 files |
+| Phase 02 P02 | 14 | 3 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -88,6 +89,9 @@ Recent decisions affecting current work:
 - [Phase ?]: 01-07: TEST-04/05 covered in jsdom lane green-on-arrival; clamp asserts observable DOM highlight bound (raw _highlightedIndex un-clamped on option replace — Phase 3 FIX-02 finding)
 - [Phase ?]: 01-07: am-tooltip attaches NO document listeners (scoped mouse/focus + floating-ui autoUpdate) — TEST-05 asserts absence, captured for Phase 3 FIX-02
 - [Phase ?]: Phase 1 gates finalized: size-limit budget set + tree-shaking canary (gzip), coverage ratcheted to final floor, 66/66 1:1 test invariant, four-gate pipeline green
+- [Phase ?]: 02-02: api/AUDIT.md tabulates all 79 registered tagNames (not just 66 component files) — matrices key on tagName like cem-diff.mjs
+- [Phase ?]: 02-02: Rename mapping rows PENDING-DECISION — targets (open/close, change/select, change/toggle) confirmed at each rename wave checkpoint (Plans 03-05)
+- [Phase ?]: 02-02: Audit gap detector flagged --am-z-toast used in toast css but never defined/@cssprop-tagged — pre-freeze action for Plan 09
 
 ### Pending Todos
 
@@ -115,6 +119,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-17T00:37:47.836Z
-Stopped at: Completed 02-01-PLAN.md
+Last session: 2026-08-17T00:45:34.990Z
+Stopped at: Completed 02-02-PLAN.md
 Resume file: None

@@ -20,10 +20,10 @@ Requirements for the v1.0 release. Each maps to a roadmap phase. Grounded in `.p
 
 ### API Cleanup & Freeze
 
-- [ ] **API-01**: Cross-component consistency audit — dimension matrices per event, prop, boolean-naming, default, slot, part, and `--am-*` token across all ~67 components
+- [x] **API-01**: Cross-component consistency audit — dimension matrices per event, prop, boolean-naming, default, slot, part, and `--am-*` token across all ~67 components
 - [ ] **API-02**: Apply breaking normalization for inconsistencies the audit finds (prop/event/default renames), each with a Changeset
 - [ ] **API-03**: Refactor the four 600+ line components (combobox 741, select 718, date-picker 633, time-picker 627) into maintainable sub-units/controllers
-- [ ] **API-04**: Slot names, `::part()` names, and `--am-*` tokens enumerated and treated as frozen public surface
+- [x] **API-04**: Slot names, `::part()` names, and `--am-*` tokens enumerated and treated as frozen public surface
 - [x] **API-05**: Committed CEM baseline `api/custom-elements.baseline.json` with report-only surface diff during cleanup
 
 ### Reliability & Leak Fixes
@@ -108,10 +108,10 @@ Which phases cover which requirements. Populated during roadmap creation.
 | TEST-07 | Phase 1 | Complete |
 | TEST-08 | Phase 1 | Complete |
 | PERF-01 | Phase 1 | Complete |
-| API-01 | Phase 2 | Pending |
+| API-01 | Phase 2 | Complete |
 | API-02 | Phase 2 | Pending |
 | API-03 | Phase 2 | Pending |
-| API-04 | Phase 2 | Pending |
+| API-04 | Phase 2 | Complete |
 | API-05 | Phase 2 | Complete |
 | FIX-01 | Phase 3 | Pending |
 | FIX-02 | Phase 3 | Pending |
