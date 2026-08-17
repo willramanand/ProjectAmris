@@ -1,6 +1,18 @@
 import { LitElement, css, html, nothing, type PropertyValues } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { resetStyles } from '../../styles/reset.css.js';
+import {
+  adjustHours,
+  adjustMinutes,
+  adjustSeconds,
+  displayHours,
+  formatTime,
+  parseTime,
+  periodFromHours,
+  segmentInputBounds,
+  to24Hour,
+  togglePeriodHours,
+} from '../../internal/helpers/time-utils.js';
 
 export type TimePickerSize = 'sm' | 'md' | 'lg';
 
@@ -311,31 +323,21 @@ export class AmTimePicker extends LitElement {
 
   private _parseValue() {
     if (!this.value) return;
-    const parts = this.value.split(':');
-    this._hours = Math.max(0, Math.min(23, parseInt(parts[0] || '0', 10)));
-    this._minutes = Math.max(0, Math.min(59, parseInt(parts[1] || '0', 10)));
-    this._seconds = Math.max(0, Math.min(59, parseInt(parts[2] || '0', 10)));
+    const { hours, minutes, seconds } = parseTime(this.value);
+    this._hours = hours;
+    this._minutes = minutes;
+    this._seconds = seconds;
     if (this.use12Hour) {
-      this._period = this._hours >= 12 ? 'PM' : 'AM';
+      this._period = periodFromHours(this._hours);
     }
   }
 
   private _formatValue(): string {
-    const hh = String(this._hours).padStart(2, '0');
-    const mm = String(this._minutes).padStart(2, '0');
-    if (this.showSeconds) {
-      const ss = String(this._seconds).padStart(2, '0');
-      return `${hh}:${mm}:${ss}`;
-    }
-    return `${hh}:${mm}`;
+    return formatTime(this._hours, this._minutes, this._seconds, this.showSeconds);
   }
 
   private _displayHours(): string {
-    if (this.use12Hour) {
-      const h = this._hours % 12;
-      return String(h === 0 ? 12 : h).padStart(2, '0');
-    }
-    return String(this._hours).padStart(2, '0');
+    return displayHours(this._hours, this.use12Hour);
   }
 
   private _isEditing(segment: 'hours' | 'minutes' | 'seconds'): boolean {
@@ -356,14 +358,14 @@ export class AmTimePicker extends LitElement {
     if (this.disabled || this.readonly) return;
 
     if (segment === 'hours') {
-      this._hours = ((this._hours + delta) + 24) % 24;
+      this._hours = adjustHours(this._hours, delta);
     } else if (segment === 'minutes') {
-      this._minutes = ((this._minutes + delta * this.step) + 60) % 60;
+      this._minutes = adjustMinutes(this._minutes, delta, this.step);
     } else if (segment === 'seconds') {
-      this._seconds = ((this._seconds + delta) + 60) % 60;
+      this._seconds = adjustSeconds(this._seconds, delta);
     } else if (segment === 'period') {
       this._period = this._period === 'AM' ? 'PM' : 'AM';
-      this._hours = (this._hours + 12) % 24;
+      this._hours = togglePeriodHours(this._hours);
     }
 
     this.value = this._formatValue();
@@ -403,9 +405,7 @@ export class AmTimePicker extends LitElement {
     this._inputBuffer += digit;
     this._resetBufferTimer();
 
-    const maxFirst = segment === 'hours' ? (this.use12Hour ? 1 : 2) : 5;
-    const maxVal = segment === 'hours' ? (this.use12Hour ? 12 : 23) : 59;
-    const minVal = segment === 'hours' && this.use12Hour ? 1 : 0;
+    const { maxFirst, maxVal, minVal } = segmentInputBounds(segment, this.use12Hour);
 
     if (this._inputBuffer.length === 1) {
       const d = parseInt(digit, 10);
@@ -431,11 +431,7 @@ export class AmTimePicker extends LitElement {
     if (segment === 'hours') {
       if (this.use12Hour) {
         // Convert 12-hour input to 24-hour internal
-        const wasPM = this._period === 'PM';
-        let h24 = val;
-        if (val === 12) h24 = wasPM ? 12 : 0;
-        else if (wasPM) h24 = val + 12;
-        this._hours = h24;
+        this._hours = to24Hour(val, this._period);
       } else {
         this._hours = val;
       }
