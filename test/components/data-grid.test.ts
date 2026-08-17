@@ -88,20 +88,14 @@ describe('am-data-grid', () => {
     expect(ev.detail).toEqual({ key: 'name', direction: 'asc' });
   });
 
-  it('toggles selection on row click and emits am-row-select + am-selection-change', async () => {
+  it('toggles selection on row click and emits am-change with the aggregate keys set', async () => {
     const el = await makeGrid('selectable');
-    const rowSelectPromise = oneEvent<{ id: string | number; selected: boolean; keys: (string | number)[] }>(
-      el,
-      'am-row-select',
-    );
-    const selectionChangePromise = oneEvent<{ keys: (string | number)[] }>(el, 'am-selection-change');
+    const changePromise = oneEvent<{ keys: (string | number)[] }>(el, 'am-change');
 
     await click(bodyRows(el)[0], el);
 
-    const rowSelectEv = await rowSelectPromise;
-    const selectionEv = await selectionChangePromise;
-    expect(rowSelectEv.detail.selected).toBe(true);
-    expect(selectionEv.detail.keys).toEqual([0]);
+    const changeEv = await changePromise;
+    expect(changeEv.detail.keys).toEqual([0]);
     expect(bodyRows(el)[0].getAttribute('aria-selected')).toBe('true');
   });
 
@@ -159,13 +153,12 @@ describe('am-data-grid', () => {
     el.getRowId = (row: Row) => `row-${row.name}`;
     await waitForUpdate(el);
 
-    const rowSelectPromise = oneEvent<{ id: string | number; keys: (string | number)[] }>(
+    const changePromise = oneEvent<{ keys: (string | number)[] }>(
       el,
-      'am-row-select',
+      'am-change',
     );
     await click(bodyRows(el)[1], el); // Alice
-    const ev = await rowSelectPromise;
-    expect(ev.detail.id).toBe('row-Alice');
+    const ev = await changePromise;
     expect(ev.detail.keys).toEqual(['row-Alice']);
   });
 });

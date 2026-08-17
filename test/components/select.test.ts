@@ -4,14 +4,14 @@ import '../../src/components/select/select';
 import { click, fixture, getMockInternals, keydown, oneEvent, shadowQuery, waitForUpdate } from '../helpers';
 
 describe('am-option', () => {
-  it('sets role="option" and fires am-select-option on click', async () => {
+  it('sets role="option" and fires am-change on click', async () => {
     const element = await fixture<HTMLElement & { value: string }>(
       '<am-option value="apple">Apple</am-option>',
     );
 
     expect(element.getAttribute('role')).toBe('option');
 
-    const eventPromise = oneEvent<{ value: string }>(element, 'am-select-option');
+    const eventPromise = oneEvent<{ value: string }>(element, 'am-change');
     await click(element, element);
     const event = await eventPromise;
 
@@ -33,7 +33,7 @@ describe('am-option', () => {
     );
 
     let fired = false;
-    element.addEventListener('am-select-option', () => { fired = true; });
+    element.addEventListener('am-change', () => { fired = true; });
     await click(element, element);
 
     expect(fired).toBe(false);

@@ -39,7 +39,7 @@ const DEFAULT_GET_ROW_ID: GetRowId = (_row, index) => index;
  * @csspart header-cell - Each th element
  *
  * @fires am-sort - Fires when a column header is clicked with { key, direction } detail
- * @fires am-row-select - Fires when a row is selected with { row, index } detail
+ * @fires am-change - Fires when the selection changes with the aggregate selection set in { keys } detail
  *
  * @example
  * ```html
@@ -71,7 +71,7 @@ export class AmDataGrid extends LitElement {
   @property({ attribute: false }) getRowId: GetRowId = DEFAULT_GET_ROW_ID;
 
   /**
-   * Controlled selection. When provided, the grid emits `am-selection-change`
+   * Controlled selection. When provided, the grid emits `am-change`
    * but does not mutate internal selection state — caller must update this prop.
    */
   @property({ attribute: false }) selectedKeys: ReadonlyArray<RowKey> | null = null;
@@ -242,11 +242,7 @@ export class AmDataGrid extends LitElement {
       this._internalSelected = next;
     }
 
-    this.dispatchEvent(new CustomEvent('am-row-select', {
-      detail: { row, index: originalIndex, id, selected: next.has(id), keys: [...next] },
-      bubbles: true, composed: true,
-    }));
-    this.dispatchEvent(new CustomEvent('am-selection-change', {
+    this.dispatchEvent(new CustomEvent('am-change', {
       detail: { keys: [...next] },
       bubbles: true, composed: true,
     }));

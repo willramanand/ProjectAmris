@@ -14,6 +14,8 @@ export type SelectSize = 'sm' | 'md' | 'lg';
  *
  * @slot - Option label text
  *
+ * @fires am-change - Fires on click with the option's value in `{ value }` detail (consumed by the parent am-select)
+ *
  * @example
  * ```html
  * <am-option value="apple">Apple</am-option>
@@ -108,7 +110,7 @@ export class AmOption extends LitElement {
   private _handleClick = () => {
     if (this.disabled) return;
     this.dispatchEvent(
-      new CustomEvent('am-select-option', {
+      new CustomEvent('am-change', {
         detail: { value: this.value },
         bubbles: true,
         composed: false,
@@ -430,12 +432,12 @@ export class AmSelect extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
-    this.addEventListener('am-select-option', this._handleOptionSelect as EventListener);
+    this.addEventListener('am-change', this._handleOptionSelect as EventListener);
   }
 
   disconnectedCallback() {
     super.disconnectedCallback();
-    this.removeEventListener('am-select-option', this._handleOptionSelect as EventListener);
+    this.removeEventListener('am-change', this._handleOptionSelect as EventListener);
     document.removeEventListener('click', this._documentClickHandler);
     this._cleanupAutoUpdate?.();
   }
