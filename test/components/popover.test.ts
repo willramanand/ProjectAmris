@@ -4,7 +4,7 @@ import '../../src/components/popover/popover';
 import { click, fixture, oneEvent, shadowQuery, waitForUpdate } from '../helpers';
 
 describe('am-popover', () => {
-  it('opens on trigger click and emits am-show', async () => {
+  it('opens on trigger click and emits am-open', async () => {
     const element = await fixture<HTMLElement & { open: boolean }>(
       `<am-popover>
         <button>Open</button>
@@ -14,7 +14,7 @@ describe('am-popover', () => {
 
     expect(element.open).toBe(false);
 
-    const eventPromise = oneEvent(element, 'am-show');
+    const eventPromise = oneEvent(element, 'am-open');
     const trigger = shadowQuery<HTMLElement>(element, '.trigger');
     await click(trigger, element);
     await eventPromise;
@@ -22,7 +22,7 @@ describe('am-popover', () => {
     expect(element.open).toBe(true);
   });
 
-  it('closes on second trigger click and emits am-hide', async () => {
+  it('closes on second trigger click and emits am-close', async () => {
     const element = await fixture<HTMLElement & { open: boolean }>(
       `<am-popover open>
         <button>Toggle</button>
@@ -32,7 +32,7 @@ describe('am-popover', () => {
 
     await waitForUpdate(element);
 
-    const eventPromise = oneEvent(element, 'am-hide');
+    const eventPromise = oneEvent(element, 'am-close');
     const trigger = shadowQuery<HTMLElement>(element, '.trigger');
     await click(trigger, element);
     await eventPromise;

@@ -31,24 +31,24 @@ function dispatchContext(target: HTMLElement, x = 100, y = 100): void {
 }
 
 describe('am-context-menu', () => {
-  it('opens on contextmenu event and emits am-show', async () => {
+  it('opens on contextmenu event and emits am-open', async () => {
     const el = await makeContextMenu();
     expect(el.open).toBe(false);
 
-    const showPromise = oneEvent(el, 'am-show');
+    const showPromise = oneEvent(el, 'am-open');
     dispatchContext(el);
     await showPromise;
 
     expect(el.open).toBe(true);
   });
 
-  it('closes on Escape and emits am-hide', async () => {
+  it('closes on Escape and emits am-close', async () => {
     const el = await makeContextMenu();
     dispatchContext(el);
     await waitForUpdate(el);
     expect(el.open).toBe(true);
 
-    const hidePromise = oneEvent(el, 'am-hide');
+    const hidePromise = oneEvent(el, 'am-close');
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
     await hidePromise;
 

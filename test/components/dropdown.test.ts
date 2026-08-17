@@ -4,7 +4,7 @@ import '../../src/components/dropdown/dropdown';
 import { click, fixture, oneEvent, shadowQuery, waitForUpdate } from '../helpers';
 
 describe('am-dropdown', () => {
-  it('opens on trigger click and emits am-show', async () => {
+  it('opens on trigger click and emits am-open', async () => {
     const element = await fixture<HTMLElement & { open: boolean }>(
       `<am-dropdown>
         <button>Toggle</button>
@@ -14,7 +14,7 @@ describe('am-dropdown', () => {
 
     expect(element.open).toBe(false);
 
-    const eventPromise = oneEvent(element, 'am-show');
+    const eventPromise = oneEvent(element, 'am-open');
     const trigger = shadowQuery<HTMLElement>(element, '.trigger');
     await click(trigger, element);
     await eventPromise;
@@ -22,7 +22,7 @@ describe('am-dropdown', () => {
     expect(element.open).toBe(true);
   });
 
-  it('closes on second click and emits am-hide', async () => {
+  it('closes on second click and emits am-close', async () => {
     const element = await fixture<HTMLElement & { open: boolean }>(
       `<am-dropdown open>
         <button>Toggle</button>
@@ -32,7 +32,7 @@ describe('am-dropdown', () => {
 
     await waitForUpdate(element);
 
-    const eventPromise = oneEvent(element, 'am-hide');
+    const eventPromise = oneEvent(element, 'am-close');
     const trigger = shadowQuery<HTMLElement>(element, '.trigger');
     await click(trigger, element);
     await eventPromise;

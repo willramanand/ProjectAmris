@@ -14,8 +14,8 @@ import { resetStyles } from '../../styles/reset.css.js';
  *
  * @csspart panel - The floating panel
  *
- * @fires am-show - Fires when the dropdown opens
- * @fires am-hide - Fires when the dropdown closes
+ * @fires am-open - Fires when the dropdown opens
+ * @fires am-close - Fires when the dropdown closes
  *
  * @example
  * ```html
@@ -107,12 +107,12 @@ export class AmDropdown extends LitElement {
       if (this.open) {
         this._attachGlobalListeners();
         this._startAutoUpdate();
-        this.dispatchEvent(new CustomEvent('am-show', { bubbles: true, composed: true }));
+        this.dispatchEvent(new CustomEvent('am-open', { bubbles: true, composed: true }));
       } else {
         this._detachGlobalListeners();
         this._cleanupAutoUpdate?.();
         this._cleanupAutoUpdate = null;
-        this.dispatchEvent(new CustomEvent('am-hide', { bubbles: true, composed: true }));
+        this.dispatchEvent(new CustomEvent('am-close', { bubbles: true, composed: true }));
       }
     }
   }

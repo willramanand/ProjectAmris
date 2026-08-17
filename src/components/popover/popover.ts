@@ -13,8 +13,8 @@ import { resetStyles } from '../../styles/reset.css.js';
  * @csspart popover - The floating panel
  * @csspart arrow - The arrow element
  *
- * @fires am-show - Fires when the popover opens
- * @fires am-hide - Fires when the popover closes
+ * @fires am-open - Fires when the popover opens
+ * @fires am-close - Fires when the popover closes
  *
  * @example
  * ```html
@@ -156,12 +156,12 @@ export class AmPopover extends LitElement {
       if (this.open) {
         this._attachGlobalListeners();
         this._startAutoUpdate();
-        this.dispatchEvent(new CustomEvent('am-show', { bubbles: true, composed: true }));
+        this.dispatchEvent(new CustomEvent('am-open', { bubbles: true, composed: true }));
       } else {
         this._detachGlobalListeners();
         this._cleanupAutoUpdate?.();
         this._cleanupAutoUpdate = null;
-        this.dispatchEvent(new CustomEvent('am-hide', { bubbles: true, composed: true }));
+        this.dispatchEvent(new CustomEvent('am-close', { bubbles: true, composed: true }));
       }
     }
   }

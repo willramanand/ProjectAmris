@@ -13,8 +13,8 @@ import { resetStyles } from '../../styles/reset.css.js';
  *
  * @csspart panel - The floating menu panel
  *
- * @fires am-show - Fires when the menu opens
- * @fires am-hide - Fires when the menu closes
+ * @fires am-open - Fires when the menu opens
+ * @fires am-close - Fires when the menu closes
  *
  * @example
  * ```html
@@ -112,21 +112,21 @@ export class AmContextMenu extends LitElement {
       Object.assign(this._panel.style, { left: `${e.clientX}px`, top: `${e.clientY}px` });
     }
 
-    this.dispatchEvent(new CustomEvent('am-show', { bubbles: true, composed: true }));
+    this.dispatchEvent(new CustomEvent('am-open', { bubbles: true, composed: true }));
   };
 
   private _handleOutsideClick = (e: MouseEvent) => {
     if (!this.open) return;
     if (!e.composedPath().includes(this._panel)) {
       this.open = false;
-      this.dispatchEvent(new CustomEvent('am-hide', { bubbles: true, composed: true }));
+      this.dispatchEvent(new CustomEvent('am-close', { bubbles: true, composed: true }));
     }
   };
 
   private _handleKeydown = (e: KeyboardEvent) => {
     if (e.key === 'Escape' && this.open) {
       this.open = false;
-      this.dispatchEvent(new CustomEvent('am-hide', { bubbles: true, composed: true }));
+      this.dispatchEvent(new CustomEvent('am-close', { bubbles: true, composed: true }));
     }
   };
 
