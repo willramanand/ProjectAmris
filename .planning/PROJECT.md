@@ -41,11 +41,14 @@ Consumers can drop `@willramanand/amris` into any app and trust the components t
 - ✓ Minimal real-browser test lane (Vitest 4 Browser Mode + Playwright/Chromium) for the jsdom-unprovable areas: ElementInternals/form submission, focus trap + restoration, real `<dialog>`/top-layer, floating-ui positioning (virtualization scroll/focus deferred to Phase 4) — Phase 1
 - ✓ CI hard-blocks on coverage (branch + per-directory), bundle-size (size-limit + tree-shaking canary), and real-browser a11y (axe-in-browser) gates — Phase 1
 
+<!-- Validated in Phase 2: API Cleanup + CEM Baseline (2026-08-17) -->
+
+- ✓ API surface normalized dimension-by-dimension (7 audit matrices), breaking renames landed per-wave with Changesets, big-4 components (combobox/select/date-picker/time-picker) refactored onto a non-exported `src/internal/` boundary, and the slot/`::part()`/`--am-*` token surface enumerated + marked FROZEN in `api/AUDIT.md` with a committed, report-only `custom-elements.baseline.json` diff in CI — Phase 2
+
 ### Active
 
 <!-- v1.0 hardening scope. Hypotheses until shipped and validated. -->
 
-- [ ] API audit: identify rough/inconsistent public APIs (prop names, event names, defaults); apply breaking cleanup, then freeze the v1.0 surface
 - [ ] Bug/leak fixes: track toast dismiss `setTimeout`; gate global listener attach/detach on open state; guard focus restoration against removed nodes; harden dialog animation cleanup
 - [ ] Performance: implement list virtualization for DataGrid/combobox (1000+ rows); gate floating-ui `autoUpdate` to open transitions; add bundle-size monitoring in CI
 - [ ] Feature: form controls display `ElementInternals.validationMessage`
@@ -111,4 +114,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-08-11 after Phase 1 (Test Coverage + CI Gates Foundation) complete*
+*Last updated: 2026-08-17 after Phase 2 (API Cleanup + CEM Baseline) complete*
