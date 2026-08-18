@@ -248,27 +248,45 @@ export class AmCommandPalette extends LitElement {
     );
   }
 
+  /**
+   * The filtered commands flattened into the SAME grouped order that
+   * {@link render} emits (items are grouped by `group` in first-seen order).
+   * Keyboard navigation and Enter-selection index into this list so the
+   * visually `.highlighted` item is always the item Enter executes, even when
+   * consumer groups interleave, e.g. `[{group:'A'},{group:'B'},{group:'A'}]`
+   * (CR-01).
+   */
+  private get _ordered(): CommandItem[] {
+    const groups = new Map<string, CommandItem[]>();
+    for (const cmd of this._filtered) {
+      const g = cmd.group || '';
+      if (!groups.has(g)) groups.set(g, []);
+      groups.get(g)!.push(cmd);
+    }
+    return Array.from(groups.values()).flat();
+  }
+
   private _handleInput(e: Event) {
     this._query = (e.target as HTMLInputElement).value;
     this._highlightedIndex = 0;
   }
 
   private _handleKeydown(e: KeyboardEvent) {
-    const filtered = this._filtered;
+    const ordered = this._ordered;
 
     switch (e.key) {
       case 'ArrowDown':
         e.preventDefault();
-        this._highlightedIndex = Math.min(this._highlightedIndex + 1, filtered.length - 1);
+        this._highlightedIndex = Math.min(this._highlightedIndex + 1, ordered.length - 1);
         break;
       case 'ArrowUp':
         e.preventDefault();
         this._highlightedIndex = Math.max(this._highlightedIndex - 1, 0);
         break;
       case 'Enter':
-        if (filtered[this._highlightedIndex]) {
+        if (ordered[this._highlightedIndex]) {
           e.preventDefault();
-          this._selectCommand(filtered[this._highlightedIndex]);
+          this._selectCommand(ordered[this._highlightedIndex]);
         }
         break;
       case 'Escape':
