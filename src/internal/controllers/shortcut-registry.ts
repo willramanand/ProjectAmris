@@ -82,6 +82,46 @@ type StoredShortcut = {
 const MODIFIER_ORDER = ['ctrl', 'alt', 'shift', 'meta'] as const;
 type Modifier = (typeof MODIFIER_ORDER)[number];
 
+/**
+ * Reserved browser/OS combos that `register` default-refuses (D-10, RESEARCH
+ * Q-4). Shadowing these is the locked no-shadowing anti-feature — the registry
+ * never stores them and never lets a consumer `preventDefault` them. Written in
+ * `mod` notation so they normalize per-platform (Cmd on macOS, Ctrl elsewhere)
+ * at construction. F1–F12 are listed bare (no modifier) because the OS/browser
+ * owns them directly.
+ *
+ * Chosen list: new tab/window/private-window, address bar, close, quit, reload,
+ * reopen-tab, tab-switch, zoom (`mod+-` / `mod+0`), the JS console focus combo
+ * (`mod+`\`), the DevTools combo (`mod+shift+i`), and the function-key row.
+ */
+const RESERVED_COMBOS: readonly string[] = [
+  'mod+t',
+  'mod+w',
+  'mod+n',
+  'mod+shift+n',
+  'mod+l',
+  'mod+q',
+  'mod+r',
+  'mod+shift+t',
+  'mod+tab',
+  'mod+`',
+  'mod+-',
+  'mod+0',
+  'mod+shift+i',
+  'f1',
+  'f2',
+  'f3',
+  'f4',
+  'f5',
+  'f6',
+  'f7',
+  'f8',
+  'f9',
+  'f10',
+  'f11',
+  'f12',
+];
+
 type NormalizedCombo = {
   /** Canonical combo string, e.g. `'ctrl+shift+k'`. */
   combo: string;
@@ -108,19 +148,46 @@ export class ShortcutRegistry {
   /** id → registration, preserving insertion order for {@link list}. */
   private readonly _byId = new Map<string, StoredShortcut>();
 
+  /** Normalized reserved combos (platform-resolved) that register refuses. */
+  private readonly _reserved: ReadonlySet<string>;
+
   constructor(options?: ShortcutRegistryOptions) {
     const platform = options?.platform ?? detectPlatform();
     this._isMac = /mac|iphone|ipad|ipod/i.test(platform);
+    this._reserved = new Set(RESERVED_COMBOS.map((keys) => this._normalize(keys).combo));
   }
 
   /**
-   * Register a shortcut. On a same-scope collision keeps the first binding and
-   * returns `{ ok: false, reason: 'conflict', existingId }` (D-11 — never
-   * throws). The same combo in a different scope registers independently.
+   * Register a shortcut. Policy is consulted BEFORE storing (all no-throw, D-11):
+   *
+   * 1. A reserved browser/OS combo is refused with `{ ok: false, reason:
+   *    'reserved' }` and never stored (D-10 — the locked no-shadowing
+   *    anti-feature).
+   * 2. A bare single-character shortcut (no modifier) is refused unless
+   *    `allowSingleKey` is `true` (WCAG 2.1.4 — single keys must be opt-in,
+   *    remappable, and disablable). Because the frozen `RegisterResult` union
+   *    carries only `'conflict' | 'reserved'`, this policy refusal also reports
+   *    `reason: 'reserved'` (a policy-reserved combo).
+   * 3. A same-scope collision keeps the first binding and returns
+   *    `{ ok: false, reason: 'conflict', existingId }`. The same combo in a
+   *    different scope registers independently.
+   *
+   * To remap or disable a registration, {@link unregister} it and (optionally)
+   * register a replacement — the combo is freed on unregister.
    */
   register(shortcut: Shortcut): RegisterResult {
     const scope: ShortcutScope = shortcut.scope ?? 'global';
-    const { combo } = this._normalize(shortcut.keys);
+    const { combo, modifierCount, mainKey } = this._normalize(shortcut.keys);
+
+    // 1. Reserved browser/OS combos are refused up front (D-10).
+    if (this._reserved.has(combo)) {
+      return { ok: false, reason: 'reserved' };
+    }
+
+    // 2. Bare single-character shortcuts require explicit opt-in (WCAG 2.1.4).
+    if (modifierCount === 0 && mainKey.length === 1 && shortcut.allowSingleKey !== true) {
+      return { ok: false, reason: 'reserved' };
+    }
 
     const scopeBindings = this._byScope.get(scope);
     const existing = scopeBindings?.get(combo);
