@@ -34,11 +34,13 @@ import { fixture } from '../helpers';
  *
  * Validity: as of Phase 4 (plan 04-01), `am-input` wires
  * `ElementInternals.setValidity` through the shared ValidationController, so a
- * `required`-but-empty `am-input` now DOES invalidate its host `<form>`. The
- * am-input validity assertion below was a carried finding from the test-only
- * phase (checkValidity stayed true) and is now updated to the resolved
- * behaviour. The other controls still lack setValidity and remain carried
- * findings until their expansion plans land.
+ * `required`-but-empty `am-input` now DOES invalidate its host `<form>`. Plan
+ * 04-02 wires the same ValidationController into `am-textarea`,
+ * `am-number-field`, and `am-input-otp` (the text-entry family). All four
+ * validity assertions below were carried findings from the test-only phase
+ * (checkValidity stayed true) and are now updated to the resolved behaviour.
+ * The remaining form-associated controls still lack setValidity and remain
+ * carried findings until their expansion plans (04-03/04-04) land.
  */
 
 type LitEl = HTMLElement & { updateComplete?: Promise<unknown> };
@@ -140,6 +142,27 @@ describe('form-association (real ElementInternals)', () => {
 
       expect(new FormData(form).get('bio')).toBe('hello world');
     });
+
+    it('required + empty now blocks submission via native setValidity (FEAT-01 — finding resolved)', async () => {
+      const form = await fixture<HTMLFormElement>(
+        '<form><am-textarea name="bio" required></am-textarea></form>',
+      );
+      await settle(form.querySelector('am-textarea'));
+
+      // Plan 04-02 wired am-textarea to ElementInternals.setValidity via the
+      // ValidationController, so a required-but-empty control now invalidates
+      // its host form.
+      expect(form.checkValidity()).toBe(false);
+    });
+
+    it('becomes form-valid once a value is provided', async () => {
+      const form = await fixture<HTMLFormElement>(
+        '<form><am-textarea name="bio" required value="hello"></am-textarea></form>',
+      );
+      await settle(form.querySelector('am-textarea'));
+
+      expect(form.checkValidity()).toBe(true);
+    });
   });
 
   describe('am-radio-group', () => {
@@ -210,6 +233,27 @@ describe('form-association (real ElementInternals)', () => {
       await settle(form.querySelector('am-number-field'));
 
       expect(new FormData(form).get('qty')).toBe('5');
+    });
+
+    it('required + empty now blocks submission via native setValidity (FEAT-01 — finding resolved)', async () => {
+      const form = await fixture<HTMLFormElement>(
+        '<form><am-number-field name="qty" required></am-number-field></form>',
+      );
+      await settle(form.querySelector('am-number-field'));
+
+      // Plan 04-02 wired am-number-field to ElementInternals.setValidity via
+      // the ValidationController, so a required-but-empty control now
+      // invalidates its host form.
+      expect(form.checkValidity()).toBe(false);
+    });
+
+    it('becomes form-valid once a value is provided', async () => {
+      const form = await fixture<HTMLFormElement>(
+        '<form><am-number-field name="qty" required value="5"></am-number-field></form>',
+      );
+      await settle(form.querySelector('am-number-field'));
+
+      expect(form.checkValidity()).toBe(true);
     });
   });
 
@@ -316,6 +360,39 @@ describe('form-association (real ElementInternals)', () => {
       }
 
       expect(new FormData(form).get('code')).toBe('1234');
+    });
+
+    it('required + incomplete now blocks submission via native setValidity (FEAT-01 — finding resolved)', async () => {
+      const form = await fixture<HTMLFormElement>(
+        '<form><am-input-otp name="code" length="4" required></am-input-otp></form>',
+      );
+      await settle(form.querySelector('am-input-otp'));
+
+      // Plan 04-02 wired am-input-otp to ElementInternals.setValidity (from
+      // the aggregate cell value) via the ValidationController, so a
+      // required-but-incomplete code now invalidates its host form.
+      expect(form.checkValidity()).toBe(false);
+    });
+
+    it('becomes form-valid once the code is complete', async () => {
+      const form = await fixture<HTMLFormElement>(
+        '<form><am-input-otp name="code" length="4" required></am-input-otp></form>',
+      );
+      const otp = form.querySelector('am-input-otp') as HTMLElement & {
+        value: string;
+        updateComplete: Promise<unknown>;
+      };
+      await otp.updateComplete;
+
+      const inputs = otp.shadowRoot!.querySelectorAll('input');
+      const digits = ['1', '2', '3', '4'];
+      for (let i = 0; i < digits.length; i++) {
+        inputs[i].value = digits[i];
+        inputs[i].dispatchEvent(new Event('input', { bubbles: true }));
+        await otp.updateComplete;
+      }
+
+      expect(form.checkValidity()).toBe(true);
     });
   });
 

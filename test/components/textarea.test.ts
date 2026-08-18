@@ -74,4 +74,75 @@ describe('am-textarea', () => {
     const textarea = shadowQuery<HTMLTextAreaElement>(element, 'textarea');
     expect(textarea.getAttribute('aria-invalid')).toBe('true');
   });
+
+  describe('validation (jsdom lane)', () => {
+    type ValidatingTextarea = HTMLElement & {
+      invalid: boolean;
+      setCustomError(message: string): void;
+      updateComplete: Promise<unknown>;
+    };
+
+    it('shows NO validation error on first paint for a required empty textarea (D-01)', async () => {
+      const element = await fixture<ValidatingTextarea>(
+        '<am-textarea label="Bio" required></am-textarea>',
+      );
+
+      expect(element.invalid).toBe(false);
+      expect(element.shadowRoot?.querySelector('[part="error"]')).toBeNull();
+      expect(
+        shadowQuery<HTMLTextAreaElement>(element, 'textarea').getAttribute('aria-invalid'),
+      ).toBeNull();
+    });
+
+    it('surfaces the native message only after the field is touched (D-01 gate)', async () => {
+      const element = await fixture<ValidatingTextarea>(
+        '<am-textarea label="Bio" required></am-textarea>',
+      );
+      const textarea = shadowQuery<HTMLTextAreaElement>(element, 'textarea');
+
+      expect(element.shadowRoot?.querySelector('[part="error"]')).toBeNull();
+
+      textarea.dispatchEvent(new FocusEvent('blur', { bubbles: true }));
+      await element.updateComplete;
+      await waitForUpdate(element);
+
+      const error = element.shadowRoot?.querySelector('[part="error"]');
+      expect(error).not.toBeNull();
+      expect(element.invalid).toBe(true);
+      expect(textarea.getAttribute('aria-invalid')).toBe('true');
+      const describedBy = textarea.getAttribute('aria-describedby');
+      expect(describedBy).not.toBeNull();
+      expect(element.shadowRoot?.getElementById(describedBy!)).toBe(error);
+    });
+
+    it('setCustomError shows immediately and reflects the invalid attribute (D-03)', async () => {
+      const element = await fixture<ValidatingTextarea>('<am-textarea label="Bio"></am-textarea>');
+
+      element.setCustomError('Bio contains banned words');
+      await element.updateComplete;
+      await waitForUpdate(element);
+
+      expect(element.hasAttribute('invalid')).toBe(true);
+      const error = element.shadowRoot?.querySelector('[part="error"]');
+      expect(error?.textContent).toBe('Bio contains banned words');
+      expect(error?.getAttribute('aria-live')).toBe('polite');
+      expect(error?.getAttribute('role')).toBeNull();
+    });
+
+    it("setCustomError('') clears the error when there is no native violation", async () => {
+      const element = await fixture<ValidatingTextarea>('<am-textarea label="Bio"></am-textarea>');
+
+      element.setCustomError('Server says no');
+      await element.updateComplete;
+      await waitForUpdate(element);
+      expect(element.hasAttribute('invalid')).toBe(true);
+
+      element.setCustomError('');
+      await element.updateComplete;
+      await waitForUpdate(element);
+
+      expect(element.hasAttribute('invalid')).toBe(false);
+      expect(element.shadowRoot?.querySelector('[part="error"]')).toBeNull();
+    });
+  });
 });
