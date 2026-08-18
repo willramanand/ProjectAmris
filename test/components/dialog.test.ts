@@ -283,6 +283,52 @@ describe('am-dialog', () => {
     focusTarget.remove();
   });
 
+  it('does not emit a spurious am-close on initial mount while closed (WR-01)', async () => {
+    const element = document.createElement('am-dialog') as HTMLElement & {
+      open: boolean;
+    };
+
+    // Attach the listener BEFORE the first Lit update so a mount-time am-close
+    // would be observed. On first update changedProperties includes `open`, but
+    // it was never toggled — no close ever happened.
+    let closeCount = 0;
+    element.addEventListener('am-close', () => {
+      closeCount += 1;
+    });
+
+    document.body.appendChild(element);
+    await waitForUpdate(element);
+
+    expect(closeCount).toBe(0);
+    element.remove();
+  });
+
+  it('still fires am-open and shows when mounted with open (WR-01 guard)', async () => {
+    const element = document.createElement('am-dialog') as HTMLElement & {
+      open: boolean;
+    };
+    element.open = true;
+
+    let opened = false;
+    element.addEventListener('am-open', () => {
+      opened = true;
+    });
+    let closeCount = 0;
+    element.addEventListener('am-close', () => {
+      closeCount += 1;
+    });
+
+    document.body.appendChild(element);
+    await waitForUpdate(element);
+
+    // Mount-with-open must open the dialog and fire am-open, never am-close.
+    const dialog = shadowQuery<HTMLDialogElement>(element, 'dialog');
+    expect(opened).toBe(true);
+    expect(dialog.open).toBe(true);
+    expect(closeCount).toBe(0);
+    element.remove();
+  });
+
   it('does not focus a removed opener on close (FIX-03)', async () => {
     const focusTarget = document.createElement('button');
     focusTarget.textContent = 'Trigger';

@@ -179,6 +179,41 @@ describe('am-command-palette', () => {
     expect(selected).toEqual(['c']);
   });
 
+  it('does not emit a spurious am-close on initial mount while closed (WR-01)', async () => {
+    const el = document.createElement('am-command-palette') as PaletteEl;
+
+    // Listener attached before the first Lit update — a mount-time am-close
+    // would be observed here.
+    let closeCount = 0;
+    el.addEventListener('am-close', () => {
+      closeCount += 1;
+    });
+
+    document.body.appendChild(el);
+    await waitForUpdate(el);
+
+    expect(closeCount).toBe(0);
+    el.remove();
+  });
+
+  it('opens and does not emit am-close when mounted with open (WR-01 guard)', async () => {
+    const el = document.createElement('am-command-palette') as PaletteEl;
+    el.open = true;
+
+    let closeCount = 0;
+    el.addEventListener('am-close', () => {
+      closeCount += 1;
+    });
+
+    document.body.appendChild(el);
+    await waitForUpdate(el);
+
+    const dialog = shadowQuery<HTMLDialogElement>(el, 'dialog');
+    expect(dialog.open).toBe(true);
+    expect(closeCount).toBe(0);
+    el.remove();
+  });
+
   it('shows empty state when filter yields nothing', async () => {
     const el = await makePalette();
     el.open = true;

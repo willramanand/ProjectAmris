@@ -114,6 +114,50 @@ describe('am-drawer', () => {
     focusSpy.mockRestore();
   });
 
+  it('does not emit a spurious am-close on initial mount while closed (WR-01)', async () => {
+    const element = document.createElement('am-drawer') as HTMLElement & {
+      open: boolean;
+    };
+
+    // Listener attached before the first Lit update — a mount-time am-close
+    // would be observed here.
+    let closeCount = 0;
+    element.addEventListener('am-close', () => {
+      closeCount += 1;
+    });
+
+    document.body.appendChild(element);
+    await waitForUpdate(element);
+
+    expect(closeCount).toBe(0);
+    element.remove();
+  });
+
+  it('still fires am-open and shows when mounted with open (WR-01 guard)', async () => {
+    const element = document.createElement('am-drawer') as HTMLElement & {
+      open: boolean;
+    };
+    element.open = true;
+
+    let opened = false;
+    element.addEventListener('am-open', () => {
+      opened = true;
+    });
+    let closeCount = 0;
+    element.addEventListener('am-close', () => {
+      closeCount += 1;
+    });
+
+    document.body.appendChild(element);
+    await waitForUpdate(element);
+
+    const dialog = shadowQuery<HTMLDialogElement>(element, 'dialog');
+    expect(opened).toBe(true);
+    expect(dialog.open).toBe(true);
+    expect(closeCount).toBe(0);
+    element.remove();
+  });
+
   it('reflects placement attribute', async () => {
     const element = await mount(
       document.createElement('am-drawer') as HTMLElement & { placement: string },
