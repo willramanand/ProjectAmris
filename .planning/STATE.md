@@ -5,16 +5,16 @@ milestone_name: milestone
 current_phase: 03
 current_phase_name: reliability-leak-fixes
 status: executing
-stopped_at: Completed 03-03-PLAN.md
-last_updated: "2026-08-18T22:16:30.000Z"
+stopped_at: Completed 03-04-PLAN.md
+last_updated: "2026-08-18T02:47:13.517Z"
 last_activity: 2026-08-18
 last_activity_desc: Phase 03 plan 03 executed (FIX-03 overlay set complete, FIX-02 locked)
 progress:
   total_phases: 6
-  completed_phases: 2
-  total_plans: 20
-  completed_plans: 20
-  percent: 33
+  completed_phases: 3
+  total_plans: 21
+  completed_plans: 21
+  percent: 50
 ---
 
 # Project State
@@ -80,6 +80,7 @@ Progress: [██████████] 100%
 | Phase 03 P01 | 5min | 2 tasks | 4 files |
 | Phase 03 P02 | 3min | 2 tasks | 3 files |
 | Phase 03 P03 | 3min | 3 tasks | 5 files |
+| Phase 03 P04 | 4min | 3 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -115,6 +116,9 @@ Recent decisions affecting current work:
 - [Phase ?]: 03-01: established TeardownScope shared teardown primitive (src/internal/, off frozen surface) as the phase tracer; am-toast dismiss fallback timer + animationend listener now tracked/cleared via _clearTimer() (FIX-01) — behavior-preserving, ready for reuse by FIX-04 (03-02).
 - [Phase ?]: am-dialog: reused TeardownScope (03-01) in disconnectedCallback for nudge listener (FIX-04); isConnected guard on _hide() focus restoration (FIX-03)
 - [Phase ?]: 03-03: isConnected focus-guard extended to am-drawer + am-command-palette (FIX-03 overlay set complete; am-popover documented as no-focus-restoration path); FIX-02 verified — six overlay components' gated-on-open + torn-down-on-disconnect listeners proven green by TEST-05 spies as pre-freeze regression lock, no refactor.
+- [Phase ?]: CR-01: command-palette keyboard nav + Enter index into _ordered (rendered grouped order), so highlight == selection on interleaved groups
+- [Phase ?]: WR-01: dialog/drawer/command-palette gate am-close on a real transition (else if prev), not the bare !==undefined guard which would break mount-with-open am-open
+- [Phase ?]: WR-02: toast dismiss onEnd gated on animationName==='toast-out', dropped once:true; 300ms fallback calls onEnd() eventless
 
 ### Pending Todos
 
@@ -143,6 +147,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-18T22:16:30.000Z
-Stopped at: Completed 03-03-PLAN.md
+Last session: 2026-08-18T02:47:02.435Z
+Stopped at: Completed 03-04-PLAN.md
 Resume file: None
