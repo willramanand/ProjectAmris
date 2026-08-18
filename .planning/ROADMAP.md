@@ -105,7 +105,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Focus restoration guards against removed/disconnected `_previouslyFocused` nodes via `isConnected` (dialog, drawer, command-palette, popover) — closing an overlay whose opener was removed does not throw.
   4. Dialog animation cleanup is hardened (explicit cleanup / `disconnectedCallback`) so animation listeners never dangle.
 
-**Plans**: 1/3 plans executed
+**Plans**: 2/3 plans executed
 
 **Wave 1**
 
@@ -113,7 +113,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 03-02-PLAN.md — Dialog isConnected focus guard + nudge-animation disconnectedCallback cleanup (FIX-03, FIX-04)
+- [x] 03-02-PLAN.md — Dialog isConnected focus guard + nudge-animation disconnectedCallback cleanup (FIX-03, FIX-04)
 - [ ] 03-03-PLAN.md — Drawer + command-palette isConnected focus guards, popover finding, FIX-02 teardown-spy verification (FIX-03, FIX-02)
 
 ### Phase 4: Performance & Feature Capabilities
@@ -168,7 +168,7 @@ Phase 2 (API cleanup) and Phase 3 (leak fixes) both depend only on Phase 1 and m
 |-------|----------------|--------|-----------|
 | 1. Test Coverage + CI Gates Foundation | 8/8 | Complete    | 2026-08-11 |
 | 2. API Cleanup + CEM Baseline | 9/9 | Complete    | 2026-08-17 |
-| 3. Reliability & Leak Fixes | 1/3 | In Progress|  |
+| 3. Reliability & Leak Fixes | 2/3 | In Progress|  |
 | 4. Performance & Feature Capabilities | 0/TBD | Not started | - |
 | 5. Documentation | 0/TBD | Not started | - |
 | 6. API Freeze + Release | 0/TBD | Not started | - |
