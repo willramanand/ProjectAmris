@@ -508,6 +508,10 @@ export class AmSelect extends LitElement {
   }
 
   private _handleOptionSelect = (e: CustomEvent<{ value: string }>) => {
+    // Stop the internal am-option `am-change` at the am-select boundary so it
+    // does not leak past the component and collide with the canonical
+    // value-change event. Consumers observe am-select's native input/change.
+    e.stopPropagation();
     const newValue = e.detail.value;
     if (newValue !== this.value) {
       this.value = newValue;
