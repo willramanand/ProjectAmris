@@ -12,6 +12,8 @@ export { uniqueId, resetUniqueIdCounter } from './utilities/unique-id.js';
 export { AmThemeProvider } from './components/theme-provider/theme-provider.js';
 export type { Theme } from './components/theme-provider/theme-provider.js';
 
+export { AmShortcuts, shortcutRegistryContext } from './components/shortcuts/shortcuts.js';
+
 export { AmSurface } from './components/surface/surface.js';
 export type { SurfaceVariant } from './components/surface/surface.js';
 

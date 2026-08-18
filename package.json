@@ -75,7 +75,8 @@
     "build:storybook": "storybook build"
   },
   "dependencies": {
-    "@floating-ui/dom": "^1.7.6"
+    "@floating-ui/dom": "^1.7.6",
+    "@lit/context": "^1.1.6"
   },
   "devDependencies": {
     "@changesets/cli": "^2.6.0",
