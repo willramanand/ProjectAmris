@@ -37,7 +37,7 @@ export const Async: Story = {
       }, 400);
     };
     return html`
-      <am-combobox async label=${args.label} placeholder=${args.placeholder} size=${args.size}
+      <am-combobox remote label=${args.label} placeholder=${args.placeholder} size=${args.size}
         @am-search=${handleSearch} style="max-width: 320px;"></am-combobox>
     `;
   },
