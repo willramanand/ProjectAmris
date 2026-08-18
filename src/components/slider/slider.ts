@@ -1,11 +1,14 @@
 import { LitElement, css, html, nothing, type PropertyValues } from 'lit';
-import { customElement, property } from 'lit/decorators.js';
+import { customElement, property, query, state } from 'lit/decorators.js';
 import { resetStyles } from '../../styles/reset.css.js';
+import { ValidationController } from '../../internal/controllers/validation.js';
+import { uniqueId } from '../../utilities/unique-id.js';
 
 /**
  * Slider — a custom-styled range slider.
  *
  * @csspart input - The native range input element
+ * @csspart error - The validation error message region
  *
  * @fires input - Fires during drag
  * @fires change - Fires on drag end
@@ -26,14 +29,42 @@ export class AmSlider extends LitElement {
   @property({ type: Number }) max = 100;
   @property({ type: Number }) step = 1;
   @property({ type: Boolean, reflect: true }) disabled = false;
+  @property({ type: Boolean, reflect: true }) invalid = false;
   @property() name = '';
   @property() label = '';
 
+  @query('input[type="range"]') private _input!: HTMLInputElement;
   private internals: ElementInternals;
+
+  /** Stable id shared by the error message node and the input's aria-describedby. */
+  private readonly _errorId = uniqueId('am-slider-error');
+
+  /**
+   * Resolves the displayed validation message + shown-state from the native
+   * range constraint and any consumer-supplied {@link setCustomError} error.
+   * Lives on the src/internal boundary — never on the public surface (D-09).
+   */
+  private _validation = new ValidationController(this, {
+    internals: () => this.internals,
+    anchor: () => this._input,
+    describedById: this._errorId,
+  });
+
+  /** Resolved error text mirrored from the controller for render. */
+  @state() private _errorMessage = '';
+  /** Whether the error message region is currently shown. */
+  @state() private _showError = false;
+  /** True once a failed form submit occurred — drives assertive role=alert (D-04). */
+  @state() private _submitFailed = false;
+  /** Tracks whether the reflected `invalid` attribute is owned by validation. */
+  private _invalidFromValidation = false;
 
   constructor() {
     super();
     this.internals = this.attachInternals();
+    // A failed constraint check on form submit fires `invalid` on this host;
+    // suppress the browser's default bubble and surface our own message (D-04).
+    this.addEventListener('invalid', this._onInvalid);
   }
 
   static styles = [
@@ -155,6 +186,15 @@ export class AmSlider extends LitElement {
         outline-offset: var(--am-focus-ring-offset);
       }
 
+      /* ---- Validation message ---- */
+
+      .error-text {
+        margin-top: var(--am-space-1);
+        color: var(--am-danger);
+        font-size: var(--am-text-sm);
+        line-height: 1.3;
+      }
+
       @media (prefers-reduced-motion: reduce) {
         input[type='range']::-webkit-slider-thumb { transition: none; }
         input[type='range']::-moz-range-thumb { transition: none; }
@@ -168,6 +208,73 @@ export class AmSlider extends LitElement {
       this.style.setProperty('--fill-percent', `${percent}%`);
       this.internals.setFormValue(String(this.value));
     }
+    // Native constraint validity is only knowable from the RENDERED range input,
+    // so this reflection runs post-render (bounded, idempotent extra update).
+    this._syncValidation();
+  }
+
+  /**
+   * Mirror the inner range input's native constraint validity onto the host
+   * ElementInternals, then reflect the controller's resolved message +
+   * shown-state into render state and the `invalid` attribute. Never throws.
+   */
+  private _syncValidation(): void {
+    const input = this._input;
+    if (input) {
+      const v = input.validity;
+      const flags: ValidityStateFlags = {
+        valueMissing: v.valueMissing,
+        rangeUnderflow: v.rangeUnderflow,
+        rangeOverflow: v.rangeOverflow,
+        stepMismatch: v.stepMismatch,
+        badInput: v.badInput,
+      };
+      const anyInvalid = Object.values(flags).some(Boolean);
+      if (anyInvalid) {
+        this.internals.setValidity(flags, input.validationMessage, input);
+      } else {
+        this.internals.setValidity({});
+      }
+    }
+
+    const show = this._validation.invalid;
+    const message = show ? this._validation.message : '';
+
+    if (message !== this._errorMessage) {
+      this._errorMessage = message;
+    }
+    if (show !== this._showError) {
+      this._showError = show;
+      if (show) {
+        this.invalid = true;
+        this._invalidFromValidation = true;
+      } else if (this._invalidFromValidation) {
+        this.invalid = false;
+        this._invalidFromValidation = false;
+      }
+    }
+    if (!show) {
+      this._submitFailed = false;
+    }
+  }
+
+  private _onInvalid = (event: Event): void => {
+    event.preventDefault();
+    this._submitFailed = true;
+    this._validation.markTouched();
+  };
+
+  /**
+   * Set or clear a custom validation error (e.g. a server-side rejection).
+   *
+   * A non-empty message overrides the native constraint message and is shown
+   * immediately; passing `''` clears the custom error and falls back to the
+   * native constraint message (if any). Custom message wins over native.
+   *
+   * @param message - The error text to display, or `''` to clear to native.
+   */
+  setCustomError(message: string): void {
+    this._validation.setCustomError(message);
   }
 
   private _handleInput(e: Event) {
@@ -180,6 +287,12 @@ export class AmSlider extends LitElement {
     this.value = Number(input.value);
   }
 
+  private _handleBlur = (): void => {
+    // D-01 timing gate: a native constraint error may surface only after the
+    // control is touched (blur), never on first paint.
+    this._validation.markTouched();
+  };
+
   render() {
     return html`
       <input
@@ -191,9 +304,21 @@ export class AmSlider extends LitElement {
         step=${this.step}
         ?disabled=${this.disabled}
         aria-label=${this.label || nothing}
+        aria-invalid=${this.invalid ? 'true' : nothing}
+        aria-describedby=${this._showError ? this._errorId : nothing}
         @input=${this._handleInput}
         @change=${this._handleChange}
+        @blur=${this._handleBlur}
       />
+      ${this._showError
+        ? html`<div
+            id=${this._errorId}
+            part="error"
+            class="error-text"
+            role=${this._submitFailed ? 'alert' : nothing}
+            aria-live=${this._submitFailed ? 'off' : 'polite'}
+          >${this._errorMessage}</div>`
+        : nothing}
     `;
   }
 }
