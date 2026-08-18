@@ -1,12 +1,31 @@
-import { LitElement, css, html, nothing, type PropertyValues } from 'lit';
+import { LitElement, css, html, nothing, type PropertyValues, type TemplateResult } from 'lit';
 import { customElement, property, query, queryAssignedElements, state } from 'lit/decorators.js';
 import { size } from '@floating-ui/dom';
+import { virtualize } from '@lit-labs/virtualizer/virtualize.js';
 import { resetStyles } from '../../styles/reset.css.js';
 import { FloatingPositionController } from '../../internal/controllers/floating-position.js';
 import { ValidationController } from '../../internal/controllers/validation.js';
 import { uniqueId } from '../../utilities/unique-id.js';
+import {
+  VIRTUALIZE_ROW_THRESHOLD,
+  ariaPosinset,
+  ariaSetsize,
+  scrollVirtualizerToIndex,
+} from '../../internal/helpers/virtualize-support.js';
 
 export type SelectSize = 'sm' | 'md' | 'lg';
+
+/** PageUp/PageDown highlight jump distance for the virtualized listbox. */
+const OPTION_PAGE_SIZE = 10;
+
+/**
+ * Flattened, state-owned view of a slotted `am-option` used ONLY on the
+ * virtualized render path (above {@link VIRTUALIZE_ROW_THRESHOLD}). Above the
+ * threshold the slotted custom elements are hidden and windowed option rows are
+ * rendered from this model instead, so ARIA counts and selection stay driven by
+ * state rather than by which option nodes are mounted (Pitfall 2).
+ */
+type SelectOptionModel = { value: string; label: string; disabled: boolean };
 
 /**
  * Default message surfaced for a required-empty composite control. Unlike
@@ -218,6 +237,13 @@ export class AmSelect extends LitElement {
 
   /** Stable id shared by the error message node and the trigger's aria-describedby. */
   private readonly _errorId = uniqueId('am-select-error');
+
+  /**
+   * Per-instance base for deterministic per-option `id`s used by the virtualized
+   * popup's `aria-activedescendant` (PERF-03). Index-based so the id stays stable
+   * across virtualizer recycling.
+   */
+  private readonly _optionIdBase = uniqueId('am-select-opt');
 
   /**
    * Resolves the displayed validation message + shown-state from the native
@@ -473,6 +499,51 @@ export class AmSelect extends LitElement {
         pointer-events: auto;
       }
 
+      /* ---- Virtualized option rows (above the threshold) ---- */
+      /* Above VIRTUALIZE_ROW_THRESHOLD the slotted am-option elements are hidden
+         and windowed rows are rendered from state. These mirror am-option's
+         visual treatment so the popup looks identical to the slotted path. */
+
+      .v-option {
+        display: flex;
+        align-items: center;
+        gap: var(--am-space-2);
+        padding: var(--am-space-2) var(--am-space-3);
+        font-family: var(--am-font-sans);
+        font-size: var(--am-text-sm);
+        color: var(--am-text);
+        cursor: pointer;
+        user-select: none;
+        border-radius: var(--am-radius-md);
+        corner-shape: squircle;
+        transition: background var(--am-duration-fast) var(--am-ease-default);
+      }
+
+      .v-option:hover:not([aria-disabled='true']),
+      .v-option.highlighted {
+        background: var(--am-hover-overlay);
+      }
+
+      .v-option.selected {
+        color: var(--am-primary);
+        font-weight: var(--am-weight-medium);
+      }
+
+      .v-option[aria-disabled='true'] {
+        opacity: var(--am-disabled-opacity);
+        cursor: not-allowed;
+      }
+
+      /* Hide the slotted am-option projection while the virtualized rows render,
+         keeping the slot present so queryAssignedElements + slotchange still work. */
+      .options-hidden {
+        display: none;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .v-option { transition: none; }
+      }
+
       /* ---- Validation message ---- */
 
       .error-text {
@@ -619,7 +690,17 @@ export class AmSelect extends LitElement {
     // does not leak past the component and collide with the canonical
     // value-change event. Consumers observe am-select's native input/change.
     e.stopPropagation();
-    const newValue = e.detail.value;
+    this._commitValue(e.detail.value);
+  };
+
+  /**
+   * Commit a new value: update state, fire input/change (only when the value
+   * actually changed), close the popup and return focus to the trigger. Shared
+   * by the slotted `am-change` path and the virtualized option-row click/Enter
+   * path, so selection is always driven by value (state), never option-node
+   * presence (Pitfall 2 / T-04-22).
+   */
+  private _commitValue(newValue: string): void {
     if (newValue !== this.value) {
       this.value = newValue;
       this.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
@@ -627,7 +708,48 @@ export class AmSelect extends LitElement {
     }
     this._close();
     this.triggerEl?.focus();
-  };
+  }
+
+  /** Flattened, state-owned view of the slotted options (virtual path only). */
+  private get _optionModel(): SelectOptionModel[] {
+    return (this._options ?? []).map(opt => ({
+      value: opt.value,
+      label: opt.textContent?.trim() ?? opt.value,
+      disabled: opt.disabled,
+    }));
+  }
+
+  /** True once the option count crosses the virtualization threshold (D-06). */
+  private get _isVirtual(): boolean {
+    return (this._options?.length ?? 0) > VIRTUALIZE_ROW_THRESHOLD;
+  }
+
+  /** Deterministic per-option id (index-based) — stable across recycling. */
+  private _optionId(index: number): string {
+    return `${this._optionIdBase}-${index}`;
+  }
+
+  /**
+   * Active option id for `aria-activedescendant`, or `nothing` when no in-range
+   * option is highlighted. Clamped to the model range WITHOUT re-clamping
+   * `_highlightedIndex` (FIX-02) — a stale index yields no activedescendant
+   * rather than referencing an absent id (T-04-21).
+   */
+  private _activeDescendant(total: number): string | typeof nothing {
+    return this._highlightedIndex >= 0 && this._highlightedIndex < total
+      ? this._optionId(this._highlightedIndex)
+      : nothing;
+  }
+
+  /**
+   * Move the highlight and scroll the target into the virtualization window
+   * FIRST, so the subsequent render surfaces it via aria-activedescendant with
+   * the id already present (Pitfall 2). No-op scroll below the threshold.
+   */
+  private _setHighlighted(index: number): void {
+    this._highlightedIndex = index;
+    if (index >= 0) scrollVirtualizerToIndex(this.listboxEl, index);
+  }
 
   private _handleDocumentClick(e: MouseEvent) {
     if (!this._open) return;
@@ -649,6 +771,15 @@ export class AmSelect extends LitElement {
   }
 
   private _handleKeyDown(e: KeyboardEvent) {
+    // Above the threshold the popup is virtualized (state-driven rows, not
+    // slotted am-option elements), so keyboard nav runs over the flattened
+    // model with aria-activedescendant + scroll-into-window. Below it, the
+    // existing element-based wraparound nav stands unchanged.
+    if (this._isVirtual) {
+      this._handleVirtualKeyDown(e);
+      return;
+    }
+
     const options = this._getNavigableOptions();
 
     switch (e.key) {
@@ -720,6 +851,150 @@ export class AmSelect extends LitElement {
 
   private _scrollHighlightedIntoView(option: AmOption) {
     option.scrollIntoView?.({ block: 'nearest' });
+  }
+
+  /**
+   * Keyboard nav for the virtualized popup. Preserves select's element-based
+   * WRAPAROUND model (Arrow wraps end↔start, skipping disabled) — it is NOT the
+   * combobox string-clamp model. Every highlight move routes through
+   * {@link _setHighlighted} so the target is scrolled into the window before
+   * aria-activedescendant references it.
+   */
+  private _handleVirtualKeyDown(e: KeyboardEvent) {
+    const model = this._optionModel;
+
+    switch (e.key) {
+      case 'Enter':
+      case ' ':
+        e.preventDefault();
+        if (
+          this._open &&
+          this._highlightedIndex >= 0 &&
+          this._highlightedIndex < model.length &&
+          !model[this._highlightedIndex].disabled
+        ) {
+          this._commitValue(model[this._highlightedIndex].value);
+        } else {
+          this._toggleOpen();
+        }
+        break;
+
+      case 'ArrowDown':
+        e.preventDefault();
+        if (!this._open) this._open = true;
+        this._moveVirtualHighlight(1, model);
+        break;
+
+      case 'ArrowUp':
+        e.preventDefault();
+        if (!this._open) this._open = true;
+        this._moveVirtualHighlight(-1, model);
+        break;
+
+      case 'Home':
+        if (this._open) {
+          e.preventDefault();
+          this._highlightEdge(1, model);
+        }
+        break;
+
+      case 'End':
+        if (this._open) {
+          e.preventDefault();
+          this._highlightEdge(-1, model);
+        }
+        break;
+
+      case 'PageDown':
+        if (this._open) {
+          e.preventDefault();
+          this._pageVirtualHighlight(OPTION_PAGE_SIZE, model);
+        }
+        break;
+
+      case 'PageUp':
+        if (this._open) {
+          e.preventDefault();
+          this._pageVirtualHighlight(-OPTION_PAGE_SIZE, model);
+        }
+        break;
+
+      case 'Escape':
+        e.preventDefault();
+        this._close();
+        this.triggerEl?.focus();
+        break;
+
+      case 'Tab':
+        this._close();
+        break;
+    }
+  }
+
+  /** Move ±1 with wraparound, skipping disabled options. */
+  private _moveVirtualHighlight(direction: number, model: SelectOptionModel[]) {
+    const n = model.length;
+    if (n === 0) return;
+    let idx = this._highlightedIndex;
+    for (let step = 0; step < n; step++) {
+      idx += direction;
+      if (idx < 0) idx = n - 1;
+      if (idx >= n) idx = 0;
+      if (!model[idx].disabled) {
+        this._setHighlighted(idx);
+        return;
+      }
+    }
+  }
+
+  /** Highlight the first (direction=1) or last (direction=-1) enabled option. */
+  private _highlightEdge(direction: number, model: SelectOptionModel[]) {
+    const n = model.length;
+    let idx = direction > 0 ? 0 : n - 1;
+    while (idx >= 0 && idx < n && model[idx].disabled) idx += direction;
+    if (idx >= 0 && idx < n) this._setHighlighted(idx);
+  }
+
+  /** Jump by a page, then settle on the nearest enabled option in that direction. */
+  private _pageVirtualHighlight(delta: number, model: SelectOptionModel[]) {
+    const n = model.length;
+    if (n === 0) return;
+    const base = this._highlightedIndex < 0 ? 0 : this._highlightedIndex;
+    let idx = Math.min(Math.max(base + delta, 0), n - 1);
+    const dir = delta > 0 ? 1 : -1;
+    while (idx >= 0 && idx < n && model[idx].disabled) idx += dir;
+    if (idx >= 0 && idx < n) this._setHighlighted(idx);
+  }
+
+  /**
+   * Render one virtualized option row from the state model. `aria-setsize` is
+   * the FULL model total (never the mounted count) and `aria-selected` is driven
+   * by `this.value`. Text binding only — no raw-HTML sink (T-04-20).
+   */
+  private _renderVirtualOption(o: SelectOptionModel, i: number, total: number): TemplateResult {
+    const selected = o.value === this.value;
+    return html`
+      <div
+        class="v-option ${i === this._highlightedIndex ? 'highlighted' : ''} ${selected ? 'selected' : ''}"
+        role="option"
+        id=${this._optionId(i)}
+        aria-setsize=${ariaSetsize(total)}
+        aria-posinset=${ariaPosinset(i)}
+        aria-selected=${selected ? 'true' : 'false'}
+        aria-disabled=${o.disabled ? 'true' : nothing}
+        @click=${() => { if (!o.disabled) this._commitValue(o.value); }}
+      >${o.label}</div>
+    `;
+  }
+
+  /** Windowed option body via the shared `virtualize()` directive (D-06). */
+  private _renderVirtualOptions(model: SelectOptionModel[]): unknown {
+    return virtualize({
+      items: model,
+      keyFunction: (o: SelectOptionModel) => o.value,
+      renderItem: (o: SelectOptionModel, i: number) =>
+        this._renderVirtualOption(o, i, model.length),
+    });
   }
 
   private _handleClear(e: Event) {
@@ -807,8 +1082,15 @@ export class AmSelect extends LitElement {
         part="listbox"
         role="listbox"
         aria-label=${this.label || 'Options'}
+        aria-activedescendant=${this._isVirtual && this._open
+          ? this._activeDescendant(this._options?.length ?? 0)
+          : nothing}
       >
-        <slot @slotchange=${this._handleSlotChange}></slot>
+        ${this._isVirtual ? this._renderVirtualOptions(this._optionModel) : nothing}
+        <slot
+          class=${this._isVirtual ? 'options-hidden' : ''}
+          @slotchange=${this._handleSlotChange}
+        ></slot>
       </div>
       ${this._showError
         ? html`<div

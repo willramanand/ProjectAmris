@@ -378,6 +378,105 @@ describe('am-select', () => {
   });
 });
 
+// PERF-03 — threshold-gated virtualization + state-driven activedescendant
+// (jsdom logic lane). The virtualizer does not window rows in jsdom (layout is
+// mocked), so the windowed row ARIA (ids/setsize/posinset) is proven in the
+// browser lane (test/browser/combobox-virtual.test.ts). Here we prove the parts
+// that are state-driven and therefore observable in jsdom: the threshold branch
+// flips, the slotted projection is hidden, and aria-activedescendant tracks the
+// highlighted index (computed from state, not from which rows are mounted).
+describe('am-select — virtualization branch + activedescendant (PERF-03)', () => {
+  function makeOptions(n: number): string {
+    return Array.from({ length: n }, (_, i) => `<am-option value="v${i}">Opt ${i}</am-option>`).join('');
+  }
+
+  type VirtualSelect = HTMLElement & { value: string; _highlightedIndex: number; _open: boolean };
+
+  it('stays on the slotted (non-virtual) path at/below the threshold', async () => {
+    const el = await fixture<VirtualSelect>(`<am-select label="Small">${makeOptions(50)}</am-select>`);
+    await waitForUpdate(el);
+
+    // Slot is visible (not hidden) and no virtualized rows are rendered.
+    const slot = el.shadowRoot?.querySelector('slot');
+    expect(slot?.classList.contains('options-hidden')).toBe(false);
+    expect((el as unknown as { _isVirtual: boolean })._isVirtual).toBe(false);
+  });
+
+  it('activates virtualization above the threshold and hides the slotted projection', async () => {
+    const el = await fixture<VirtualSelect>(`<am-select label="Big">${makeOptions(150)}</am-select>`);
+    await waitForUpdate(el);
+    await waitForUpdate(el);
+
+    expect((el as unknown as { _isVirtual: boolean })._isVirtual).toBe(true);
+    // The slot is hidden so the windowed rows are the only visible options, but
+    // it stays present so queryAssignedElements + slotchange keep working.
+    const slot = el.shadowRoot?.querySelector('slot');
+    expect(slot).not.toBeNull();
+    expect(slot?.classList.contains('options-hidden')).toBe(true);
+  });
+
+  it('sets aria-activedescendant on the listbox to the highlighted option id (state-driven)', async () => {
+    const el = await fixture<VirtualSelect>(`<am-select label="Big">${makeOptions(150)}</am-select>`);
+    await waitForUpdate(el);
+    await waitForUpdate(el);
+
+    const trigger = shadowQuery<HTMLButtonElement>(el, '.trigger');
+    const listbox = shadowQuery<HTMLElement>(el, '[role="listbox"]');
+
+    // Open the popup.
+    await click(trigger, el);
+    expect(el._open).toBe(true);
+
+    // No active option before navigating.
+    expect(listbox.getAttribute('aria-activedescendant')).toBeNull();
+
+    // ArrowDown highlights the first option; activedescendant references its id.
+    await keydown(trigger, 'ArrowDown', el);
+    const activeId = listbox.getAttribute('aria-activedescendant');
+    expect(activeId).not.toBeNull();
+    expect(el._highlightedIndex).toBe(0);
+    expect(activeId).toBe((el as unknown as { _optionId(i: number): string })._optionId(0));
+
+    // End jumps to the last option (wraparound model, absolute index).
+    await keydown(trigger, 'End', el);
+    expect(el._highlightedIndex).toBe(149);
+    expect(listbox.getAttribute('aria-activedescendant')).toBe(
+      (el as unknown as { _optionId(i: number): string })._optionId(149),
+    );
+  });
+
+  it('does not point aria-activedescendant at an absent id when the highlight is out of range (FIX-02)', async () => {
+    const el = await fixture<VirtualSelect>(`<am-select label="Big">${makeOptions(150)}</am-select>`);
+    await waitForUpdate(el);
+    await waitForUpdate(el);
+
+    const trigger = shadowQuery<HTMLButtonElement>(el, '.trigger');
+    const listbox = shadowQuery<HTMLElement>(el, '[role="listbox"]');
+    await click(trigger, el);
+
+    // Force a stale out-of-bounds index; activedescendant must clamp to nothing
+    // WITHOUT re-clamping the raw index (FIX-02 no-re-clamp).
+    el._highlightedIndex = 9999;
+    await waitForUpdate(el);
+
+    expect(listbox.getAttribute('aria-activedescendant')).toBeNull();
+    expect(el._highlightedIndex).toBe(9999);
+  });
+
+  it('ArrowUp on open wraps to the last option (preserves element-based wraparound)', async () => {
+    const el = await fixture<VirtualSelect>(`<am-select label="Big">${makeOptions(150)}</am-select>`);
+    await waitForUpdate(el);
+    await waitForUpdate(el);
+
+    const trigger = shadowQuery<HTMLButtonElement>(el, '.trigger');
+    await keydown(trigger, 'ArrowUp', el);
+
+    expect(el._open).toBe(true);
+    // Wraparound: from the reset index (-1) ArrowUp lands on the last option.
+    expect(el._highlightedIndex).toBe(149);
+  });
+});
+
 describe('am-select — validation (jsdom lane)', () => {
   type ValidatingSelect = HTMLElement & {
     invalid: boolean;
