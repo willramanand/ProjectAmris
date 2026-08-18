@@ -165,8 +165,8 @@ _The gating `checkpoint:decision` (Task 1) was resolved by the user (Option A) b
 - `setCustomError(message: string): void` is the confirmed, JSDoc'd public API that plan 04-10 will capture into the CEM baseline + a Changeset (report-only until the Phase 6 freeze).
 - Note for expansion: reflecting native validity requires a post-render read (`updated()`), which emits a benign Lit dev-mode warning — expected and acceptable per control.
 
-## Self-Check: PENDING
-(Verified below.)
+## Self-Check: PASSED
+All 4 created files are git-tracked and all 3 task commits (456fa28, a625aee, 23467c1) exist. Verification: `npx tsc --noEmit` clean; jsdom `validation-controller`+`input` 32/32; browser `validation-timing`+`validation-aria` 9/9; full jsdom 476/476; full browser 49/49; ValidationController absent from src/index*.ts.
 
 ---
 *Phase: 04-performance-feature-capabilities*
