@@ -1,6 +1,7 @@
 import { LitElement, css, html, nothing, type PropertyValues } from 'lit';
 import { customElement, property, query } from 'lit/decorators.js';
 import { resetStyles } from '../../styles/reset.css.js';
+import { TeardownScope } from '../../internal/helpers/teardown-scope.js';
 
 export type DialogSize = 'sm' | 'md' | 'lg' | 'xl';
 
@@ -56,6 +57,9 @@ export class AmDialog extends LitElement {
   @query('dialog') private dialogEl!: HTMLDialogElement;
 
   private _previouslyFocused: Element | null = null;
+
+  /** Tracks the fire-and-forget nudge animationend listener so it is torn down on disconnect (FIX-04). */
+  private readonly _teardown = new TeardownScope();
 
   static styles = [
     resetStyles,
@@ -178,6 +182,13 @@ export class AmDialog extends LitElement {
     `,
   ];
 
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    // Abort any in-flight nudge animationend listener so it never dangles on a
+    // detached node (FIX-04).
+    this._teardown.clear();
+  }
+
   protected updated(changed: PropertyValues) {
     if (changed.has('open')) {
       if (this.open) this._show();
@@ -221,7 +232,7 @@ export class AmDialog extends LitElement {
     this.dialogEl.classList.add('nudge');
     this.dialogEl.addEventListener('animationend', () => {
       this.dialogEl.classList.remove('nudge');
-    }, { once: true });
+    }, { once: true, signal: this._teardown.signal });
   }
 
   private _handleCancel(e: Event) {
