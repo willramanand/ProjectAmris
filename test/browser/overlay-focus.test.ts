@@ -160,12 +160,12 @@ describe('overlay focus trap + restoration (real Chromium)', () => {
     expect(deepActiveElement()).toBe(trigger);
   });
 
-  it('finding (FIX-03): restoring to a removed opener is unguarded — silently no-ops, does not throw', async () => {
-    // The overlays call `previouslyFocused.focus()` on close with no
-    // isConnected guard. When the opener was removed while the overlay was
-    // open, real Chromium treats focus() on a disconnected node as a no-op:
-    // focus is NOT restored (it falls to <body>) and NO error is thrown. This
-    // captures the Phase 3 gap (FIX-03) as evidence — it is NOT fixed here.
+  it('am-dialog (FIX-03): closing with a removed opener is guarded — does not throw and does not focus the disconnected node', async () => {
+    // am-dialog restores focus on close via `previouslyFocused.focus()`, now
+    // gated by an `isConnected` guard (FIX-03). When the opener was removed
+    // while the dialog was open, the guard skips the focus() call entirely:
+    // closing does NOT throw and focus is NOT driven onto the removed node
+    // (it falls to <body>). This asserts the guarded fix, not the prior gap.
     const opener = makeOpener('Disposable opener');
 
     const dialog = await fixture<OpenableHost>('<am-dialog label="X"></am-dialog>');
@@ -184,7 +184,7 @@ describe('overlay focus trap + restoration (real Chromium)', () => {
       threw = true;
     }
 
-    // Current (unguarded) behavior: no throw, focus not on the removed opener.
+    // Guarded behavior: no throw, and focus is not driven onto the removed opener.
     expect(threw).toBe(false);
     expect(deepActiveElement()).not.toBe(opener);
   });

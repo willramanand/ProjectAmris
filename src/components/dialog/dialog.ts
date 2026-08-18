@@ -204,7 +204,7 @@ export class AmDialog extends LitElement {
 
   private _hide() {
     this.dialogEl?.close();
-    if (this._previouslyFocused instanceof HTMLElement) {
+    if (this._previouslyFocused instanceof HTMLElement && this._previouslyFocused.isConnected) {
       this._previouslyFocused.focus();
     }
     this.dispatchEvent(new CustomEvent('am-close', { bubbles: true, composed: true }));
