@@ -267,5 +267,88 @@ describe('am-input-otp', () => {
     expect(group).toBeTruthy();
     expect(group?.getAttribute('aria-label')).toBe('One-time passcode');
   });
+
+  describe('validation (jsdom lane)', () => {
+    type ValidatingOtp = HTMLElement & {
+      invalid: boolean;
+      setCustomError(message: string): void;
+      updateComplete: Promise<unknown>;
+    };
+
+    it('shows NO validation error on first paint for a required empty OTP (D-01)', async () => {
+      const element = await fixture<ValidatingOtp>(
+        '<am-input-otp length="4" required></am-input-otp>',
+      );
+
+      expect(element.invalid).toBe(false);
+      expect(element.shadowRoot?.querySelector('[part="error"]')).toBeNull();
+    });
+
+    it('surfaces the native message only after the group is touched (D-01 gate)', async () => {
+      const element = await fixture<ValidatingOtp>(
+        '<am-input-otp length="4" required></am-input-otp>',
+      );
+
+      expect(element.shadowRoot?.querySelector('[part="error"]')).toBeNull();
+
+      // Focus out of the group entirely (relatedTarget is outside the cells).
+      const cells = element.shadowRoot!.querySelector('.cells')!;
+      cells.dispatchEvent(
+        new FocusEvent('focusout', { bubbles: true, composed: true, relatedTarget: document.body }),
+      );
+      await element.updateComplete;
+      await waitForUpdate(element);
+
+      const error = element.shadowRoot?.querySelector('[part="error"]');
+      expect(error).not.toBeNull();
+      expect(element.invalid).toBe(true);
+    });
+
+    it('does not mark touched when focus moves between cells within the group', async () => {
+      const element = await fixture<ValidatingOtp>(
+        '<am-input-otp length="4" required></am-input-otp>',
+      );
+
+      const inputs = element.shadowRoot!.querySelectorAll('input');
+      const cells = element.shadowRoot!.querySelector('.cells')!;
+      cells.dispatchEvent(
+        new FocusEvent('focusout', { bubbles: true, composed: true, relatedTarget: inputs[1] }),
+      );
+      await element.updateComplete;
+      await waitForUpdate(element);
+
+      expect(element.shadowRoot?.querySelector('[part="error"]')).toBeNull();
+    });
+
+    it('setCustomError shows immediately and reflects the invalid attribute (D-03)', async () => {
+      const element = await fixture<ValidatingOtp>('<am-input-otp length="4"></am-input-otp>');
+
+      element.setCustomError('Code expired');
+      await element.updateComplete;
+      await waitForUpdate(element);
+
+      expect(element.hasAttribute('invalid')).toBe(true);
+      const error = element.shadowRoot?.querySelector('[part="error"]');
+      expect(error?.textContent).toBe('Code expired');
+      expect(error?.getAttribute('aria-live')).toBe('polite');
+      expect(error?.getAttribute('role')).toBeNull();
+    });
+
+    it("setCustomError('') clears the error when there is no native violation", async () => {
+      const element = await fixture<ValidatingOtp>('<am-input-otp length="4"></am-input-otp>');
+
+      element.setCustomError('Server says no');
+      await element.updateComplete;
+      await waitForUpdate(element);
+      expect(element.hasAttribute('invalid')).toBe(true);
+
+      element.setCustomError('');
+      await element.updateComplete;
+      await waitForUpdate(element);
+
+      expect(element.hasAttribute('invalid')).toBe(false);
+      expect(element.shadowRoot?.querySelector('[part="error"]')).toBeNull();
+    });
+  });
 });
 
