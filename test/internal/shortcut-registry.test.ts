@@ -133,3 +133,81 @@ describe('ShortcutRegistry — core', () => {
     });
   });
 });
+
+describe('ShortcutRegistry — reserved blocklist & single-key policy (D-10, WCAG 2.1.4)', () => {
+  describe('reserved-combo blocklist', () => {
+    it('refuses a reserved browser/OS combo with reason:"reserved" and does not store it', () => {
+      const r = new ShortcutRegistry({ platform: 'Win32' });
+      expect(r.register({ id: 'bad', keys: 'mod+w', handler: noop })).toEqual({
+        ok: false,
+        reason: 'reserved',
+      });
+      expect(r.list()).toEqual([]);
+      expect(r.resolve('mod+w', [])).toBeUndefined();
+    });
+
+    it('refuses reserved combos regardless of modifier order or platform', () => {
+      const mac = new ShortcutRegistry({ platform: 'MacIntel' });
+      expect(mac.register({ id: 'a', keys: 'shift+mod+i', handler: noop })).toEqual({
+        ok: false,
+        reason: 'reserved',
+      });
+
+      const win = new ShortcutRegistry({ platform: 'Win32' });
+      expect(win.register({ id: 'b', keys: 'f5', handler: noop })).toEqual({
+        ok: false,
+        reason: 'reserved',
+      });
+    });
+
+    it('never throws while refusing a reserved combo', () => {
+      const r = new ShortcutRegistry({ platform: 'Win32' });
+      expect(() => r.register({ id: 'x', keys: 'mod+t', handler: noop })).not.toThrow();
+    });
+
+    it('allows a non-reserved modifier combo through', () => {
+      const r = new ShortcutRegistry({ platform: 'Win32' });
+      expect(r.register({ id: 'ok', keys: 'mod+shift+p', handler: noop })).toEqual({ ok: true });
+    });
+  });
+
+  describe('single-key opt-in (WCAG 2.1.4)', () => {
+    it('refuses a bare single key without allowSingleKey', () => {
+      const r = new ShortcutRegistry({ platform: 'Win32' });
+      expect(r.register({ id: 'slash', keys: '/', handler: noop })).toEqual({
+        ok: false,
+        reason: 'reserved',
+      });
+      expect(r.resolve('/', [])).toBeUndefined();
+    });
+
+    it('registers the same single key when allowSingleKey is true', () => {
+      const r = new ShortcutRegistry({ platform: 'Win32' });
+      const handler = (): void => {};
+      expect(
+        r.register({ id: 'slash', keys: '/', handler, allowSingleKey: true }),
+      ).toEqual({ ok: true });
+      expect(r.resolve('/', [])).toBe(handler);
+    });
+
+    it('stops resolving an opted-in single key once it is unregistered (disable/remap seam)', () => {
+      const r = new ShortcutRegistry({ platform: 'Win32' });
+      r.register({ id: 'slash', keys: '/', handler: noop, allowSingleKey: true });
+      expect(r.unregister('slash')).toBe(true);
+      expect(r.resolve('/', [])).toBeUndefined();
+
+      // Re-register under a different handler (remap) — combo is free again.
+      const remapped = (): void => {};
+      expect(
+        r.register({ id: 'slash2', keys: '/', handler: remapped, allowSingleKey: true }),
+      ).toEqual({ ok: true });
+      expect(r.resolve('/', [])).toBe(remapped);
+    });
+
+    it('does not gate multi-key combos as single keys', () => {
+      const r = new ShortcutRegistry({ platform: 'Win32' });
+      // shift+/ has a modifier → not a bare single key, no opt-in needed.
+      expect(r.register({ id: 'q', keys: 'shift+/', handler: noop })).toEqual({ ok: true });
+    });
+  });
+});
