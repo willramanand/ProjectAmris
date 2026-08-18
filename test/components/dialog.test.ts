@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import '../../src/components/dialog/dialog';
 import { click, mount, oneEvent, shadowQuery, waitForUpdate } from '../helpers';
@@ -281,5 +281,36 @@ describe('am-dialog', () => {
 
     expect(document.activeElement).toBe(focusTarget);
     focusTarget.remove();
+  });
+
+  it('does not focus a removed opener on close (FIX-03)', async () => {
+    const focusTarget = document.createElement('button');
+    focusTarget.textContent = 'Trigger';
+    document.body.appendChild(focusTarget);
+    focusTarget.focus();
+
+    const element = document.createElement('am-dialog') as HTMLElement & {
+      open: boolean;
+    };
+    await mount(element);
+
+    element.open = true;
+    await waitForUpdate(element);
+
+    // Opener is removed while the dialog is open — its node is now disconnected.
+    const focusSpy = vi.spyOn(focusTarget, 'focus');
+    focusTarget.remove();
+
+    // Closing must not throw and must not call focus() on the disconnected node
+    // (the isConnected guard skips it).
+    const closeEvent = oneEvent(element, 'am-close');
+    expect(() => {
+      element.open = false;
+    }).not.toThrow();
+    await waitForUpdate(element);
+    await closeEvent;
+
+    expect(focusSpy).not.toHaveBeenCalled();
+    focusSpy.mockRestore();
   });
 });
