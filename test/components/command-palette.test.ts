@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import '../../src/components/command-palette/command-palette';
 import type { CommandItem } from '../../src/components/command-palette/command-palette';
@@ -86,6 +86,56 @@ describe('am-command-palette', () => {
     await closePromise;
 
     expect(el.open).toBe(false);
+  });
+
+  it('restores focus to a still-connected opener on close (FIX-03)', async () => {
+    const opener = document.createElement('button');
+    opener.textContent = 'Open palette';
+    document.body.appendChild(opener);
+    opener.focus();
+
+    const el = await makePalette();
+    el.open = true;
+    await waitForUpdate(el);
+
+    const focusSpy = vi.spyOn(opener, 'focus');
+
+    const closePromise = oneEvent(el, 'am-close');
+    el.open = false;
+    await waitForUpdate(el);
+    await closePromise;
+
+    // Opener is still connected, so focus is restored to it.
+    expect(focusSpy).toHaveBeenCalled();
+    focusSpy.mockRestore();
+    opener.remove();
+  });
+
+  it('does not focus a removed opener on close (FIX-03)', async () => {
+    const opener = document.createElement('button');
+    opener.textContent = 'Open palette';
+    document.body.appendChild(opener);
+    opener.focus();
+
+    const el = await makePalette();
+    el.open = true;
+    await waitForUpdate(el);
+
+    // Opener is removed while the palette is open — its node is now disconnected.
+    const focusSpy = vi.spyOn(opener, 'focus');
+    opener.remove();
+
+    // Closing must not throw and must not call focus() on the disconnected node
+    // (the isConnected guard skips it).
+    const closePromise = oneEvent(el, 'am-close');
+    expect(() => {
+      el.open = false;
+    }).not.toThrow();
+    await waitForUpdate(el);
+    await closePromise;
+
+    expect(focusSpy).not.toHaveBeenCalled();
+    focusSpy.mockRestore();
   });
 
   it('shows empty state when filter yields nothing', async () => {
