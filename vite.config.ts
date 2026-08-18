@@ -192,7 +192,7 @@ export default defineConfig(() => ({
       formats: ['es' as const],
     },
     rollupOptions: {
-      external: ['lit', /^lit\//, /^@lit\//, '@floating-ui/dom', /^@floating-ui\//],
+      external: ['lit', /^lit\//, /^@lit\//, /^@lit-labs\//, '@floating-ui/dom', /^@floating-ui\//],
       plugins: [minifyHTML()],
       output: {
         entryFileNames: '[name].js',
