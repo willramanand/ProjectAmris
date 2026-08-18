@@ -1,7 +1,8 @@
 import { LitElement, css, html } from 'lit';
 import { customElement, property, query } from 'lit/decorators.js';
-import { computePosition, autoUpdate, flip, shift, offset, type Placement } from '@floating-ui/dom';
+import { type Placement } from '@floating-ui/dom';
 import { resetStyles } from '../../styles/reset.css.js';
+import { FloatingPositionController } from '../../internal/controllers/floating-position.js';
 
 /**
  * Dropdown — a trigger button with a floating menu panel.
@@ -39,7 +40,20 @@ export class AmDropdown extends LitElement {
 
   @query('.panel') private _panel!: HTMLElement;
 
-  private _cleanupAutoUpdate: (() => void) | null = null;
+  /**
+   * Floating positioning delegated to the shared controller (PERF-04). Options
+   * mirror the previous inline setup exactly: anchored to the slotted trigger,
+   * fixed strategy, live `placement`/`offset` getters. autoUpdate is gated to
+   * the open transition — {@link start} on open, {@link stop} on close, and
+   * {@link hostDisconnected} on disconnect.
+   */
+  private _floatingController = new FloatingPositionController(this, {
+    reference: () => this.firstElementChild as HTMLElement | null,
+    floating: () => this._panel,
+    placement: () => this.placement,
+    strategy: 'fixed',
+    offset: () => this.offset,
+  });
 
   static styles = [
     resetStyles,
@@ -70,8 +84,8 @@ export class AmDropdown extends LitElement {
   disconnectedCallback() {
     super.disconnectedCallback();
     this._detachGlobalListeners();
-    this._cleanupAutoUpdate?.();
-    this._cleanupAutoUpdate = null;
+    // The floating autoUpdate teardown is mirrored in the controller's
+    // hostDisconnected (invoked during super.disconnectedCallback above).
   }
 
   private _attachGlobalListeners() {
@@ -106,35 +120,14 @@ export class AmDropdown extends LitElement {
     if (changed.has('open')) {
       if (this.open) {
         this._attachGlobalListeners();
-        this._startAutoUpdate();
+        this._floatingController.start();
         this.dispatchEvent(new CustomEvent('am-open', { bubbles: true, composed: true }));
       } else {
         this._detachGlobalListeners();
-        this._cleanupAutoUpdate?.();
-        this._cleanupAutoUpdate = null;
+        this._floatingController.stop();
         this.dispatchEvent(new CustomEvent('am-close', { bubbles: true, composed: true }));
       }
     }
-  }
-
-  private _startAutoUpdate() {
-    this._cleanupAutoUpdate?.();
-    const trigger = this.firstElementChild as HTMLElement;
-    if (!trigger || !this._panel) return;
-    this._cleanupAutoUpdate = autoUpdate(trigger, this._panel, () => this._updatePosition());
-  }
-
-  private async _updatePosition() {
-    const trigger = this.firstElementChild as HTMLElement;
-    if (!trigger || !this._panel) return;
-
-    const { x, y } = await computePosition(trigger, this._panel, {
-      placement: this.placement,
-      strategy: 'fixed',
-      middleware: [offset(this.offset), flip(), shift({ padding: 8 })],
-    });
-
-    Object.assign(this._panel.style, { left: `${x}px`, top: `${y}px` });
   }
 
   render() {

@@ -1,7 +1,8 @@
 import { LitElement, css, html, nothing } from 'lit';
 import { customElement, property, query } from 'lit/decorators.js';
-import { computePosition, autoUpdate, flip, shift, offset, arrow, type Placement } from '@floating-ui/dom';
+import { arrow, type Placement } from '@floating-ui/dom';
 import { resetStyles } from '../../styles/reset.css.js';
+import { FloatingPositionController } from '../../internal/controllers/floating-position.js';
 
 /**
  * Tooltip — a floating label that appears on hover/focus.
@@ -40,10 +41,37 @@ export class AmTooltip extends LitElement {
   @query('.tooltip') private tooltipEl!: HTMLElement;
   @query('.arrow') private arrowEl!: HTMLElement;
 
-  private _visible = false;
   private _showTimer?: ReturnType<typeof setTimeout>;
   private _hideTimer?: ReturnType<typeof setTimeout>;
-  private _cleanupAutoUpdate: (() => void) | null = null;
+
+  /**
+   * Floating positioning delegated to the shared controller (PERF-04). Options
+   * mirror the previous inline setup exactly: anchored to the slotted trigger,
+   * fixed strategy, live `placement` getter, 8px offset, and an `arrow`
+   * middleware whose readback positions the arrow via `onPositioned`. autoUpdate
+   * is gated to the show/hide transition — {@link start} on show, {@link stop}
+   * on hide, and {@link hostDisconnected} on disconnect.
+   */
+  private _floatingController = new FloatingPositionController(this, {
+    reference: () => this.firstElementChild as HTMLElement | null,
+    floating: () => this.tooltipEl,
+    placement: () => this.placement,
+    strategy: 'fixed',
+    offset: 8,
+    middleware: () => (this.arrowEl ? [arrow({ element: this.arrowEl })] : []),
+    onPositioned: ({ placement, middlewareData }) => {
+      if (middlewareData.arrow && this.arrowEl) {
+        const { x: ax, y: ay } = middlewareData.arrow;
+        const side = placement.split('-')[0];
+        const staticSide = { top: 'bottom', right: 'left', bottom: 'top', left: 'right' }[side]!;
+        Object.assign(this.arrowEl.style, {
+          left: ax != null ? `${ax}px` : '',
+          top: ay != null ? `${ay}px` : '',
+          [staticSide]: '-0.25rem',
+        });
+      }
+    },
+  });
 
   static styles = [
     resetStyles,
@@ -98,73 +126,28 @@ export class AmTooltip extends LitElement {
     super.disconnectedCallback();
     clearTimeout(this._showTimer);
     clearTimeout(this._hideTimer);
-    this._cleanupAutoUpdate?.();
-    this._cleanupAutoUpdate = null;
+    // The floating autoUpdate teardown is mirrored in the controller's
+    // hostDisconnected (invoked during super.disconnectedCallback above).
   }
 
   private _handleEnter = () => {
     if (this.disabled || !this.content) return;
     clearTimeout(this._hideTimer);
     this._showTimer = setTimeout(() => {
-      this._visible = true;
       this.setAttribute('visible', '');
       this.requestUpdate();
-      this._startAutoUpdate();
+      this._floatingController.start();
     }, this.delay);
   };
 
   private _handleLeave = () => {
     clearTimeout(this._showTimer);
     this._hideTimer = setTimeout(() => {
-      this._visible = false;
       this.removeAttribute('visible');
       this.requestUpdate();
-      this._cleanupAutoUpdate?.();
-      this._cleanupAutoUpdate = null;
+      this._floatingController.stop();
     }, 100);
   };
-
-  private _startAutoUpdate() {
-    this._cleanupAutoUpdate?.();
-    const trigger = this.firstElementChild as HTMLElement;
-    if (!trigger || !this.tooltipEl) return;
-    this._cleanupAutoUpdate = autoUpdate(trigger, this.tooltipEl, () => this._updatePosition());
-  }
-
-  private async _updatePosition() {
-    if (!this._visible) return;
-
-    const trigger = this.firstElementChild as HTMLElement;
-    if (!trigger || !this.tooltipEl) return;
-
-    const { x, y, placement, middlewareData } = await computePosition(
-      trigger,
-      this.tooltipEl,
-      {
-        placement: this.placement,
-        strategy: 'fixed',
-        middleware: [
-          offset(8),
-          flip(),
-          shift({ padding: 8 }),
-          arrow({ element: this.arrowEl }),
-        ],
-      }
-    );
-
-    Object.assign(this.tooltipEl.style, { left: `${x}px`, top: `${y}px` });
-
-    if (middlewareData.arrow) {
-      const { x: ax, y: ay } = middlewareData.arrow;
-      const side = placement.split('-')[0];
-      const staticSide = { top: 'bottom', right: 'left', bottom: 'top', left: 'right' }[side]!;
-      Object.assign(this.arrowEl.style, {
-        left: ax != null ? `${ax}px` : '',
-        top: ay != null ? `${ay}px` : '',
-        [staticSide]: '-0.25rem',
-      });
-    }
-  }
 
   render() {
     return html`
