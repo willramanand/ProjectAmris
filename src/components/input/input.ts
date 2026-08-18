@@ -3,6 +3,8 @@ import { customElement, property, query, state } from 'lit/decorators.js';
 import { live } from 'lit/directives/live.js';
 import { resetStyles } from '../../styles/reset.css.js';
 import { requestAssociatedFormSubmit } from '../../utilities/form-actions.js';
+import { ValidationController } from '../../internal/controllers/validation.js';
+import { uniqueId } from '../../utilities/unique-id.js';
 
 export type InputSize = 'sm' | 'md' | 'lg';
 
@@ -17,6 +19,7 @@ export type InputSize = 'sm' | 'md' | 'lg';
  * @csspart wrapper - The outer input wrapper
  * @csspart label - The floating label element
  * @csspart clear - The clear button
+ * @csspart error - The validation error message region
  *
  * @cssprop --am-input-radius - Override border radius
  *
@@ -55,9 +58,35 @@ export class AmInput extends LitElement {
   @query('input') private inputEl!: HTMLInputElement;
   private internals: ElementInternals;
 
+  /** Stable id shared by the error message node and the input's aria-describedby. */
+  private readonly _errorId = uniqueId('am-input-error');
+
+  /**
+   * Resolves the displayed validation message + shown-state from the native
+   * constraint message and any consumer-supplied {@link setCustomError} error.
+   * Lives on the src/internal boundary — never on the public surface (D-09).
+   */
+  private _validation = new ValidationController(this, {
+    internals: () => this.internals,
+    anchor: () => this.inputEl,
+    describedById: this._errorId,
+  });
+
+  /** Resolved error text mirrored from the controller for render. */
+  @state() private _errorMessage = '';
+  /** Whether the error message region is currently shown. */
+  @state() private _showError = false;
+  /** True once a failed form submit occurred — drives assertive role=alert (D-04). */
+  @state() private _submitFailed = false;
+  /** Tracks whether the reflected `invalid` attribute is owned by validation. */
+  private _invalidFromValidation = false;
+
   constructor() {
     super();
     this.internals = this.attachInternals();
+    // A failed constraint check on form submit fires `invalid` on this host;
+    // suppress the browser's default bubble and surface our own message (D-04).
+    this.addEventListener('invalid', this._onInvalid);
   }
 
   static styles = [
@@ -192,6 +221,15 @@ export class AmInput extends LitElement {
         color: var(--am-danger);
       }
 
+      /* ---- Validation message ---- */
+
+      .error-text {
+        margin-top: var(--am-space-1);
+        color: var(--am-danger);
+        font-size: var(--am-text-sm);
+        line-height: 1.3;
+      }
+
       /* ---- Slots ---- */
 
       ::slotted([slot='prefix']),
@@ -246,6 +284,80 @@ export class AmInput extends LitElement {
     if (changed.has('value')) {
       this.internals.setFormValue(this.value);
     }
+    this._syncValidation();
+  }
+
+  /**
+   * Mirror the inner input's native constraint validity onto the host
+   * ElementInternals (so `validationMessage` is populated), then reflect the
+   * controller's resolved message + shown-state into render state and the
+   * `invalid` attribute. Never throws; bounded (idempotent) re-render.
+   */
+  private _syncValidation(): void {
+    const input = this.inputEl;
+    if (input) {
+      const v = input.validity;
+      const flags: ValidityStateFlags = {
+        valueMissing: v.valueMissing,
+        typeMismatch: v.typeMismatch,
+        patternMismatch: v.patternMismatch,
+        tooShort: v.tooShort,
+        tooLong: v.tooLong,
+        rangeUnderflow: v.rangeUnderflow,
+        rangeOverflow: v.rangeOverflow,
+        stepMismatch: v.stepMismatch,
+        badInput: v.badInput,
+      };
+      const anyInvalid = Object.values(flags).some(Boolean);
+      if (anyInvalid) {
+        this.internals.setValidity(flags, input.validationMessage, input);
+      } else {
+        this.internals.setValidity({});
+      }
+    }
+
+    const message = this._validation.message;
+    const show = this._validation.invalid;
+
+    if (message !== this._errorMessage) {
+      this._errorMessage = message;
+    }
+    if (show !== this._showError) {
+      this._showError = show;
+      // Reflect :host([invalid]) without clobbering a consumer-set `invalid`
+      // attribute — only validation-owned reflections are cleared by validation.
+      if (show) {
+        this.invalid = true;
+        this._invalidFromValidation = true;
+      } else if (this._invalidFromValidation) {
+        this.invalid = false;
+        this._invalidFromValidation = false;
+      }
+    }
+    if (!show) {
+      this._submitFailed = false;
+    }
+  }
+
+  private _onInvalid = (event: Event): void => {
+    event.preventDefault();
+    this._submitFailed = true;
+    this._validation.markTouched();
+    this._syncValidation();
+  };
+
+  /**
+   * Set or clear a custom validation error (e.g. a server-side rejection).
+   *
+   * A non-empty message overrides the native constraint message and is shown
+   * immediately; passing `''` clears the custom error and falls back to the
+   * native constraint message (if any). Custom message wins over native.
+   *
+   * @param message - The error text to display, or `''` to clear to native.
+   */
+  setCustomError(message: string): void {
+    this._validation.setCustomError(message);
+    this._syncValidation();
   }
 
   private _handleInput(e: Event) {
@@ -258,12 +370,20 @@ export class AmInput extends LitElement {
   }
 
   private _handleFocus() { this._focused = true; }
-  private _handleBlur() { this._focused = false; }
+  private _handleBlur() {
+    this._focused = false;
+    // D-01 timing gate: a native constraint error may surface only after the
+    // field is touched (blur), never on first paint.
+    this._validation.markTouched();
+  }
 
   private _handleKeyDown(e: KeyboardEvent) {
     if (e.key !== 'Enter') {
       return;
     }
+
+    // Enter attempts submit — treat as touched so a native error surfaces (D-01).
+    this._validation.markTouched();
 
     requestAssociatedFormSubmit(this, {
       event: e,
@@ -329,6 +449,7 @@ export class AmInput extends LitElement {
             pattern=${this.pattern || nothing}
             aria-label=${this.label || nothing}
             aria-invalid=${this.invalid ? 'true' : nothing}
+            aria-describedby=${this._showError ? this._errorId : nothing}
             @input=${this._handleInput}
             @change=${this._handleChange}
             @focus=${this._handleFocus}
@@ -353,6 +474,15 @@ export class AmInput extends LitElement {
           : nothing}
         <slot name="suffix"></slot>
       </div>
+      ${this._showError
+        ? html`<div
+            id=${this._errorId}
+            part="error"
+            class="error-text"
+            role=${this._submitFailed ? 'alert' : nothing}
+            aria-live=${this._submitFailed ? 'off' : 'polite'}
+          >${this._errorMessage}</div>`
+        : nothing}
     `;
   }
 }

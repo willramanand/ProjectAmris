@@ -32,12 +32,13 @@ import { fixture } from '../helpers';
  * exist in the browser project, and importing it would defeat the fidelity of
  * this suite.
  *
- * Validity: no form-associated control currently calls
- * `ElementInternals.setValidity` (grep of src/ confirms zero call sites), so a
- * `required` custom control does NOT invalidate its host `<form>` yet. The
- * validity assertions below therefore document the *real current behaviour*
- * (checkValidity stays true) and are flagged as a carried finding for the
- * validation-UX phase — they are NOT fixed here (test-only phase).
+ * Validity: as of Phase 4 (plan 04-01), `am-input` wires
+ * `ElementInternals.setValidity` through the shared ValidationController, so a
+ * `required`-but-empty `am-input` now DOES invalidate its host `<form>`. The
+ * am-input validity assertion below was a carried finding from the test-only
+ * phase (checkValidity stayed true) and is now updated to the resolved
+ * behaviour. The other controls still lack setValidity and remain carried
+ * findings until their expansion plans land.
  */
 
 type LitEl = HTMLElement & { updateComplete?: Promise<unknown> };
@@ -108,14 +109,24 @@ describe('form-association (real ElementInternals)', () => {
       expect(new FormData(form).get('username')).toBe('bob');
     });
 
-    it('required + empty does NOT block submission yet (no setValidity — carried finding)', async () => {
+    it('required + empty now blocks submission via native setValidity (FEAT-01 — finding resolved)', async () => {
       const form = await fixture<HTMLFormElement>(
         '<form><am-input name="username" required></am-input></form>',
       );
       await settle(form.querySelector('am-input'));
 
-      // FINDING: am-input never calls internals.setValidity, so a required-but-
-      // empty control leaves the form "valid". Documented, not fixed (Phase 4).
+      // Phase 4 / plan 04-01 wired am-input to ElementInternals.setValidity via
+      // the ValidationController, so a required-but-empty control now invalidates
+      // its host form. This is the resolution of the prior carried finding.
+      expect(form.checkValidity()).toBe(false);
+    });
+
+    it('becomes form-valid once a value is provided', async () => {
+      const form = await fixture<HTMLFormElement>(
+        '<form><am-input name="username" required value="alice"></am-input></form>',
+      );
+      await settle(form.querySelector('am-input'));
+
       expect(form.checkValidity()).toBe(true);
     });
   });
