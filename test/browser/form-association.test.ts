@@ -37,8 +37,11 @@ import { fixture } from '../helpers';
  * `required`-but-empty `am-input` now DOES invalidate its host `<form>`. The
  * am-input validity assertion below was a carried finding from the test-only
  * phase (checkValidity stayed true) and is now updated to the resolved
- * behaviour. The other controls still lack setValidity and remain carried
- * findings until their expansion plans land.
+ * behaviour. Plan 04-03 extended the same ValidationController wiring to
+ * am-checkbox, am-switch, am-radio-group, am-slider, and am-color-picker; the
+ * setFormValue assertions here all use valid (non-required / value-present)
+ * cases, so they remain green. Remaining controls still lack setValidity until
+ * their expansion plans land.
  */
 
 type LitEl = HTMLElement & { updateComplete?: Promise<unknown> };
