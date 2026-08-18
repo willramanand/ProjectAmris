@@ -129,6 +129,46 @@ describe('am-dialog', () => {
     expect(dialog.classList.contains('nudge')).toBe(true);
   });
 
+  it('tears down the nudge animationend listener on disconnect (FIX-04)', async () => {
+    const element = document.createElement('am-dialog') as HTMLElement & {
+      open: boolean;
+      closeOnBackdrop: boolean;
+    };
+    element.closeOnBackdrop = false;
+    await mount(element);
+    element.open = true;
+    await waitForUpdate(element);
+
+    const dialog = shadowQuery<HTMLDialogElement>(element, 'dialog');
+    const rect = dialog.getBoundingClientRect();
+
+    // Trigger a nudge (blocked backdrop click) so the animationend listener is
+    // registered on the shadow <dialog>.
+    dialog.dispatchEvent(
+      new MouseEvent('click', {
+        clientX: rect.left - 10,
+        clientY: rect.top - 10,
+        bubbles: true,
+        composed: true,
+      }),
+    );
+    await waitForUpdate(element);
+    expect(dialog.classList.contains('nudge')).toBe(true);
+
+    // The nudge listener is bound to this TeardownScope signal; capture it now.
+    // jsdom does not auto-fire animationend, so we assert teardown deterministically
+    // via the scope's abort signal rather than waiting for the animation.
+    const { signal } = (
+      element as unknown as { _teardown: { signal: AbortSignal } }
+    )._teardown;
+    expect(signal.aborted).toBe(false);
+
+    // Disconnect mid-nudge: disconnectedCallback → _teardown.clear() aborts the
+    // captured signal, removing the still-bound animationend listener.
+    element.remove();
+    expect(signal.aborted).toBe(true);
+  });
+
   it('does not close on click inside dialog area', async () => {
     const element = document.createElement('am-dialog') as HTMLElement & {
       open: boolean;
