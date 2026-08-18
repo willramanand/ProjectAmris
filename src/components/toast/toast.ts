@@ -260,15 +260,22 @@ export class AmToast extends LitElement {
     this._clearTimer();
     this.classList.add('dismissing');
     let done = false;
-    const onEnd = () => {
+    const onEnd = (e?: AnimationEvent) => {
+      // `animationend` is composed, so animations on shadow descendants (the
+      // countdown ring, the entrance `toast-in`) bubble to this host listener.
+      // Only the host's own exit animation completes the dismiss (WR-02). The
+      // 300ms fallback calls onEnd() with no event, so it still completes.
+      if (e && e.animationName !== 'toast-out') return;
       if (done) return;
       done = true;
       this.classList.remove('dismissing');
       this.open = false;
       this.dispatchEvent(new CustomEvent('am-close', { bubbles: true, composed: true }));
     };
-    this.addEventListener('animationend', onEnd, { once: true, signal: this._teardown.signal });
-    this._teardown.timeout(onEnd, 300);
+    // No `once: true` — the name check gates completion; a one-shot listener
+    // could be consumed by an unrelated bubbling animationend before toast-out.
+    this.addEventListener('animationend', onEnd as EventListener, { signal: this._teardown.signal });
+    this._teardown.timeout(() => onEnd(), 300);
   }
 
   render() {
