@@ -34,13 +34,17 @@ import { fixture } from '../helpers';
  *
  * Validity: as of Phase 4 (plan 04-01), `am-input` wires
  * `ElementInternals.setValidity` through the shared ValidationController, so a
- * `required`-but-empty `am-input` now DOES invalidate its host `<form>`. Plan
- * 04-02 wires the same ValidationController into `am-textarea`,
- * `am-number-field`, and `am-input-otp` (the text-entry family). All four
- * validity assertions below were carried findings from the test-only phase
- * (checkValidity stayed true) and are now updated to the resolved behaviour.
- * The remaining form-associated controls still lack setValidity and remain
- * carried findings until their expansion plans (04-03/04-04) land.
+ * `required`-but-empty `am-input` now DOES invalidate its host `<form>`. The
+ * same ValidationController wiring has since been extended across the
+ * form-associated controls: plan 04-02 to the text-entry family (`am-textarea`,
+ * `am-number-field`, `am-input-otp`), plan 04-03 to the choice/range controls
+ * (`am-checkbox`, `am-switch`, `am-radio-group`, `am-slider`,
+ * `am-color-picker`), and plan 04-04 to the composite/overlay controls
+ * (`am-select`, `am-combobox`, `am-rich-select`, `am-date-picker`,
+ * `am-time-picker`). The validity assertions below were carried findings from
+ * the test-only phase (checkValidity stayed true) and are now updated to the
+ * resolved behaviour; the remaining setFormValue assertions use valid
+ * (non-required / value-present) cases, so they stay green.
  */
 
 type LitEl = HTMLElement & { updateComplete?: Promise<unknown> };

@@ -1,6 +1,11 @@
 import { LitElement, css, html, nothing, type PropertyValues } from 'lit';
-import { customElement, property, queryAssignedElements } from 'lit/decorators.js';
+import { customElement, property, queryAssignedElements, state } from 'lit/decorators.js';
 import { resetStyles } from '../../styles/reset.css.js';
+import { ValidationController } from '../../internal/controllers/validation.js';
+import { uniqueId } from '../../utilities/unique-id.js';
+
+/** Native-style message shown when a required radio group has no selection (D-01). */
+const GROUP_REQUIRED_MESSAGE = 'Please select one of these options.';
 
 /* ================================================================
    AmRadio — individual radio button
@@ -221,6 +226,9 @@ export class AmRadioGroup extends LitElement {
   /** Marks the group as required for form validation. */
   @property({ type: Boolean, reflect: true }) required = false;
 
+  /** Reflects the group's validity for `:host([invalid])` styling hooks. */
+  @property({ type: Boolean, reflect: true }) invalid = false;
+
   /** Name attribute for form association. */
   @property() name = '';
 
@@ -229,9 +237,36 @@ export class AmRadioGroup extends LitElement {
 
   private internals: ElementInternals;
 
+  /** Stable id shared by the error message node and the group's aria-describedby. */
+  private readonly _errorId = uniqueId('am-radio-group-error');
+
+  /**
+   * Resolves the displayed validation message + shown-state from the required
+   * constraint and any consumer-supplied {@link setCustomError} error. Anchored
+   * on the GROUP (the form-associated element that holds the value + internals),
+   * never an individual radio. Lives on the src/internal boundary (D-09).
+   */
+  private _validation = new ValidationController(this, {
+    internals: () => this.internals,
+    anchor: () => this,
+    describedById: this._errorId,
+  });
+
+  /** Resolved error text mirrored from the controller for render. */
+  @state() private _errorMessage = '';
+  /** Whether the error message region is currently shown. */
+  @state() private _showError = false;
+  /** True once a failed form submit occurred — drives assertive role=alert (D-04). */
+  @state() private _submitFailed = false;
+  /** Tracks whether the reflected `invalid` attribute is owned by validation. */
+  private _invalidFromValidation = false;
+
   constructor() {
     super();
     this.internals = this.attachInternals();
+    // A failed constraint check on form submit fires `invalid` on this host;
+    // suppress the browser's default bubble and surface our own message (D-04).
+    this.addEventListener('invalid', this._onInvalid);
   }
 
   static styles = [
@@ -248,6 +283,15 @@ export class AmRadioGroup extends LitElement {
         cursor: not-allowed;
         pointer-events: none;
       }
+
+      /* ---- Validation message ---- */
+
+      .error-text {
+        margin-top: var(--am-space-1);
+        color: var(--am-danger);
+        font-size: var(--am-text-sm);
+        line-height: 1.3;
+      }
     `,
   ];
 
@@ -257,6 +301,7 @@ export class AmRadioGroup extends LitElement {
     this.addEventListener('input', this._handleRadioInput as EventListener);
     this.addEventListener('change', this._handleRadioChange as EventListener);
     this.addEventListener('keydown', this._handleKeyDown);
+    this.addEventListener('focusout', this._handleFocusOut);
   }
 
   disconnectedCallback() {
@@ -264,6 +309,7 @@ export class AmRadioGroup extends LitElement {
     this.removeEventListener('input', this._handleRadioInput as EventListener);
     this.removeEventListener('change', this._handleRadioChange as EventListener);
     this.removeEventListener('keydown', this._handleKeyDown);
+    this.removeEventListener('focusout', this._handleFocusOut);
   }
 
   protected firstUpdated() {
@@ -287,7 +333,87 @@ export class AmRadioGroup extends LitElement {
       this.internals.setFormValue(this.value || null);
       this._syncRadios();
     }
+
+    // The required constraint depends on the group's value, only settled after
+    // render; reflect here (bounded, idempotent extra update).
+    this._syncValidation();
   }
+
+  /**
+   * Mirror the required constraint onto the group's ElementInternals (so
+   * `validationMessage` is populated), then reflect the controller's resolved
+   * message + shown-state into render state, the `invalid` attribute, and the
+   * group's `aria-invalid` / `aria-describedby` (anchored on the GROUP, which
+   * owns the value + internals — never an individual radio). Never throws.
+   */
+  private _syncValidation(): void {
+    const valueMissing = this.required && !this.value;
+    if (valueMissing) {
+      // Anchor arg omitted: the group host is not a shadow descendant, so a real
+      // ElementInternals rejects it as an anchor; validity + message suffice.
+      this.internals.setValidity({ valueMissing: true }, GROUP_REQUIRED_MESSAGE);
+    } else {
+      this.internals.setValidity({});
+    }
+
+    const show = this._validation.invalid;
+    const message = show ? this._validation.message : '';
+
+    if (message !== this._errorMessage) {
+      this._errorMessage = message;
+    }
+    if (show !== this._showError) {
+      this._showError = show;
+      if (show) {
+        this.invalid = true;
+        this._invalidFromValidation = true;
+      } else if (this._invalidFromValidation) {
+        this.invalid = false;
+        this._invalidFromValidation = false;
+      }
+    }
+    // aria-invalid + aria-describedby attach to the GROUP host (holds role
+    // radiogroup + value + internals), pointing at the same-shadow-root message.
+    if (show) {
+      this.setAttribute('aria-invalid', 'true');
+      this.setAttribute('aria-describedby', this._errorId);
+    } else {
+      this.removeAttribute('aria-invalid');
+      this.removeAttribute('aria-describedby');
+    }
+    if (!show) {
+      this._submitFailed = false;
+    }
+  }
+
+  private _onInvalid = (event: Event): void => {
+    event.preventDefault();
+    this._submitFailed = true;
+    this._validation.markTouched();
+  };
+
+  /**
+   * Set or clear a custom validation error on the radio group (e.g. a
+   * server-side rejection).
+   *
+   * A non-empty message overrides the native constraint message and is shown
+   * immediately; passing `''` clears the custom error and falls back to the
+   * native constraint message (if any). Custom message wins over native.
+   *
+   * @param message - The error text to display, or `''` to clear to native.
+   */
+  setCustomError(message: string): void {
+    this._validation.setCustomError(message);
+  }
+
+  private _handleFocusOut = (e: FocusEvent): void => {
+    // D-01 timing gate: mark touched only when focus leaves the whole group,
+    // not while roving between radios inside it. relatedTarget is retargeted to
+    // the am-radio host when crossing the child shadow boundary.
+    const next = e.relatedTarget as Node | null;
+    if (next && this.contains(next)) return;
+    this._validation.markTouched();
+  };
 
   private _getRadios(): AmRadio[] {
     return this._radios ?? [];
@@ -383,6 +509,15 @@ export class AmRadioGroup extends LitElement {
   render() {
     return html`
       <slot @slotchange=${this._handleSlotChange}></slot>
+      ${this._showError
+        ? html`<div
+            id=${this._errorId}
+            part="error"
+            class="error-text"
+            role=${this._submitFailed ? 'alert' : nothing}
+            aria-live=${this._submitFailed ? 'off' : 'polite'}
+          >${this._errorMessage}</div>`
+        : nothing}
     `;
   }
 }

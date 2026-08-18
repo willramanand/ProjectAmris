@@ -85,4 +85,89 @@ describe('am-color-picker', () => {
     expect(el.hasAttribute('invalid')).toBe(true);
     expect(trigger(el).classList.contains('invalid')).toBe(true);
   });
+
+  describe('validation (jsdom lane)', () => {
+    type ValidatingPicker = ColorPickerEl & {
+      required: boolean;
+      setCustomError(message: string): void;
+      updateComplete: Promise<unknown>;
+    };
+
+    async function blurTrigger(el: ValidatingPicker): Promise<void> {
+      trigger(el).dispatchEvent(new FocusEvent('blur', { bubbles: true }));
+      await el.updateComplete;
+      await waitForUpdate(el);
+    }
+
+    it('shows NO validation error on first paint for a required empty picker (D-01)', async () => {
+      const el = (await makePicker('required value=""')) as ValidatingPicker;
+
+      expect(el.invalid).toBe(false);
+      expect(el.shadowRoot?.querySelector('[part="error"]')).toBeNull();
+      expect(trigger(el).getAttribute('aria-invalid')).toBeNull();
+    });
+
+    it('surfaces the native message only after the trigger is blurred (D-01 gate)', async () => {
+      const el = (await makePicker('required value=""')) as ValidatingPicker;
+      const trig = trigger(el);
+
+      expect(el.shadowRoot?.querySelector('[part="error"]')).toBeNull();
+
+      await blurTrigger(el);
+
+      const error = el.shadowRoot?.querySelector('[part="error"]');
+      expect(error).not.toBeNull();
+      expect(el.invalid).toBe(true);
+      expect(trig.getAttribute('aria-invalid')).toBe('true');
+      const describedBy = trig.getAttribute('aria-describedby');
+      expect(describedBy).not.toBeNull();
+      expect(el.shadowRoot?.getElementById(describedBy!)).toBe(error);
+    });
+
+    it('setCustomError shows immediately and reflects the invalid attribute (D-03)', async () => {
+      const el = (await makePicker('value="#6366f1"')) as ValidatingPicker;
+
+      el.setCustomError('That color fails contrast');
+      await el.updateComplete;
+      await waitForUpdate(el);
+
+      expect(el.hasAttribute('invalid')).toBe(true);
+      const error = el.shadowRoot?.querySelector('[part="error"]');
+      expect(error?.textContent).toBe('That color fails contrast');
+      expect(error?.getAttribute('aria-live')).toBe('polite');
+      expect(error?.getAttribute('role')).toBeNull();
+    });
+
+    it("setCustomError('') clears the error when there is no native violation", async () => {
+      const el = (await makePicker('value="#6366f1"')) as ValidatingPicker;
+
+      el.setCustomError('Server rejected');
+      await el.updateComplete;
+      await waitForUpdate(el);
+      expect(el.hasAttribute('invalid')).toBe(true);
+
+      el.setCustomError('');
+      await el.updateComplete;
+      await waitForUpdate(el);
+
+      expect(el.hasAttribute('invalid')).toBe(false);
+      expect(el.shadowRoot?.querySelector('[part="error"]')).toBeNull();
+    });
+
+    it('custom error wins over the native constraint message (D-03 precedence)', async () => {
+      const el = (await makePicker('required value=""')) as ValidatingPicker;
+
+      await blurTrigger(el);
+      const nativeMessage = el.shadowRoot?.querySelector('[part="error"]')?.textContent;
+      expect(nativeMessage).toBeTruthy();
+
+      el.setCustomError('Custom takes priority');
+      await el.updateComplete;
+      await waitForUpdate(el);
+
+      const error = el.shadowRoot?.querySelector('[part="error"]');
+      expect(error?.textContent).toBe('Custom takes priority');
+      expect(error?.textContent).not.toBe(nativeMessage);
+    });
+  });
 });

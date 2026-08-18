@@ -3,8 +3,13 @@ import { customElement, property, query, state } from 'lit/decorators.js';
 import { styleMap } from 'lit/directives/style-map.js';
 import { computePosition, flip, offset, shift } from '@floating-ui/dom';
 import { resetStyles } from '../../styles/reset.css.js';
+import { ValidationController } from '../../internal/controllers/validation.js';
+import { uniqueId } from '../../utilities/unique-id.js';
 
 export type ColorPickerSize = 'sm' | 'md' | 'lg';
+
+/** Native-style message shown when a required color-picker has no value (D-01). */
+const REQUIRED_MESSAGE = 'Please choose a color.';
 
 /**
  * Color Picker — a visual color selection control with a saturation/brightness
@@ -12,6 +17,7 @@ export type ColorPickerSize = 'sm' | 'md' | 'lg';
  *
  * @csspart swatch - The color preview swatch
  * @csspart panel - The picker dropdown panel
+ * @csspart error - The validation error message region
  *
  * @fires input - Fires when the color changes
  * @fires change - Fires when the color changes
@@ -32,10 +38,24 @@ export class AmColorPicker extends LitElement {
   @property({ reflect: true }) size: ColorPickerSize = 'md';
   @property({ type: Boolean, reflect: true }) disabled = false;
   @property({ type: Boolean, reflect: true }) invalid = false;
+  /** Marks the picker as required — must have a value to satisfy validation. */
+  @property({ type: Boolean, reflect: true }) required = false;
   @property({ type: Boolean, attribute: 'show-alpha' }) showAlpha = false;
 
   /** Predefined swatches. */
   @property({ type: Array }) swatches: string[] = [];
+
+  /** Stable id shared by the error message node and the trigger's aria-describedby. */
+  private readonly _errorId = uniqueId('am-color-picker-error');
+
+  /** Resolved error text mirrored from the controller for render. */
+  @state() private _errorMessage = '';
+  /** Whether the error message region is currently shown. */
+  @state() private _showError = false;
+  /** True once a failed form submit occurred — drives assertive role=alert (D-04). */
+  @state() private _submitFailed = false;
+  /** Tracks whether the reflected `invalid` attribute is owned by validation. */
+  private _invalidFromValidation = false;
 
   @state() private _open = false;
   @state() private _hue = 0;
@@ -55,9 +75,24 @@ export class AmColorPicker extends LitElement {
   private _draggingHue = false;
   private _draggingAlpha = false;
 
+  /**
+   * Resolves the displayed validation message + shown-state from the required
+   * constraint and any consumer-supplied {@link setCustomError} error, anchored
+   * on the trigger. Lives on the src/internal boundary — never on the public
+   * surface (D-09).
+   */
+  private _validation = new ValidationController(this, {
+    internals: () => this._internals,
+    anchor: () => this._trigger,
+    describedById: this._errorId,
+  });
+
   constructor() {
     super();
     this._internals = this.attachInternals();
+    // A failed constraint check on form submit fires `invalid` on this host;
+    // suppress the browser's default bubble and surface our own message (D-04).
+    this.addEventListener('invalid', this._onInvalid);
   }
 
   static styles = [
@@ -249,6 +284,15 @@ export class AmColorPicker extends LitElement {
         outline-offset: 1px;
       }
 
+      /* ---- Validation message ---- */
+
+      .error-text {
+        margin-top: var(--am-space-1-5);
+        color: var(--am-danger);
+        font-size: var(--am-text-sm);
+        line-height: 1.3;
+      }
+
       @media (prefers-reduced-motion: reduce) {
         .trigger, .panel, .swatch-btn { transition: none; }
       }
@@ -276,7 +320,72 @@ export class AmColorPicker extends LitElement {
     }
     this._internals.setFormValue(this.value);
     if (this._open) this._updatePosition();
+    // The required constraint depends on the value, only settled post-render;
+    // reflect here (bounded, idempotent extra update).
+    this._syncValidation();
   }
+
+  /**
+   * Mirror the required constraint onto the host ElementInternals (so
+   * `validationMessage` is populated), then reflect the controller's resolved
+   * message + shown-state into render state and the `invalid` attribute. Never
+   * throws; bounded (idempotent) re-render.
+   */
+  private _syncValidation(): void {
+    const valueMissing = this.required && !this.value;
+    if (valueMissing) {
+      this._internals.setValidity({ valueMissing: true }, REQUIRED_MESSAGE, this._trigger);
+    } else {
+      this._internals.setValidity({});
+    }
+
+    const show = this._validation.invalid;
+    const message = show ? this._validation.message : '';
+
+    if (message !== this._errorMessage) {
+      this._errorMessage = message;
+    }
+    if (show !== this._showError) {
+      this._showError = show;
+      // Reflect :host([invalid]) without clobbering a consumer-set `invalid`
+      // attribute — only validation-owned reflections are cleared by validation.
+      if (show) {
+        this.invalid = true;
+        this._invalidFromValidation = true;
+      } else if (this._invalidFromValidation) {
+        this.invalid = false;
+        this._invalidFromValidation = false;
+      }
+    }
+    if (!show) {
+      this._submitFailed = false;
+    }
+  }
+
+  private _onInvalid = (event: Event): void => {
+    event.preventDefault();
+    this._submitFailed = true;
+    this._validation.markTouched();
+  };
+
+  /**
+   * Set or clear a custom validation error (e.g. a server-side rejection).
+   *
+   * A non-empty message overrides the native constraint message and is shown
+   * immediately; passing `''` clears the custom error and falls back to the
+   * native constraint message (if any). Custom message wins over native.
+   *
+   * @param message - The error text to display, or `''` to clear to native.
+   */
+  setCustomError(message: string): void {
+    this._validation.setCustomError(message);
+  }
+
+  private _handleTriggerBlur = (): void => {
+    // D-01 timing gate: a native constraint error may surface only after the
+    // control is touched (blur), never on first paint.
+    this._validation.markTouched();
+  };
 
   private _handleOutsideClick = (e: MouseEvent) => {
     if (this._open && !e.composedPath().includes(this)) this._open = false;
@@ -441,7 +550,13 @@ export class AmColorPicker extends LitElement {
 
     return html`
       ${this.label ? html`<span class="label">${this.label}</span>` : nothing}
-      <div class="trigger ${this.invalid ? 'invalid' : ''}" @click=${() => { if (!this.disabled) this._open = !this._open; }}>
+      <div
+        class="trigger ${this.invalid ? 'invalid' : ''}"
+        aria-invalid=${this.invalid ? 'true' : nothing}
+        aria-describedby=${this._showError ? this._errorId : nothing}
+        @click=${() => { if (!this.disabled) this._open = !this._open; }}
+        @blur=${this._handleTriggerBlur}
+      >
         <div class="swatch" part="swatch" style=${styleMap({'--_swatch-bg': currentColor})}></div>
         <span class="trigger-value">${this._hexInput || this.value}</span>
       </div>
@@ -479,6 +594,16 @@ export class AmColorPicker extends LitElement {
           </div>
         ` : nothing}
       </div>
+
+      ${this._showError
+        ? html`<div
+            id=${this._errorId}
+            part="error"
+            class="error-text"
+            role=${this._submitFailed ? 'alert' : nothing}
+            aria-live=${this._submitFailed ? 'off' : 'polite'}
+          >${this._errorMessage}</div>`
+        : nothing}
     `;
   }
 }
