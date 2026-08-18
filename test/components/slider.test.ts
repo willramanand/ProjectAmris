@@ -64,4 +64,70 @@ describe('am-slider', () => {
 
     expect(input.disabled).toBe(true);
   });
+
+  describe('validation (jsdom lane)', () => {
+    type ValidatingSlider = HTMLElement & {
+      value: number;
+      invalid: boolean;
+      setCustomError(message: string): void;
+      updateComplete: Promise<unknown>;
+    };
+
+    it('shows NO validation error on first paint (D-01)', async () => {
+      const element = await fixture<ValidatingSlider>('<am-slider value="30"></am-slider>');
+
+      expect(element.invalid).toBe(false);
+      expect(element.shadowRoot?.querySelector('[part="error"]')).toBeNull();
+      expect(
+        shadowQuery<HTMLInputElement>(element, 'input[type="range"]').getAttribute('aria-invalid'),
+      ).toBeNull();
+    });
+
+    it('does not surface an error on blur while the value is valid (D-01)', async () => {
+      const element = await fixture<ValidatingSlider>('<am-slider value="30"></am-slider>');
+      const input = shadowQuery<HTMLInputElement>(element, 'input[type="range"]');
+
+      input.dispatchEvent(new FocusEvent('blur', { bubbles: true }));
+      await element.updateComplete;
+      await waitForUpdate(element);
+
+      expect(element.invalid).toBe(false);
+      expect(element.shadowRoot?.querySelector('[part="error"]')).toBeNull();
+    });
+
+    it('setCustomError shows immediately and reflects the invalid attribute (D-03)', async () => {
+      const element = await fixture<ValidatingSlider>('<am-slider value="30"></am-slider>');
+
+      element.setCustomError('Pick a value above 50');
+      await element.updateComplete;
+      await waitForUpdate(element);
+
+      expect(element.hasAttribute('invalid')).toBe(true);
+      const error = element.shadowRoot?.querySelector('[part="error"]');
+      expect(error?.textContent).toBe('Pick a value above 50');
+      expect(error?.getAttribute('aria-live')).toBe('polite');
+      expect(error?.getAttribute('role')).toBeNull();
+      const input = shadowQuery<HTMLInputElement>(element, 'input[type="range"]');
+      expect(input.getAttribute('aria-invalid')).toBe('true');
+      const describedBy = input.getAttribute('aria-describedby');
+      expect(describedBy).not.toBeNull();
+      expect(element.shadowRoot?.getElementById(describedBy!)).toBe(error);
+    });
+
+    it("setCustomError('') clears the error", async () => {
+      const element = await fixture<ValidatingSlider>('<am-slider value="30"></am-slider>');
+
+      element.setCustomError('Out of range');
+      await element.updateComplete;
+      await waitForUpdate(element);
+      expect(element.hasAttribute('invalid')).toBe(true);
+
+      element.setCustomError('');
+      await element.updateComplete;
+      await waitForUpdate(element);
+
+      expect(element.hasAttribute('invalid')).toBe(false);
+      expect(element.shadowRoot?.querySelector('[part="error"]')).toBeNull();
+    });
+  });
 });

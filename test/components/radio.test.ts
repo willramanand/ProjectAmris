@@ -332,5 +332,121 @@ describe('am-radio-group', () => {
     expect(control0.getAttribute('tabindex')).toBe('0');
     expect(control1.getAttribute('tabindex')).toBe('-1');
   });
+
+  describe('validation (jsdom lane)', () => {
+    type ValidatingGroup = HTMLElement & {
+      value: string;
+      required: boolean;
+      invalid: boolean;
+      setCustomError(message: string): void;
+      updateComplete: Promise<unknown>;
+    };
+
+    async function requiredGroup(value = ''): Promise<ValidatingGroup> {
+      const group = await fixture<ValidatingGroup>(
+        `<am-radio-group label="Plan" required value="${value}">
+          <am-radio value="free">Free</am-radio>
+          <am-radio value="pro">Pro</am-radio>
+        </am-radio-group>`,
+      );
+      await waitForUpdate(group);
+      return group;
+    }
+
+    async function blurGroup(group: ValidatingGroup): Promise<void> {
+      // relatedTarget is null → focus left the group entirely.
+      group.dispatchEvent(new FocusEvent('focusout', { bubbles: true }));
+      await group.updateComplete;
+      await waitForUpdate(group);
+    }
+
+    it('shows NO error on first paint for a required empty group (D-01)', async () => {
+      const group = await requiredGroup();
+
+      expect(group.invalid).toBe(false);
+      expect(group.shadowRoot?.querySelector('[part="error"]')).toBeNull();
+      expect(group.getAttribute('aria-invalid')).toBeNull();
+    });
+
+    it('surfaces the native message on the GROUP after blur, not on a child radio (D-01)', async () => {
+      const group = await requiredGroup();
+
+      await blurGroup(group);
+
+      const error = group.shadowRoot?.querySelector('[part="error"]');
+      expect(error).not.toBeNull();
+      expect(group.invalid).toBe(true);
+      // aria-invalid + aria-describedby attach to the form-associated GROUP.
+      expect(group.getAttribute('aria-invalid')).toBe('true');
+      const describedBy = group.getAttribute('aria-describedby');
+      expect(describedBy).not.toBeNull();
+      expect(group.shadowRoot?.getElementById(describedBy!)).toBe(error);
+
+      // No individual radio carries the validation wiring.
+      const radio = group.querySelector('am-radio') as HTMLElement;
+      expect(radio.getAttribute('aria-describedby')).toBeNull();
+      expect(radio.shadowRoot?.querySelector('[part="error"]')).toBeNull();
+    });
+
+    it('clears the native error once a radio is selected', async () => {
+      const group = await requiredGroup();
+      await blurGroup(group);
+      expect(group.invalid).toBe(true);
+
+      group.value = 'pro';
+      await group.updateComplete;
+      await waitForUpdate(group);
+
+      expect(group.invalid).toBe(false);
+      expect(group.shadowRoot?.querySelector('[part="error"]')).toBeNull();
+    });
+
+    it('setCustomError shows immediately on the group with D-03 precedence', async () => {
+      const group = await requiredGroup('free');
+
+      group.setCustomError('Please choose a supported plan');
+      await group.updateComplete;
+      await waitForUpdate(group);
+
+      expect(group.hasAttribute('invalid')).toBe(true);
+      const error = group.shadowRoot?.querySelector('[part="error"]');
+      expect(error?.textContent).toBe('Please choose a supported plan');
+      expect(error?.getAttribute('aria-live')).toBe('polite');
+      expect(error?.getAttribute('role')).toBeNull();
+    });
+
+    it("setCustomError('') clears the error when there is no native violation", async () => {
+      const group = await requiredGroup('free');
+
+      group.setCustomError('Server rejected');
+      await group.updateComplete;
+      await waitForUpdate(group);
+      expect(group.hasAttribute('invalid')).toBe(true);
+
+      group.setCustomError('');
+      await group.updateComplete;
+      await waitForUpdate(group);
+
+      expect(group.hasAttribute('invalid')).toBe(false);
+      expect(group.shadowRoot?.querySelector('[part="error"]')).toBeNull();
+    });
+
+    it('custom error wins over the native constraint message (D-03 precedence)', async () => {
+      const group = await requiredGroup();
+      await blurGroup(group);
+      const nativeMessage = group.shadowRoot
+        ?.querySelector('[part="error"]')
+        ?.textContent;
+      expect(nativeMessage).toBeTruthy();
+
+      group.setCustomError('Custom takes priority');
+      await group.updateComplete;
+      await waitForUpdate(group);
+
+      const error = group.shadowRoot?.querySelector('[part="error"]');
+      expect(error?.textContent).toBe('Custom takes priority');
+      expect(error?.textContent).not.toBe(nativeMessage);
+    });
+  });
 });
 
