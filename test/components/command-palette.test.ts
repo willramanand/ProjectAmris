@@ -138,6 +138,47 @@ describe('am-command-palette', () => {
     focusSpy.mockRestore();
   });
 
+  it('Enter selects the visually highlighted item when groups interleave (CR-01)', async () => {
+    // Non-contiguous groups: A, B, A. render() re-orders by group insertion
+    // (A first, then B), so the grouped render order is [a, c, b] — different
+    // from the original _filtered order [a, b, c]. Keyboard nav must index into
+    // the SAME grouped order render() emits, or Enter executes the wrong command.
+    const selected: string[] = [];
+    const interleaved: CommandItem[] = [
+      { id: 'a', label: 'Alpha', group: 'A', action: () => selected.push('a') },
+      { id: 'b', label: 'Bravo', group: 'B', action: () => selected.push('b') },
+      { id: 'c', label: 'Charlie', group: 'A', action: () => selected.push('c') },
+    ];
+
+    const el = await fixture<PaletteEl>('<am-command-palette></am-command-palette>');
+    el.commands = interleaved;
+    await waitForUpdate(el);
+    el.open = true;
+    await waitForUpdate(el);
+
+    const input = shadowQuery<HTMLInputElement>(el, 'input');
+
+    // Move to the 2nd rendered item.
+    await keydown(input, 'ArrowDown', el);
+
+    // The DOM item currently carrying `.highlighted` is the ground truth for
+    // what the user sees selected.
+    const highlighted = el.shadowRoot?.querySelector('.item.highlighted');
+    const highlightedLabel = highlighted
+      ?.querySelector('.item-label')
+      ?.textContent?.trim();
+
+    const eventPromise = oneEvent<{ command: CommandItem }>(el, 'am-select');
+    await keydown(input, 'Enter', el);
+    const ev = await eventPromise;
+
+    // The executed command MUST be the one the user saw highlighted.
+    expect(highlightedLabel).toBe('Charlie');
+    expect(ev.detail.command.id).toBe('c');
+    expect(ev.detail.command.label).toBe(highlightedLabel);
+    expect(selected).toEqual(['c']);
+  });
+
   it('shows empty state when filter yields nothing', async () => {
     const el = await makePalette();
     el.open = true;
