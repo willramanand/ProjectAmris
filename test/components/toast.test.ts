@@ -222,6 +222,40 @@ describe('am-toast', () => {
   });
 });
 
+describe('am-toast mid-dismiss teardown (FIX-01)', () => {
+  it('clears the dismiss fallback timer and fires no am-close after mid-dismiss removal', async () => {
+    vi.useFakeTimers();
+
+    const element = await fixture<HTMLElement & { open: boolean; duration: number }>(
+      '<am-toast open duration="0" closable>Dismiss me</am-toast>',
+    );
+
+    const closeBtn = shadowQuery<HTMLButtonElement>(element, '.close-btn');
+    const clearSpy = vi.spyOn(globalThis, 'clearTimeout');
+
+    let closed = false;
+    element.addEventListener('am-close', () => { closed = true; });
+
+    // Begin dismiss: registers the 300ms fallback timer + animationend listener.
+    await click(closeBtn, element);
+
+    // Remove the toast mid-dismiss, before the 300ms fallback fires.
+    element.remove();
+
+    // disconnectedCallback -> _clearTimer() -> _teardown.clear() cancels the
+    // pending fallback timer.
+    expect(clearSpy).toHaveBeenCalled();
+
+    // Advance well past the fallback window — no pending callback should survive.
+    vi.advanceTimersByTime(300);
+
+    expect(closed).toBe(false);
+
+    clearSpy.mockRestore();
+    vi.useRealTimers();
+  });
+});
+
 describe('am-toast-region', () => {
   it('renders with placement attribute', async () => {
     const element = await fixture<HTMLElement>(
