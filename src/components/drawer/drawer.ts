@@ -195,8 +195,14 @@ export class AmDrawer extends LitElement {
 
   protected updated(changed: PropertyValues) {
     if (changed.has('open')) {
+      // React only to a genuine transition. `changed.get('open')` is the PREVIOUS
+      // value — `undefined` on the first update. Show whenever `open` is truthy
+      // (so <am-drawer open> on mount still opens and fires am-open); only run the
+      // hide/am-close branch when a prior open state actually existed, so a
+      // never-opened drawer never emits a spurious am-close on mount (WR-01).
+      const prev = changed.get('open');
       if (this.open) this._show();
-      else this._hide();
+      else if (prev) this._hide();
     }
   }
 

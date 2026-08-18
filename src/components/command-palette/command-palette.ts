@@ -215,13 +215,19 @@ export class AmCommandPalette extends LitElement {
 
   protected updated(changed: PropertyValues) {
     if (changed.has('open')) {
+      // `changed.get('open')` is the PREVIOUS value — `undefined` on the first
+      // update. Open whenever `open` is truthy (so a mounted-open palette still
+      // shows); only run the close/am-close branch when a prior open state
+      // existed, so a never-opened palette never emits a spurious am-close on
+      // mount (WR-01).
+      const prev = changed.get('open');
       if (this.open) {
         this._previouslyFocused = document.activeElement;
         this._query = '';
         this._highlightedIndex = 0;
         this._dialog?.showModal();
         requestAnimationFrame(() => this._input?.focus());
-      } else {
+      } else if (prev) {
         this._dialog?.close();
         if (this._previouslyFocused instanceof HTMLElement && this._previouslyFocused.isConnected) {
           this._previouslyFocused.focus();
