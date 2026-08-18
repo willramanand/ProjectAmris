@@ -1,31 +1,41 @@
 ---
 phase: 03-reliability-leak-fixes
-verified: 2026-08-18T02:31:07Z
-status: human_needed
+verified: 2026-08-17T22:50:00Z
+status: passed
 score: 5/5 must-haves verified
 behavior_unverified: 0
 overrides_applied: 0
-human_verification:
-  - test: "Decide fix-now vs defer for CR-01 (code review, CRITICAL): command-palette keyboard highlight/selection diverges from rendered order when groups interleave — Enter can execute the WRONG command. Pre-existing, outside the leak-fix scope, but ships in command-palette.ts which this phase modified."
-    expected: "A human decides whether to fix before the v1.0 freeze or file a tracked follow-up. Existing tests mask it (fixture commands are grouped contiguously)."
-    why_human: "Correctness/UX judgment about a frozen-API v1.0 defect; grep cannot decide scope-vs-freeze tradeoff. Not a Phase 3 success criterion."
-  - test: "Decide fix-now vs defer for WR-01 (code review, WARNING): dialog/drawer/command-palette emit a spurious public am-close on initial mount (first Lit update runs the closed/else branch)."
-    expected: "Human decides — am-close is a frozen public event; a consumer wiring am-close to teardown could self-destruct on mount."
-    why_human: "Frozen-public-API contract judgment for v1.0; untested because tests attach am-close listeners after mount."
-  - test: "Decide fix-now vs defer for WR-02 (code review, WARNING): toast _dismiss() animationend host listener can be triggered early by composed shadow animations (countdown ring / toast-in), firing am-close prematurely and cutting the exit animation short. This touches the _dismiss() code path modified by FIX-01."
-    expected: "Human decides whether to disambiguate by animationName before v1.0."
-    why_human: "Timing/animation behavior judgment; the done-guard prevents double dispatch but not early dispatch."
-  - test: "Update REQUIREMENTS.md traceability for FIX-02 — it is still marked [ ] (line 32) and 'Pending' (line 117) though the phase verified it satisfied (source gating + green teardown-spy suites)."
-    expected: "FIX-02 flipped to complete/verified in REQUIREMENTS.md so the traceability table matches reality."
-    why_human: "Documentation state decision; the requirement is met in code but the tracker was not updated."
+re_verification:
+  previous_status: human_needed
+  previous_score: 5/5
+  gaps_closed:
+    - "CR-01 (CRITICAL): command-palette keyboard nav + Enter now index the same flattened grouped order render() emits (_ordered) — highlight == selection even on interleaved groups. Fixed 0932d74, regression-locked by a failing-first interleaved-group test."
+    - "WR-01 (WARNING): dialog/drawer/command-palette no longer emit spurious am-close on a never-opened mount (else if (prev) transition guard); mount-with-open still fires am-open. Fixed 63b2f95, tested both directions."
+    - "WR-02 (WARNING): toast dismiss completes only on the host's own toast-out animationend (or 300ms fallback), never on composed shadow animations. Fixed c58252f, tested."
+    - "FIX-02 traceability: REQUIREMENTS.md now marks FIX-02 [x] (line 32) and Complete (line 117)."
+  gaps_remaining: []
+  regressions: []
 ---
 
 # Phase 3: Reliability & Leak Fixes Verification Report
 
 **Phase Goal:** The known lifecycle leaks are fixed under one shared discipline (gate on open/connected, mirror teardown in disconnect, guard focus with isConnected, centralize timers) and proven with teardown assertions — green before release, no user-visible regressions.
-**Verified:** 2026-08-18T02:31:07Z
-**Status:** human_needed
-**Re-verification:** No — initial verification
+**Verified:** 2026-08-17T22:50:00Z
+**Status:** passed
+**Re-verification:** Yes — after gap closure (plan 03-04) of the four escalated human_needed items
+
+## Re-Verification Summary
+
+The prior verification (status `human_needed`, 5/5 criteria met) escalated four items for a human fix-now-vs-defer decision. All four are now RESOLVED and confirmed in real source, not just the summary:
+
+| Item | Prior state | Now | Source evidence | Commit |
+| ---- | ----------- | --- | --------------- | ------ |
+| CR-01 (CRITICAL) | wrong command on interleaved groups | FIXED | `command-palette.ts` `_ordered` getter `:265-273`; `_handleKeydown` indexes `_ordered` `:280-303`; render() builds identical first-seen group Map + flat itemIndex `:334-341,371` | 066a561 / 0932d74 |
+| WR-01 (WARNING) | spurious am-close on mount | FIXED | `else if (prev)` transition guard: dialog `:201`, drawer `:205`, command-palette `:230` | a8a333c / 63b2f95 |
+| WR-02 (WARNING) | early am-close from composed animationend | FIXED | `toast.ts` `onEnd` gates `e.animationName !== 'toast-out'` `:268`; no `once:true`; eventless 300ms fallback `:278` | 3fa02d4 / c58252f |
+| FIX-02 traceability | REQUIREMENTS.md marked Pending / `[ ]` | RESOLVED | REQUIREMENTS.md `:32` `[x]`, `:117` `Complete` | c11809e |
+
+No unresolved escalations remain. No regressions introduced.
 
 ## Goal Achievement
 
@@ -33,11 +43,11 @@ human_verification:
 
 | #   | Truth   | Status     | Evidence       |
 | --- | ------- | ---------- | -------------- |
-| 1 (FIX-01) | Toast dismiss `setTimeout` + `animationend` are tracked and cleaned up via `_clearTimer()`; a toast removed before its timer fires leaves no pending callback. | ✓ VERIFIED | `toast.ts:270-271` uses `_teardown.timeout(onEnd, 300)` + `{ signal: this._teardown.signal }`; `_clearTimer()` (`:226`) calls `_teardown.clear()`; `disconnectedCallback()` (`:199-202`) calls `_clearTimer()`. Behavioral test `toast.test.ts:226` "clears the dismiss fallback timer and fires no am-close after mid-dismiss removal" PASSES. |
-| 2 (FIX-02) | Global click/keydown listeners gated on open and torn down on disconnect across combobox, dropdown, context-menu, date-picker, popover, tooltip — asserted with teardown spies. | ✓ VERIFIED | All 6 sources attach in the open-branch and remove in `disconnectedCallback` (dropdown `:70-84,108-112`; context-menu `:66-87`; popover `:98-166`; combobox `:413-434`; date-picker `:278-296`; tooltip is the no-document-listener case). TEST-05 spy suites assert attach-on-open / detach-on-close / detach-on-disconnect (tooltip asserts `addSpy` NOT called). All green. |
-| 3 (FIX-03) | Focus restoration guards removed/disconnected `_previouslyFocused` via `isConnected` (dialog, drawer, command-palette, popover); closing an overlay whose opener was removed does not throw. | ✓ VERIFIED | Guard `instanceof HTMLElement && .isConnected` present: dialog `:207`, drawer `:211`, command-palette `:226`. popover has NO `_previouslyFocused` (documented finding). Behavioral tests: dialog `:286`, drawer `:86`, command-palette `:114`, popover `:140` all PASS; browser `overlay-focus.test.ts:163` flipped to guarded assertion. |
-| 4 (FIX-04) | Dialog animation cleanup hardened (explicit cleanup / `disconnectedCallback`) so animation listeners never dangle. | ✓ VERIFIED | dialog.ts adds `_teardown` field (`:62`), `disconnectedCallback()` (`:185-189`) calls `_teardown.clear()`, `_nudge()` binds `animationend` with `signal: this._teardown.signal` (`:233-235`). Behavioral test `dialog.test.ts:132` "tears down the nudge animationend listener on disconnect (FIX-04)" PASSES. |
-| 5 (shared discipline) | One shared teardown primitive (TeardownScope) tracks timers + abortable listeners and clears them in one call — established as the tracer and reused by FIX-04. | ✓ VERIFIED | `teardown-scope.ts` implements `timeout()`, `signal` getter, `clear()` (cancels timers + `abort()` + fresh controller). Dedicated unit suite `test/internal/teardown-scope.test.ts` PASSES. Imported by toast + dialog; NOT re-exported from `src/index.ts`/`src/index.all.ts` (frozen surface intact). |
+| 1 (FIX-01) | Toast dismiss `setTimeout` + `animationend` tracked/cleaned via `_clearTimer()`; a toast removed before its timer fires leaves no pending callback. | ✓ VERIFIED | `toast.ts`: `_teardown.timeout(() => onEnd(), 300)` `:278` + `{ signal: this._teardown.signal }` `:277`; `_clearTimer()` `:226` calls `_teardown.clear()`; `disconnectedCallback()` `:201` calls `_clearTimer()`. Behavioral suite `toast.test.ts` mid-dismiss removal + WR-02 gating cases PASS. |
+| 2 (FIX-02) | Global click/keydown listeners gated on open + torn down on disconnect across combobox, dropdown, context-menu, date-picker, popover, tooltip — asserted with teardown spies. | ✓ VERIFIED | Unchanged since prior verification (regression re-check). All 6 sources gate-on-open / detach-on-disconnect; TEST-05 spy suites green in the 464-test jsdom run. REQUIREMENTS.md traceability now `[x]`/Complete. |
+| 3 (FIX-03) | Focus restoration guards removed/disconnected `_previouslyFocused` via `isConnected` (dialog, drawer, command-palette, popover); closing an overlay whose opener was removed does not throw. | ✓ VERIFIED | `instanceof HTMLElement && .isConnected` guard: dialog `:213`, drawer `:217`, command-palette `:232`. popover has no `_previouslyFocused` path (documented). Behavioral removed-opener tests + browser `overlay-focus.test.ts` PASS. |
+| 4 (FIX-04) | Dialog animation cleanup hardened (`disconnectedCallback`) so animation listeners never dangle. | ✓ VERIFIED | `dialog.ts` `disconnectedCallback()` `:185-190` calls `_teardown.clear()`; `_nudge()` binds `animationend` with `{ signal: this._teardown.signal }` `:241`. Behavioral nudge-teardown test PASS. |
+| 5 (shared discipline) | One shared teardown primitive (TeardownScope) tracks timers + abortable listeners and clears them in one call — the tracer reused by FIX-04. | ✓ VERIFIED | `teardown-scope.ts` implements `timeout()`, `signal` getter, `clear()` (clears timers + `abort()` + fresh controller). Dedicated unit suite PASS. Imported by toast + dialog; NOT re-exported from `src/index.ts` / `src/index.all.ts` (frozen surface intact — grep confirmed no matches). |
 
 **Score:** 5/5 truths verified (0 present, behavior-unverified)
 
@@ -46,73 +56,65 @@ human_verification:
 | Artifact | Expected | Status | Details |
 | -------- | ----------- | ------ | ------- |
 | `src/internal/helpers/teardown-scope.ts` | TeardownScope class | ✓ VERIFIED | 57 lines, substantive, off the frozen surface, imported by components only. |
-| `src/components/toast/toast.ts` | FIX-01 wiring | ✓ VERIFIED | `_teardown` field, `_dismiss()`/`_clearTimer()` rewired. |
-| `src/components/dialog/dialog.ts` | FIX-04 + FIX-03 | ✓ VERIFIED | `disconnectedCallback`, `_nudge` signal, `isConnected` guard. |
-| `src/components/drawer/drawer.ts` | FIX-03 guard | ✓ VERIFIED | `isConnected` guard at `:211`. |
-| `src/components/command-palette/command-palette.ts` | FIX-03 guard | ✓ VERIFIED | `isConnected` guard at `:226`. |
-| `src/components/popover/popover.ts` | FIX-02 gating + FIX-03 finding | ✓ VERIFIED | Gate-on-open + detach-on-disconnect; no focus-restoration path (documented). |
-| `test/internal/teardown-scope.test.ts` | Unit proof | ✓ VERIFIED | Cancel-timers + abort-listeners + reuse-after-clear. |
+| `src/components/command-palette/command-palette.ts` | CR-01 + WR-01 + FIX-03 | ✓ VERIFIED | `_ordered` getter drives keyboard nav; `else if (prev)` mount guard; `isConnected` focus guard. |
+| `src/components/dialog/dialog.ts` | WR-01 + FIX-04 + FIX-03 | ✓ VERIFIED | `else if (prev)` guard `:201`; `_teardown.clear()` on disconnect `:189`; `isConnected` guard `:213`. |
+| `src/components/drawer/drawer.ts` | WR-01 + FIX-03 | ✓ VERIFIED | `else if (prev)` guard `:205`; `isConnected` guard `:217`. |
+| `src/components/toast/toast.ts` | FIX-01 + WR-02 | ✓ VERIFIED | `_teardown` wiring; `onEnd` gated on `animationName === 'toast-out'`. |
+| `test/components/{command-palette,dialog,drawer,toast}.test.ts` | Failing-first regression locks | ✓ VERIFIED | CR-01 interleaved-group test asserts highlighted DOM item == Enter-selected command; WR-01 mount tests (both directions); WR-02 gating tests. All present + PASS. |
 
 ### Key Link Verification
 
 | From | To  | Via | Status | Details |
 | ---- | --- | --- | ------ | ------- |
+| `command-palette _handleKeydown` | `_ordered` | length bound + `_ordered[_highlightedIndex]` for Enter | ✓ WIRED | `:281,286,293-295` — same flattened order render() emits |
+| `dialog/drawer/command-palette updated()` | `_hide()`/am-close | `else if (prev)` gates on prior open state | ✓ WIRED | dialog `:201`, drawer `:205`, cp `:230` |
+| `toast _dismiss()` onEnd | am-close dispatch | `e.animationName === 'toast-out'` gate | ✓ WIRED | `:268-273` |
 | `toast.ts _clearTimer()` | `TeardownScope.clear()` | drains dismiss timer + aborts animationend | ✓ WIRED | `:226` |
-| `toast.ts disconnectedCallback()` | `_clearTimer()` | existing call site drains teardown | ✓ WIRED | `:201` |
 | `dialog.ts disconnectedCallback()` | `TeardownScope.clear()` | aborts `_nudge` animationend | ✓ WIRED | `:189` |
-| `dialog/drawer/command-palette _hide()` | `isConnected` guard | gates `_previouslyFocused.focus()` | ✓ WIRED | dialog `:207`, drawer `:211`, cp `:226` |
-| 6 FIX-02 TEST-05 suites | source gating | regression lock | ✓ WIRED | spy suites assert attach/detach |
+| `dialog/drawer/cp _hide()` | `isConnected` guard | gates `_previouslyFocused.focus()` | ✓ WIRED | dialog `:213`, drawer `:217`, cp `:232` |
 
 ### Behavioral Spot-Checks
 
 | Behavior | Command | Result | Status |
 | -------- | ------- | ------ | ------ |
-| FIX-01..04 + TeardownScope jsdom suites | `npx vitest run` (11 files) | 11 files / 101 tests passed | ✓ PASS |
-| Browser FIX-03 guarded assertion | (parent-confirmed 39 browser tests green) | flip verified in source `overlay-focus.test.ts:163` | ✓ PASS |
+| Full jsdom suite (incl. 6 plan-04 RED-first cases + FIX-01..04 + TEST-05) | `npx vitest run --project jsdom` | 69 files / 464 tests passed, exit 0 | ✓ PASS |
+| Browser suite (real-Chromium focus-trap incl. FIX-03 guarded assertion) | `npx vitest run --project browser` | 5 files / 39 tests passed, exit 0 | ✓ PASS |
+| Type check | `npx tsc --noEmit` | exit 0 | ✓ PASS |
+| CR-01 regression lock is genuine | read `command-palette.test.ts:141-180` | asserts `.highlighted` DOM item == `am-select` command on [A,B,A] groups | ✓ PASS |
 
 ### Requirements Coverage
 
 | Requirement | Source Plan | Description | Status | Evidence |
 | ----------- | ---------- | ----------- | ------ | -------- |
-| FIX-01 | 03-01 | Toast dismiss setTimeout tracked/cleaned via `_clearTimer()` | ✓ SATISFIED | Truth 1 |
-| FIX-02 | 03-03 | Global listeners gated on open + torn down on disconnect (6 components) | ✓ SATISFIED (in code) | Truth 2. NOTE: REQUIREMENTS.md still marks this Pending/unchecked — tracker out of date. |
-| FIX-03 | 03-02, 03-03 | Focus restoration guarded via `isConnected` (4 overlays) | ✓ SATISFIED | Truth 3 |
+| FIX-01 | 03-01, 03-04 | Toast dismiss setTimeout tracked/cleaned via `_clearTimer()` | ✓ SATISFIED | Truth 1 |
+| FIX-02 | 03-03 | Global listeners gated on open + torn down on disconnect (6 components) | ✓ SATISFIED | Truth 2; REQUIREMENTS.md now `[x]`/Complete |
+| FIX-03 | 03-02, 03-03, 03-04 | Focus restoration guarded via `isConnected` (4 overlays) | ✓ SATISFIED | Truth 3 |
 | FIX-04 | 03-02 | Dialog animation cleanup hardened via `disconnectedCallback` | ✓ SATISFIED | Truth 4 |
 
-All four requirement IDs (FIX-01..04) are declared across plan frontmatter and accounted for. No orphaned requirement.
+All four requirement IDs accounted for. No orphaned requirement.
 
 ### Anti-Patterns Found
 
 | File | Line | Pattern | Severity | Impact |
 | ---- | ---- | ------- | -------- | ------ |
-| (modified source) | — | TBD/FIXME/XXX/HACK/innerHTML/eval | none | Clean scan across all modified source files. |
+| command-palette/dialog/drawer/toast | — | TBD/FIXME/XXX/innerHTML/eval | none | Clean scan — no debt markers, no unsafe DOM sinks. |
 | `src/index.ts` / `src/index.all.ts` | — | TeardownScope re-export | none | Not re-exported — frozen public surface intact. |
 
-### Code Review Findings (03-REVIEW.md — status: issues_found)
+### Frozen Public API
 
-These are **outside the four Phase 3 success criteria** and are surfaced for a human fix-now-vs-defer decision (see `human_verification`). None was introduced by this phase's edits (the leak-fix diffs are additive guards/wiring); none blocks the phase goal, but all three ship in files this phase modified and touch the v1.0 frozen public API.
-
-| ID | Severity | File | Concern |
-| -- | -------- | ---- | ------- |
-| CR-01 | CRITICAL | command-palette.ts | Keyboard highlight/selection diverges from rendered order when groups interleave → Enter can execute the wrong command. Masked by contiguously-grouped test fixtures. |
-| WR-01 | WARNING | dialog/drawer/command-palette | Spurious public `am-close` emitted on initial mount (first-update else branch). |
-| WR-02 | WARNING | toast.ts | `_dismiss()` host `animationend` listener can fire early from composed shadow animations, dispatching `am-close` prematurely. Touches the FIX-01 code path. |
-| IN-01/IN-02 | INFO | toast test / dialog.ts | Unused `oneEvent` import; nudge listeners accumulate across rapid blocked clicks (benign, torn down on disconnect). |
+- No new `@property` / `@fires` / slots / parts added on the four modified components (changes are behavior-narrowing: index into rendered order, skip a spurious event, gate on animation name).
+- `TeardownScope` remains internal (`src/internal/`), not re-exported — grep of both barrels returned no matches.
+- Peer-dep, ESM-only, Lit-safe templating model preserved.
 
 ### Human Verification Required
 
-1. **CR-01 (critical) fix-now vs defer** — command-palette wrong-command execution when groups interleave. Decide before v1.0 freeze; existing tests do not catch it.
-2. **WR-01 (warning)** — spurious `am-close` on mount for three overlays; a frozen public event fired on a close that never happened.
-3. **WR-02 (warning)** — toast early `am-close` from composed shadow `animationend`.
-4. **FIX-02 traceability** — flip REQUIREMENTS.md FIX-02 from Pending/`[ ]` to satisfied so the tracker matches the verified code + green suites.
+None. All four items escalated by the prior verification are resolved and confirmed in source with passing regression tests.
 
 ### Gaps Summary
 
-No gap against the phase's own goal. All four success criteria (FIX-01..04) plus the shared TeardownScope discipline are VERIFIED in source and proven by passing behavioral tests (101 jsdom tests green; the state-transition/cleanup invariants each have a named passing test; the browser FIX-03 assertion is flipped to the guarded form). No debt markers, no public-surface leak, no regression introduced.
-
-Status is `human_needed` — not `passed` — because the phase's own code review (`03-REVIEW.md`, status `issues_found`) surfaced a CRITICAL defect (CR-01) and two warnings (WR-01, WR-02) living in files this phase modified and affecting the v1.0 frozen public API, plus a FIX-02 traceability inconsistency in REQUIREMENTS.md. These are outside the four success criteria and are escalated for a human decision rather than silently passed or falsely marked as goal failures.
+No gaps. All four success criteria (FIX-01..04) plus the shared TeardownScope discipline are VERIFIED in source and proven by passing behavioral tests. The three code-review defects (CR-01 critical, WR-01/WR-02 warnings) that shipped in phase-modified files on the frozen v1.0 surface are now fixed test-first, and the FIX-02 traceability inconsistency in REQUIREMENTS.md is reconciled. Full jsdom (464) and browser (39) suites green, `tsc --noEmit` clean, frozen public surface unchanged, no debt markers, no regressions introduced. Phase goal achieved — green before release, no user-visible regressions.
 
 ---
 
-_Verified: 2026-08-18T02:31:07Z_
+_Verified: 2026-08-17T22:50:00Z_
 _Verifier: Claude (gsd-verifier)_
