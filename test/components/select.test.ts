@@ -378,6 +378,97 @@ describe('am-select', () => {
   });
 });
 
+describe('am-select — validation (jsdom lane)', () => {
+  type ValidatingSelect = HTMLElement & {
+    invalid: boolean;
+    value: string;
+    setCustomError(message: string): void;
+    updateComplete: Promise<unknown>;
+  };
+
+  it('shows NO validation error on first paint for a required empty select (D-01)', async () => {
+    const element = await fixture<ValidatingSelect>(
+      `<am-select label="Fruit" required><am-option value="a">A</am-option></am-select>`,
+    );
+
+    expect(element.invalid).toBe(false);
+    expect(element.shadowRoot?.querySelector('[part="error"]')).toBeNull();
+    const trigger = shadowQuery<HTMLButtonElement>(element, '.trigger');
+    expect(trigger.getAttribute('aria-describedby')).toBeNull();
+  });
+
+  it('surfaces the native message only after the trigger is touched (D-01 gate)', async () => {
+    const element = await fixture<ValidatingSelect>(
+      `<am-select label="Fruit" required><am-option value="a">A</am-option></am-select>`,
+    );
+    const trigger = shadowQuery<HTMLButtonElement>(element, '.trigger');
+
+    expect(element.shadowRoot?.querySelector('[part="error"]')).toBeNull();
+
+    trigger.dispatchEvent(new FocusEvent('blur', { bubbles: true }));
+    await element.updateComplete;
+    await waitForUpdate(element);
+
+    const error = element.shadowRoot?.querySelector('[part="error"]');
+    expect(error).not.toBeNull();
+    expect(element.invalid).toBe(true);
+    expect(trigger.getAttribute('aria-invalid')).toBe('true');
+    // aria-describedby points at the same-shadow-root message node (Pitfall 3).
+    const describedBy = trigger.getAttribute('aria-describedby');
+    expect(describedBy).not.toBeNull();
+    expect(element.shadowRoot?.getElementById(describedBy!)).toBe(error);
+  });
+
+  it('setCustomError shows immediately and reflects the invalid attribute (D-03)', async () => {
+    const element = await fixture<ValidatingSelect>(
+      `<am-select label="Fruit"><am-option value="a">A</am-option></am-select>`,
+    );
+
+    element.setCustomError('Pick a fruit');
+    await element.updateComplete;
+    await waitForUpdate(element);
+
+    expect(element.hasAttribute('invalid')).toBe(true);
+    const error = element.shadowRoot?.querySelector('[part="error"]');
+    expect(error?.textContent).toBe('Pick a fruit');
+    expect(error?.getAttribute('aria-live')).toBe('polite');
+    expect(error?.getAttribute('role')).toBeNull();
+  });
+
+  it("setCustomError('') clears the error when there is no native violation", async () => {
+    const element = await fixture<ValidatingSelect>(
+      `<am-select label="Fruit"><am-option value="a">A</am-option></am-select>`,
+    );
+
+    element.setCustomError('Server says no');
+    await element.updateComplete;
+    await waitForUpdate(element);
+    expect(element.hasAttribute('invalid')).toBe(true);
+
+    element.setCustomError('');
+    await element.updateComplete;
+    await waitForUpdate(element);
+
+    expect(element.hasAttribute('invalid')).toBe(false);
+    expect(element.shadowRoot?.querySelector('[part="error"]')).toBeNull();
+  });
+
+  it('custom error wins over the native required message (D-03 precedence)', async () => {
+    const element = await fixture<ValidatingSelect>(
+      `<am-select label="Fruit" required><am-option value="a">A</am-option></am-select>`,
+    );
+    const trigger = shadowQuery<HTMLButtonElement>(element, '.trigger');
+
+    trigger.dispatchEvent(new FocusEvent('blur', { bubbles: true }));
+    element.setCustomError('Custom wins');
+    await element.updateComplete;
+    await waitForUpdate(element);
+
+    const error = element.shadowRoot?.querySelector('[part="error"]');
+    expect(error?.textContent).toBe('Custom wins');
+  });
+});
+
 // TEST-04 — dynamic option-update index clamp (jsdom logic lane).
 // am-select navigates over its slotted <am-option> children. Replacing that
 // slotted set with a shorter one while open must not leave a highlighted option

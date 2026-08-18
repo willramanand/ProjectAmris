@@ -154,6 +154,99 @@ describe('am-combobox', () => {
   });
 });
 
+describe('am-combobox — validation (jsdom lane)', () => {
+  type ValidatingCombobox = ComboboxEl & {
+    invalid: boolean;
+    setCustomError(message: string): void;
+    updateComplete: Promise<unknown>;
+  };
+
+  async function makeValidating(extra = ''): Promise<ValidatingCombobox> {
+    return fixture<ValidatingCombobox>(`<am-combobox label="Fruit" ${extra}></am-combobox>`);
+  }
+
+  it('shows NO validation error on first paint for a required empty combobox (D-01)', async () => {
+    const el = await makeValidating('required');
+    expect(el.invalid).toBe(false);
+    expect(el.shadowRoot?.querySelector('[part="error"]')).toBeNull();
+    expect(getInput(el).getAttribute('aria-describedby')).toBeNull();
+  });
+
+  it('surfaces the native message only after the input is touched (D-01 gate)', async () => {
+    const el = await makeValidating('required');
+    const input = getInput(el);
+
+    expect(el.shadowRoot?.querySelector('[part="error"]')).toBeNull();
+
+    input.dispatchEvent(new FocusEvent('blur', { bubbles: true }));
+    await el.updateComplete;
+    await waitForUpdate(el);
+
+    const error = el.shadowRoot?.querySelector('[part="error"]');
+    expect(error).not.toBeNull();
+    expect(el.invalid).toBe(true);
+    expect(input.getAttribute('aria-invalid')).toBe('true');
+    const describedBy = input.getAttribute('aria-describedby');
+    expect(describedBy).not.toBeNull();
+    expect(el.shadowRoot?.getElementById(describedBy!)).toBe(error);
+  });
+
+  it('setCustomError shows immediately and reflects the invalid attribute (D-03)', async () => {
+    const el = await makeValidating();
+    (el as ValidatingCombobox).setCustomError('Choose one');
+    await el.updateComplete;
+    await waitForUpdate(el);
+
+    expect(el.hasAttribute('invalid')).toBe(true);
+    const error = el.shadowRoot?.querySelector('[part="error"]');
+    expect(error?.textContent).toBe('Choose one');
+    expect(error?.getAttribute('aria-live')).toBe('polite');
+    expect(error?.getAttribute('role')).toBeNull();
+  });
+
+  it("setCustomError('') clears the error when there is no native violation", async () => {
+    const el = await makeValidating();
+    el.setCustomError('Server says no');
+    await el.updateComplete;
+    await waitForUpdate(el);
+    expect(el.hasAttribute('invalid')).toBe(true);
+
+    el.setCustomError('');
+    await el.updateComplete;
+    await waitForUpdate(el);
+    expect(el.hasAttribute('invalid')).toBe(false);
+    expect(el.shadowRoot?.querySelector('[part="error"]')).toBeNull();
+  });
+
+  it('custom error wins over the native required message (D-03 precedence)', async () => {
+    const el = await makeValidating('required');
+    const input = getInput(el);
+    input.dispatchEvent(new FocusEvent('blur', { bubbles: true }));
+    el.setCustomError('Custom wins');
+    await el.updateComplete;
+    await waitForUpdate(el);
+
+    const error = el.shadowRoot?.querySelector('[part="error"]');
+    expect(error?.textContent).toBe('Custom wins');
+  });
+
+  it('surfaces validation on the select-mode wrapper focusable (searchInTrigger)', async () => {
+    const el = await makeValidating('required search-in-trigger');
+    const wrapper = shadowQuery<HTMLElement>(el, '.wrapper');
+
+    wrapper.dispatchEvent(new FocusEvent('blur', { bubbles: true }));
+    await el.updateComplete;
+    await waitForUpdate(el);
+
+    const error = el.shadowRoot?.querySelector('[part="error"]');
+    expect(error).not.toBeNull();
+    // aria-describedby anchors to the wrapper's own shadow root, never am-field.
+    const describedBy = wrapper.getAttribute('aria-describedby');
+    expect(describedBy).not.toBeNull();
+    expect(el.shadowRoot?.getElementById(describedBy!)).toBe(error);
+  });
+});
+
 // TEST-04 — async/dynamic option-update index clamp (jsdom logic lane).
 // Replacing `options` with a much shorter array while the listbox is open must
 // not surface an out-of-bounds highlighted option. These assert the observable
