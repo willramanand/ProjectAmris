@@ -129,6 +129,14 @@ None - no external service configuration required.
 - 04-06 provider dispatch will need to compute the combo from a `KeyboardEvent` (composedPath focus check, `isComposing` guard) and call `resolve(combo, activeScopes)` — the engine's `resolve()` accepts a combo string and is ready for that.
 - Registry stays off the public/CEM surface; it will enter the frozen baseline only indirectly via `am-shortcuts` (plan 04-10).
 
+## Self-Check: PASSED
+
+- FOUND: src/internal/controllers/shortcut-registry.ts
+- FOUND: test/internal/shortcut-registry.test.ts
+- FOUND: .planning/phases/04-performance-feature-capabilities/04-05-SUMMARY.md
+- FOUND commits: 65301fb, 60a34d3, 512fe8c, 365513e, 1857cb3
+- Verification: `npx tsc --noEmit` exit 0; `npx vitest run --project jsdom shortcut-registry` 20/20 pass; public-surface boundary check exit 0 (not exported).
+
 ---
 *Phase: 04-performance-feature-capabilities*
 *Completed: 2026-08-18*
