@@ -284,6 +284,10 @@ export class AmInput extends LitElement {
     if (changed.has('value')) {
       this.internals.setFormValue(this.value);
     }
+    // Native constraint validity is only knowable from the RENDERED inner
+    // <input>, so this reflection runs post-render and may schedule one further
+    // (bounded, idempotent) update — the standard cost of mirroring native
+    // ElementInternals validity into reactive render state.
     this._syncValidation();
   }
 
@@ -316,8 +320,10 @@ export class AmInput extends LitElement {
       }
     }
 
-    const message = this._validation.message;
     const show = this._validation.invalid;
+    // Only hold message text while shown — avoids churning render state with a
+    // resolved-but-hidden native message on a pristine (untouched) field.
+    const message = show ? this._validation.message : '';
 
     if (message !== this._errorMessage) {
       this._errorMessage = message;
@@ -342,8 +348,7 @@ export class AmInput extends LitElement {
   private _onInvalid = (event: Event): void => {
     event.preventDefault();
     this._submitFailed = true;
-    this._validation.markTouched();
-    this._syncValidation();
+    this._validation.markTouched(); // requests update -> willUpdate reflects
   };
 
   /**
@@ -356,8 +361,7 @@ export class AmInput extends LitElement {
    * @param message - The error text to display, or `''` to clear to native.
    */
   setCustomError(message: string): void {
-    this._validation.setCustomError(message);
-    this._syncValidation();
+    this._validation.setCustomError(message); // requests update -> willUpdate reflects
   }
 
   private _handleInput(e: Event) {
