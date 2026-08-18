@@ -28,7 +28,7 @@ Requirements for the v1.0 release. Each maps to a roadmap phase. Grounded in `.p
 
 ### Reliability & Leak Fixes
 
-- [ ] **FIX-01**: Toast dismiss `setTimeout` tracked and cleaned up via `_clearTimer()`
+- [x] **FIX-01**: Toast dismiss `setTimeout` tracked and cleaned up via `_clearTimer()`
 - [ ] **FIX-02**: Global click/keydown listeners gated on open state and torn down on disconnect (combobox, dropdown, context-menu, date-picker, popover, tooltip)
 - [ ] **FIX-03**: Focus restoration guards against removed/disconnected `_previouslyFocused` nodes via `isConnected` (dialog, drawer, command-palette, popover)
 - [ ] **FIX-04**: Dialog animation cleanup hardened (explicit cleanup / `disconnectedCallback`)
@@ -113,7 +113,7 @@ Which phases cover which requirements. Populated during roadmap creation.
 | API-03 | Phase 2 | Complete |
 | API-04 | Phase 2 | Complete |
 | API-05 | Phase 2 | Complete |
-| FIX-01 | Phase 3 | Pending |
+| FIX-01 | Phase 3 | Complete |
 | FIX-02 | Phase 3 | Pending |
 | FIX-03 | Phase 3 | Pending |
 | FIX-04 | Phase 3 | Pending |

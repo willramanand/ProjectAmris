@@ -2,18 +2,18 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 3
-current_phase_name: Reliability & Leak Fixes
+current_phase: 03
+current_phase_name: reliability-leak-fixes
 status: executing
-stopped_at: Completed 02-09-PLAN.md (phase 02 closing gate — surface FROZEN)
-last_updated: "2026-08-18T01:47:11.448Z"
+stopped_at: Completed 03-01-PLAN.md
+last_updated: "2026-08-18T02:06:51.572Z"
 last_activity: 2026-08-17
 last_activity_desc: Phase 02 execution started
 progress:
   total_phases: 6
   completed_phases: 2
-  total_plans: 21
-  completed_plans: 17
+  total_plans: 20
+  completed_plans: 18
   percent: 33
 ---
 
@@ -24,16 +24,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-08-10)
 
 **Core value:** A frozen, dependable public API backed by real test coverage — consumers can drop `@willramanand/amris` into any app and trust it to be correct, accessible, and API-stable.
-**Current focus:** Phase 02 — api-cleanup-cem-baseline
+**Current focus:** Phase 03 — reliability-leak-fixes
 
 ## Current Position
 
-Phase: 3 — Reliability & Leak Fixes
-Plan: Not started
+Phase: 03 (reliability-leak-fixes) — EXECUTING
+Plan: 2 of 3
 Status: Ready to execute
-Last activity: 2026-08-17 — Phase 02 complete, transitioned to Phase 3
+Last activity: 2026-08-17 — Phase 03 execution started
 
-Progress: [██████████] 100%
+Progress: [█████████░] 90%
 
 ## Performance Metrics
 
@@ -77,6 +77,7 @@ Progress: [██████████] 100%
 | Phase 02 P07 | 4min | 3 tasks | 3 files |
 | Phase 02 P08 | 3min | 2 tasks | 2 files |
 | Phase 02 P09 | 6min | 3 tasks | 5 files |
+| Phase 03 P01 | 5min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -109,6 +110,7 @@ Recent decisions affecting current work:
 - [Phase ?]: 02-07: select nav kept inline and no shared controller edited — select's element-based wraparound keyboard nav is a different model from combobox's string-clamp ListboxNav, and select has no option filtering; delegating only genuine (positioning) duplication keeps combobox untouched (D-08/A3 discretion).
 - [Phase ?]: 02-08: time-picker refactored via pure src/internal/helpers/time-utils.ts (parse/format + clock arithmetic, D-07/D-08). No listbox and no @floating-ui/dom, so neither ListboxNavController nor FloatingPositionController applied (Pitfall 5) — completes the Big-4 refactor. Behavior-preserving: full jsdom+Chromium suite green, zero test edits, surface unchanged.
 - [Phase ?]: 02-09: froze public slot/::part()/--am-* token surface (212 global + 54 per-component tokens, 21 slots, 76 parts) as v1.0 contract (D-11); tagged --am-z-toast @cssprop on am-toast-region (freeze-all-documented); final baseline re-committed, diff:surface clean, surface-diff CI stays report-only (D-13)
+- [Phase ?]: 03-01: established TeardownScope shared teardown primitive (src/internal/, off frozen surface) as the phase tracer; am-toast dismiss fallback timer + animationend listener now tracked/cleared via _clearTimer() (FIX-01) — behavior-preserving, ready for reuse by FIX-04 (03-02).
 
 ### Pending Todos
 
@@ -137,6 +139,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-17T22:45:32.305Z
-Stopped at: Completed 02-09-PLAN.md (phase 02 closing gate — surface FROZEN)
+Last session: 2026-08-18T02:06:42.898Z
+Stopped at: Completed 03-01-PLAN.md
 Resume file: None
