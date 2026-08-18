@@ -2,6 +2,7 @@ import { LitElement, css, html, nothing } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { styleMap } from 'lit/directives/style-map.js';
 import { resetStyles } from '../../styles/reset.css.js';
+import { TeardownScope } from '../../internal/helpers/teardown-scope.js';
 
 export type ToastVariant = 'info' | 'success' | 'warning' | 'danger' | 'neutral';
 
@@ -35,6 +36,13 @@ export class AmToast extends LitElement {
   private _timer: ReturnType<typeof setTimeout> | null = null;
   private _timerStart = 0;
   private _remaining = 0;
+
+  /**
+   * Tracks the fire-and-forget dismiss fallback timer + the `animationend`
+   * listener so a mid-dismiss removal leaves no pending callback (FIX-01).
+   * Drained by {@link _clearTimer}, which `disconnectedCallback` already calls.
+   */
+  private readonly _teardown = new TeardownScope();
 
   static styles = [
     resetStyles,
@@ -213,6 +221,9 @@ export class AmToast extends LitElement {
       clearTimeout(this._timer);
       this._timer = null;
     }
+    // Drain the dismiss fallback timer + abort the animationend listener so a
+    // mid-dismiss removal leaves no pending callback (FIX-01).
+    this._teardown.clear();
   }
 
   private _handleMouseEnter() {
@@ -256,8 +267,8 @@ export class AmToast extends LitElement {
       this.open = false;
       this.dispatchEvent(new CustomEvent('am-close', { bubbles: true, composed: true }));
     };
-    this.addEventListener('animationend', onEnd, { once: true });
-    setTimeout(onEnd, 300);
+    this.addEventListener('animationend', onEnd, { once: true, signal: this._teardown.signal });
+    this._teardown.timeout(onEnd, 300);
   }
 
   render() {
