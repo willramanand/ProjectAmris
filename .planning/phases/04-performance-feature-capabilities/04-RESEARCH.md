@@ -426,21 +426,23 @@ connectedCallback() { super.connectedCallback();
 
 **If this table looks long:** it is deliberately honest — the in-repo seams and dependency versions are VERIFIED, but the runtime API details of a labs/pre-1.0 package and the exact shapes of NEW public methods are design decisions the planner must lock (and, for `setCustomError`/`register`, bind at freeze).
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Cross-shadow `aria-describedby` mechanism (Claude's discretion — settle before wiring FEAT-01).**
+> All four settled in executable plan content during planning: Q1 via the 04-01 `checkpoint:decision` (Option A confirmed) + CONTEXT Claude's-Discretion note; Q2 → `flow` layout (04-08); Q3 → `VIRTUALIZE_ROW_THRESHOLD` constant (04-08); Q4 → blocklist doc-comment (04-05). Nothing unresolved leaks into planning.
+
+1. **[RESOLVED — Option A, 04-01 checkpoint:decision] Cross-shadow `aria-describedby` mechanism (Claude's discretion — settle before wiring FEAT-01).**
    - What we know: the focusable `<input>` is in the control's shadow root; slotted `am-error-text`/`am-hint-text` are in `am-field`'s light DOM `[VERIFIED: input.ts, field.ts, error-text.ts]`. `aria-describedby` cannot cross shadow roots. CustomStateSet/reference-target unavailable at Safari 16.4.
    - Options: **(A) Message co-located within the control** — the control renders its own `validationMessage`/custom error in a same-root `aria-live` region and points its inner `<input>`'s `aria-describedby` at it; `am-field` orchestrates only the *visual* hint↔error swap (D-02). **(B) id-forwarding** — pass the message string into the control which renders it in-root (functionally same as A). **(C) light-DOM association** — put `aria-describedby` on the control HOST; fails because AT reads it from the inner focusable, not the host.
    - **Recommendation:** Option A via the shared `ValidationController` — control-owned, same-root, robust on the 16.4 floor, mirrors Material Web. `am-field` stays structural and optionally coordinates the visual D-02 swap. Present this to discuss-phase/planner for confirmation; it determines whether `setCustomError` lives on each control (recommended) or on `am-field`.
 
-2. **Virtualization uniform vs variable row height (D-07 discretion).**
+2. **[RESOLVED — `flow` layout, 04-08] Virtualization uniform vs variable row height (D-07 discretion).**
    - What we know: data-grid rows and combobox options are effectively uniform height today; `flow` layout handles both.
    - What's unclear: whether v2.1.1 needs an explicit fixed-size config for best perf (A4).
    - Recommendation: use `flow` (auto-measure); benchmark to set the D-07 threshold (~100) on real content; document the number.
 
-3. **Threshold value (D-07).** Measure render cost per the Phase 1 measured-baseline pattern; likely ~100 rows; document in the plan.
+3. **[RESOLVED — `VIRTUALIZE_ROW_THRESHOLD` constant, 04-08] Threshold value (D-07).** Measure render cost per the Phase 1 measured-baseline pattern; likely ~100 rows; document in the plan.
 
-4. **Reserved-combo blocklist exact contents (D-10 discretion).** Proposed starting set: `mod+t`, `mod+w`, `mod+n`, `mod+shift+n`, `mod+l`, `mod+q`, `mod+r`, `mod+shift+t`, `mod+tab`, `mod+`, `mod+-`, `mod+0`, `F1`–`F12`, `mod+shift+i` (devtools). Finalize during planning; refusal returns `{ ok: false, reason: 'reserved' }` (D-11).
+4. **[RESOLVED — blocklist doc-comment, 04-05] Reserved-combo blocklist exact contents (D-10 discretion).** Proposed starting set: `mod+t`, `mod+w`, `mod+n`, `mod+shift+n`, `mod+l`, `mod+q`, `mod+r`, `mod+shift+t`, `mod+tab`, `mod+`, `mod+-`, `mod+0`, `F1`–`F12`, `mod+shift+i` (devtools). Finalize during planning; refusal returns `{ ok: false, reason: 'reserved' }` (D-11).
 
 ## Environment Availability
 
