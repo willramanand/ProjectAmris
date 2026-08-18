@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 03
 current_phase_name: reliability-leak-fixes
 status: executing
-stopped_at: Completed 03-02-PLAN.md
-last_updated: "2026-08-18T02:12:38.639Z"
-last_activity: 2026-08-17
-last_activity_desc: Phase 02 execution started
+stopped_at: Completed 03-03-PLAN.md
+last_updated: "2026-08-18T22:16:30.000Z"
+last_activity: 2026-08-18
+last_activity_desc: Phase 03 plan 03 executed (FIX-03 overlay set complete, FIX-02 locked)
 progress:
   total_phases: 6
   completed_phases: 2
   total_plans: 20
-  completed_plans: 19
+  completed_plans: 20
   percent: 33
 ---
 
@@ -29,11 +29,11 @@ See: .planning/PROJECT.md (updated 2026-08-10)
 ## Current Position
 
 Phase: 03 (reliability-leak-fixes) — EXECUTING
-Plan: 3 of 3
-Status: Ready to execute
-Last activity: 2026-08-17 — Phase 03 execution started
+Plan: 3 of 3 — COMPLETE
+Status: Phase 03 plans all executed (03-01, 03-02, 03-03)
+Last activity: 2026-08-18 — Phase 03 plan 03 executed (FIX-03 overlay set complete, FIX-02 locked)
 
-Progress: [██████████] 95%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -79,6 +79,7 @@ Progress: [██████████] 95%
 | Phase 02 P09 | 6min | 3 tasks | 5 files |
 | Phase 03 P01 | 5min | 2 tasks | 4 files |
 | Phase 03 P02 | 3min | 2 tasks | 3 files |
+| Phase 03 P03 | 3min | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -113,6 +114,7 @@ Recent decisions affecting current work:
 - [Phase ?]: 02-09: froze public slot/::part()/--am-* token surface (212 global + 54 per-component tokens, 21 slots, 76 parts) as v1.0 contract (D-11); tagged --am-z-toast @cssprop on am-toast-region (freeze-all-documented); final baseline re-committed, diff:surface clean, surface-diff CI stays report-only (D-13)
 - [Phase ?]: 03-01: established TeardownScope shared teardown primitive (src/internal/, off frozen surface) as the phase tracer; am-toast dismiss fallback timer + animationend listener now tracked/cleared via _clearTimer() (FIX-01) — behavior-preserving, ready for reuse by FIX-04 (03-02).
 - [Phase ?]: am-dialog: reused TeardownScope (03-01) in disconnectedCallback for nudge listener (FIX-04); isConnected guard on _hide() focus restoration (FIX-03)
+- [Phase ?]: 03-03: isConnected focus-guard extended to am-drawer + am-command-palette (FIX-03 overlay set complete; am-popover documented as no-focus-restoration path); FIX-02 verified — six overlay components' gated-on-open + torn-down-on-disconnect listeners proven green by TEST-05 spies as pre-freeze regression lock, no refactor.
 
 ### Pending Todos
 
@@ -141,6 +143,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-18T02:12:30.291Z
-Stopped at: Completed 03-02-PLAN.md
+Last session: 2026-08-18T22:16:30.000Z
+Stopped at: Completed 03-03-PLAN.md
 Resume file: None
