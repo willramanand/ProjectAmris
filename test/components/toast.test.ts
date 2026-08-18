@@ -256,6 +256,96 @@ describe('am-toast mid-dismiss teardown (FIX-01)', () => {
   });
 });
 
+describe('am-toast dismiss animation gating (WR-02)', () => {
+  // Build an `animationend` event carrying a specific animationName. jsdom does
+  // not synthesize animation events, so we fabricate one; `animationend` is a
+  // composed event, so a name from a shadow descendant bubbles to the host.
+  function animationEnd(name: string): Event {
+    const ev = new Event('animationend', { bubbles: true, composed: true });
+    Object.defineProperty(ev, 'animationName', { value: name });
+    return ev;
+  }
+
+  it('does not complete the dismiss on a non-toast-out animationend (WR-02)', async () => {
+    vi.useFakeTimers();
+
+    const element = await fixture<HTMLElement & { open: boolean; duration: number }>(
+      '<am-toast open duration="0" closable>Gate me</am-toast>',
+    );
+
+    let closed = false;
+    element.addEventListener('am-close', () => {
+      closed = true;
+    });
+
+    const closeBtn = shadowQuery<HTMLButtonElement>(element, '.close-btn');
+    await click(closeBtn, element);
+
+    // A composed animationend from a shadow descendant (e.g. the countdown ring
+    // or the entrance `toast-in`) bubbles to the host listener. It must NOT
+    // complete the dismiss early.
+    element.dispatchEvent(animationEnd('toast-in'));
+    element.dispatchEvent(animationEnd('countdown'));
+
+    expect(closed).toBe(false);
+    expect(element.open).toBe(true);
+    expect(element.classList.contains('dismissing')).toBe(true);
+
+    vi.useRealTimers();
+  });
+
+  it('completes the dismiss on the real toast-out animationend and fires one am-close (WR-02)', async () => {
+    vi.useFakeTimers();
+
+    const element = await fixture<HTMLElement & { open: boolean; duration: number }>(
+      '<am-toast open duration="0" closable>Finish me</am-toast>',
+    );
+
+    let closeCount = 0;
+    element.addEventListener('am-close', () => {
+      closeCount += 1;
+    });
+
+    const closeBtn = shadowQuery<HTMLButtonElement>(element, '.close-btn');
+    await click(closeBtn, element);
+
+    // The host's own exit animation completes the dismiss.
+    element.dispatchEvent(animationEnd('toast-out'));
+
+    expect(closeCount).toBe(1);
+    expect(element.open).toBe(false);
+    expect(element.classList.contains('dismissing')).toBe(false);
+
+    // The 300ms fallback must not fire a second am-close after completion.
+    vi.advanceTimersByTime(300);
+    expect(closeCount).toBe(1);
+
+    vi.useRealTimers();
+  });
+
+  it('still completes the dismiss via the 300ms fallback with no animationend (WR-02)', async () => {
+    vi.useFakeTimers();
+
+    const element = await fixture<HTMLElement & { open: boolean; duration: number }>(
+      '<am-toast open duration="50">Fallback</am-toast>',
+    );
+
+    let closeCount = 0;
+    element.addEventListener('am-close', () => {
+      closeCount += 1;
+    });
+
+    // Auto-dismiss fires, then the 300ms fallback completes it with no event.
+    vi.advanceTimersByTime(50);
+    vi.advanceTimersByTime(300);
+
+    expect(closeCount).toBe(1);
+    expect(element.open).toBe(false);
+
+    vi.useRealTimers();
+  });
+});
+
 describe('am-toast-region', () => {
   it('renders with placement attribute', async () => {
     const element = await fixture<HTMLElement>(
