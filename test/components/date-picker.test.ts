@@ -138,3 +138,77 @@ describe('am-date-picker — document listener teardown (TEST-05)', () => {
     removeSpy.mockRestore();
   });
 });
+
+describe('am-date-picker — validation (jsdom lane)', () => {
+  type ValidatingDatePicker = DatePickerEl & {
+    setCustomError(message: string): void;
+    updateComplete: Promise<unknown>;
+  };
+
+  function firstSegment(el: DatePickerEl): HTMLButtonElement {
+    return shadowQuery<HTMLButtonElement>(el, '.segment');
+  }
+
+  it('shows NO validation error on first paint for a required empty date-picker (D-01)', async () => {
+    const el = await fixture<ValidatingDatePicker>('<am-date-picker label="Start" required></am-date-picker>');
+    expect(el.invalid).toBe(false);
+    expect(el.shadowRoot?.querySelector('[part="error"]')).toBeNull();
+    expect(firstSegment(el).getAttribute('aria-describedby')).toBeNull();
+  });
+
+  it('surfaces the native message only after a segment is touched (D-01 gate)', async () => {
+    const el = await fixture<ValidatingDatePicker>('<am-date-picker label="Start" required></am-date-picker>');
+    const seg = firstSegment(el);
+
+    expect(el.shadowRoot?.querySelector('[part="error"]')).toBeNull();
+
+    seg.dispatchEvent(new FocusEvent('blur', { bubbles: true }));
+    await el.updateComplete;
+    await waitForUpdate(el);
+
+    const error = el.shadowRoot?.querySelector('[part="error"]');
+    expect(error).not.toBeNull();
+    expect(el.invalid).toBe(true);
+    const describedBy = seg.getAttribute('aria-describedby');
+    expect(describedBy).not.toBeNull();
+    expect(el.shadowRoot?.getElementById(describedBy!)).toBe(error);
+  });
+
+  it('setCustomError shows immediately and reflects the invalid attribute (D-03)', async () => {
+    const el = await fixture<ValidatingDatePicker>('<am-date-picker label="Start"></am-date-picker>');
+    el.setCustomError('Pick a date');
+    await el.updateComplete;
+    await waitForUpdate(el);
+
+    expect(el.hasAttribute('invalid')).toBe(true);
+    const error = el.shadowRoot?.querySelector('[part="error"]');
+    expect(error?.textContent).toBe('Pick a date');
+    expect(error?.getAttribute('aria-live')).toBe('polite');
+    expect(error?.getAttribute('role')).toBeNull();
+  });
+
+  it("setCustomError('') clears the error when there is no native violation", async () => {
+    const el = await fixture<ValidatingDatePicker>('<am-date-picker label="Start"></am-date-picker>');
+    el.setCustomError('Server says no');
+    await el.updateComplete;
+    await waitForUpdate(el);
+    expect(el.hasAttribute('invalid')).toBe(true);
+
+    el.setCustomError('');
+    await el.updateComplete;
+    await waitForUpdate(el);
+    expect(el.hasAttribute('invalid')).toBe(false);
+    expect(el.shadowRoot?.querySelector('[part="error"]')).toBeNull();
+  });
+
+  it('custom error wins over the native required message (D-03 precedence)', async () => {
+    const el = await fixture<ValidatingDatePicker>('<am-date-picker label="Start" required></am-date-picker>');
+    firstSegment(el).dispatchEvent(new FocusEvent('blur', { bubbles: true }));
+    el.setCustomError('Custom wins');
+    await el.updateComplete;
+    await waitForUpdate(el);
+
+    const error = el.shadowRoot?.querySelector('[part="error"]');
+    expect(error?.textContent).toBe('Custom wins');
+  });
+});

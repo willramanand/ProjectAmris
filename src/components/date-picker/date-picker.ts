@@ -2,10 +2,20 @@ import { LitElement, css, html, nothing, type PropertyValues } from 'lit';
 import { customElement, property, query, state } from 'lit/decorators.js';
 import { resetStyles } from '../../styles/reset.css.js';
 import { FloatingPositionController } from '../../internal/controllers/floating-position.js';
+import { ValidationController } from '../../internal/controllers/validation.js';
+import { uniqueId } from '../../utilities/unique-id.js';
 import { clampDay, daysInMonth, formatDate, parseDate } from '../../internal/helpers/date-utils.js';
 import '../calendar/calendar.js';
 
 export type DatePickerSize = 'sm' | 'md' | 'lg';
+
+/**
+ * Default message surfaced for a required-empty date-picker. The primary
+ * focusable is a segment button (no native inner input), so the host supplies
+ * the `valueMissing` message it mirrors onto `ElementInternals.setValidity`
+ * (D-01/FEAT-01).
+ */
+const VALUE_MISSING_MESSAGE = 'Please fill out this field.';
 
 /**
  * Date Picker — an input that opens a calendar dropdown for date selection.
@@ -59,6 +69,29 @@ export class AmDatePicker extends LitElement {
   private _internals: ElementInternals;
   private _bufferTimer: ReturnType<typeof setTimeout> | null = null;
 
+  /** Stable id shared by the error message node and each segment's aria-describedby. */
+  private readonly _errorId = uniqueId('am-date-picker-error');
+
+  /**
+   * Resolves the displayed validation message + shown-state from the native
+   * constraint message and any consumer-supplied {@link setCustomError} error.
+   * Lives on the src/internal boundary — never on the public surface (D-09).
+   */
+  private _validation = new ValidationController(this, {
+    internals: () => this._internals,
+    anchor: () => this.shadowRoot?.querySelector('.segment') as HTMLElement | null,
+    describedById: this._errorId,
+  });
+
+  /** Resolved error text mirrored from the controller for render. */
+  @state() private _errorMessage = '';
+  /** Whether the error message region is currently shown. */
+  @state() private _showError = false;
+  /** True once a failed form submit occurred — drives assertive role=alert (D-04). */
+  @state() private _submitFailed = false;
+  /** Tracks whether the reflected `invalid` attribute is owned by validation. */
+  private _invalidFromValidation = false;
+
   /**
    * Dropdown positioning delegated to the shared controller. Options mirror the
    * previous inline setup exactly: anchored to `.wrapper`, `.dropdown` floating,
@@ -76,6 +109,9 @@ export class AmDatePicker extends LitElement {
   constructor() {
     super();
     this._internals = this.attachInternals();
+    // A failed constraint check on form submit fires `invalid` on this host;
+    // suppress the browser's default bubble and surface our own message (D-04).
+    this.addEventListener('invalid', this._onInvalid);
   }
 
   static styles = [
@@ -263,6 +299,13 @@ export class AmDatePicker extends LitElement {
         transition: opacity var(--am-duration-fast) var(--am-ease-default);
       }
 
+      .error-text {
+        margin-top: var(--am-space-1);
+        color: var(--am-danger);
+        font-size: var(--am-text-sm);
+        line-height: 1.3;
+      }
+
       @media (prefers-reduced-motion: reduce) {
         .wrapper, .segment, .dropdown, .floating-label { transition: none; }
         .caret { animation: none; opacity: 1; }
@@ -297,6 +340,65 @@ export class AmDatePicker extends LitElement {
         this._floatingController.stop();
       }
     }
+    // Native constraint validity is computed from the required/has-value state
+    // (no inner native input) and mirrored onto internals post-render; this
+    // reflection may schedule one further bounded update.
+    this._syncValidation();
+  }
+
+  /**
+   * Mirror the control's required/has-value validity onto ElementInternals, then
+   * reflect the controller's resolved message + shown-state into render state
+   * and the `invalid` attribute. Never throws; bounded (idempotent) re-render.
+   */
+  private _syncValidation(): void {
+    const anchor = this.shadowRoot?.querySelector('.segment') as HTMLElement | null;
+    if (anchor) {
+      if (this.required && !this._hasValue) {
+        this._internals.setValidity({ valueMissing: true }, VALUE_MISSING_MESSAGE, anchor);
+      } else {
+        this._internals.setValidity({});
+      }
+    }
+
+    const show = this._validation.invalid;
+    const message = show ? this._validation.message : '';
+
+    if (message !== this._errorMessage) {
+      this._errorMessage = message;
+    }
+    if (show !== this._showError) {
+      this._showError = show;
+      if (show) {
+        this.invalid = true;
+        this._invalidFromValidation = true;
+      } else if (this._invalidFromValidation) {
+        this.invalid = false;
+        this._invalidFromValidation = false;
+      }
+    }
+    if (!show) {
+      this._submitFailed = false;
+    }
+  }
+
+  private _onInvalid = (event: Event): void => {
+    event.preventDefault();
+    this._submitFailed = true;
+    this._validation.markTouched();
+  };
+
+  /**
+   * Set or clear a custom validation error (e.g. a server-side rejection).
+   *
+   * A non-empty message overrides the native constraint message and is shown
+   * immediately; passing `''` clears the custom error and falls back to the
+   * native constraint message (if any). Custom message wins over native (D-03).
+   *
+   * @param message - The error text to display, or `''` to clear to native.
+   */
+  setCustomError(message: string): void {
+    this._validation.setCustomError(message);
   }
 
   private _handleOutsideClick = (e: MouseEvent) => {
@@ -578,8 +680,10 @@ export class AmDatePicker extends LitElement {
           <button class="segment seg-year ${this._activeSegment === 'year' ? (this._isEditing('year') ? 'editing' : 'active') : ''}"
             data-segment="year"
             aria-label="Year — type digits or use arrow keys"
+            aria-invalid=${this.invalid ? 'true' : nothing}
+            aria-describedby=${this._showError ? this._errorId : nothing}
             @focus=${() => { this._focused = true; this._activeSegment = 'year'; this._clearBuffer(); }}
-            @blur=${() => { this._focused = false; this._clearBuffer(); }}
+            @blur=${() => { this._focused = false; this._clearBuffer(); this._validation.markTouched(); }}
             @keydown=${(e: KeyboardEvent) => this._handleKeydown('year', e)}>
             ${this._renderSegmentContent('year')}
           </button>
@@ -587,8 +691,10 @@ export class AmDatePicker extends LitElement {
           <button class="segment seg-month ${this._activeSegment === 'month' ? (this._isEditing('month') ? 'editing' : 'active') : ''}"
             data-segment="month"
             aria-label="Month — type digits or use arrow keys"
+            aria-invalid=${this.invalid ? 'true' : nothing}
+            aria-describedby=${this._showError ? this._errorId : nothing}
             @focus=${() => { this._focused = true; this._activeSegment = 'month'; this._clearBuffer(); }}
-            @blur=${() => { this._focused = false; this._clearBuffer(); }}
+            @blur=${() => { this._focused = false; this._clearBuffer(); this._validation.markTouched(); }}
             @keydown=${(e: KeyboardEvent) => this._handleKeydown('month', e)}>
             ${this._renderSegmentContent('month')}
           </button>
@@ -596,8 +702,10 @@ export class AmDatePicker extends LitElement {
           <button class="segment seg-day ${this._activeSegment === 'day' ? (this._isEditing('day') ? 'editing' : 'active') : ''}"
             data-segment="day"
             aria-label="Day — type digits or use arrow keys"
+            aria-invalid=${this.invalid ? 'true' : nothing}
+            aria-describedby=${this._showError ? this._errorId : nothing}
             @focus=${() => { this._focused = true; this._activeSegment = 'day'; this._clearBuffer(); }}
-            @blur=${() => { this._focused = false; this._clearBuffer(); }}
+            @blur=${() => { this._focused = false; this._clearBuffer(); this._validation.markTouched(); }}
             @keydown=${(e: KeyboardEvent) => this._handleKeydown('day', e)}>
             ${this._renderSegmentContent('day')}
           </button>
@@ -612,6 +720,15 @@ export class AmDatePicker extends LitElement {
           @change=${this._handleCalendarChange}
         ></am-calendar>
       </div>
+      ${this._showError
+        ? html`<div
+            id=${this._errorId}
+            part="error"
+            class="error-text"
+            role=${this._submitFailed ? 'alert' : nothing}
+            aria-live=${this._submitFailed ? 'off' : 'polite'}
+          >${this._errorMessage}</div>`
+        : nothing}
     `;
   }
 }

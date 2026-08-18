@@ -8,8 +8,19 @@ import { requestAssociatedFormSubmit } from '../../utilities/form-actions.js';
 import { FloatingPositionController } from '../../internal/controllers/floating-position.js';
 import { ListboxNavController } from '../../internal/controllers/listbox-nav.js';
 import { filterOptions } from '../../internal/controllers/option-filter.js';
+import { ValidationController } from '../../internal/controllers/validation.js';
+import { uniqueId } from '../../utilities/unique-id.js';
 
 export type ComboboxSize = 'sm' | 'md' | 'lg';
+
+/**
+ * Default message surfaced for a required-empty combobox. The select-mode
+ * primary focusable is a `role=combobox` wrapper (no native inner input), so the
+ * host supplies the `valueMissing` message it mirrors onto
+ * `ElementInternals.setValidity` (D-01/FEAT-01). Text-mode uses the same message
+ * for a uniform experience across both modes.
+ */
+const VALUE_MISSING_MESSAGE = 'Please fill out this field.';
 
 /**
  * Combobox — a text input with a filterable dropdown list.
@@ -89,6 +100,29 @@ export class AmCombobox extends LitElement {
 
   private internals: ElementInternals;
 
+  /** Stable id shared by the error message node and the focusable's aria-describedby. */
+  private readonly _errorId = uniqueId('am-combobox-error');
+
+  /**
+   * Resolves the displayed validation message + shown-state from the native
+   * constraint message and any consumer-supplied {@link setCustomError} error.
+   * Lives on the src/internal boundary — never on the public surface (D-09).
+   */
+  private _validation = new ValidationController(this, {
+    internals: () => this.internals,
+    anchor: () => this._anchorEl,
+    describedById: this._errorId,
+  });
+
+  /** Resolved error text mirrored from the controller for render. */
+  @state() private _errorMessage = '';
+  /** Whether the error message region is currently shown. */
+  @state() private _showError = false;
+  /** True once a failed form submit occurred — drives assertive role=alert (D-04). */
+  @state() private _submitFailed = false;
+  /** Tracks whether the reflected `invalid` attribute is owned by validation. */
+  private _invalidFromValidation = false;
+
   /**
    * Floating positioning delegated to the shared controller. Options mirror the
    * component's previous inline setup exactly: anchored to `.wrapper`, fixed
@@ -138,6 +172,20 @@ export class AmCombobox extends LitElement {
   constructor() {
     super();
     this.internals = this.attachInternals();
+    // A failed constraint check on form submit fires `invalid` on this host;
+    // suppress the browser's default bubble and surface our own message (D-04).
+    this.addEventListener('invalid', this._onInvalid);
+  }
+
+  /**
+   * The primary focusable the validation message anchors to: the text-mode
+   * `<input>`, or the select-mode `role=combobox` wrapper (searchInTrigger).
+   * Never a node in am-field light DOM (Pitfall 3).
+   */
+  private get _anchorEl(): HTMLElement | null {
+    return this.searchInTrigger
+      ? (this.shadowRoot?.querySelector('.wrapper') as HTMLElement | null)
+      : (this.inputEl ?? null);
   }
 
   static styles = [
@@ -386,6 +434,15 @@ export class AmCombobox extends LitElement {
 
       .dropdown-search::placeholder { color: var(--am-text-tertiary); }
 
+      /* ---- Validation message ---- */
+
+      .error-text {
+        margin-top: var(--am-space-1);
+        color: var(--am-danger);
+        font-size: var(--am-text-sm);
+        line-height: 1.3;
+      }
+
       @media (prefers-reduced-motion: reduce) {
         .wrapper, .floating-label, .chevron, .listbox, .option, .spinner { transition: none; }
         .spinner { animation-duration: 1.5s; }
@@ -435,6 +492,65 @@ export class AmCombobox extends LitElement {
         this._floatingController.stop();
       }
     }
+    // Native constraint validity is computed from the required/empty state (no
+    // inner native constraint input in select-mode) and mirrored onto internals
+    // post-render; this reflection may schedule one further bounded update.
+    this._syncValidation();
+  }
+
+  /**
+   * Mirror the control's required/empty validity onto ElementInternals, then
+   * reflect the controller's resolved message + shown-state into render state
+   * and the `invalid` attribute. Never throws; bounded (idempotent) re-render.
+   */
+  private _syncValidation(): void {
+    const anchor = this._anchorEl;
+    if (anchor) {
+      if (this.required && this.value === '') {
+        this.internals.setValidity({ valueMissing: true }, VALUE_MISSING_MESSAGE, anchor);
+      } else {
+        this.internals.setValidity({});
+      }
+    }
+
+    const show = this._validation.invalid;
+    const message = show ? this._validation.message : '';
+
+    if (message !== this._errorMessage) {
+      this._errorMessage = message;
+    }
+    if (show !== this._showError) {
+      this._showError = show;
+      if (show) {
+        this.invalid = true;
+        this._invalidFromValidation = true;
+      } else if (this._invalidFromValidation) {
+        this.invalid = false;
+        this._invalidFromValidation = false;
+      }
+    }
+    if (!show) {
+      this._submitFailed = false;
+    }
+  }
+
+  private _onInvalid = (event: Event): void => {
+    event.preventDefault();
+    this._submitFailed = true;
+    this._validation.markTouched();
+  };
+
+  /**
+   * Set or clear a custom validation error (e.g. a server-side rejection).
+   *
+   * A non-empty message overrides the native constraint message and is shown
+   * immediately; passing `''` clears the custom error and falls back to the
+   * native constraint message (if any). Custom message wins over native (D-03).
+   *
+   * @param message - The error text to display, or `''` to clear to native.
+   */
+  setCustomError(message: string): void {
+    this._validation.setCustomError(message);
   }
 
   private _handleDocumentClick = (e: MouseEvent) => {
@@ -477,6 +593,9 @@ export class AmCombobox extends LitElement {
 
   private _handleBlur() {
     this._focused = false;
+    // D-01 timing gate: a native constraint error may surface only after the
+    // input is touched (blur), never on first paint.
+    this._validation.markTouched();
   }
 
   private _handleKeydown(e: KeyboardEvent) {
@@ -559,6 +678,19 @@ export class AmCombobox extends LitElement {
   /** Programmatically focus the input. */
   focus(options?: FocusOptions) { this.inputEl?.focus(options); }
 
+  /** Same-shadow-root validation message region (shared by both render modes). */
+  private _renderError() {
+    return this._showError
+      ? html`<div
+          id=${this._errorId}
+          part="error"
+          class="error-text"
+          role=${this._submitFailed ? 'alert' : nothing}
+          aria-live=${this._submitFailed ? 'off' : 'polite'}
+        >${this._errorMessage}</div>`
+      : nothing;
+  }
+
   render() {
     if (this.searchInTrigger) return this._renderSelectMode();
 
@@ -592,6 +724,7 @@ export class AmCombobox extends LitElement {
             ?required=${this.required}
             aria-label=${this.label || nothing}
             aria-invalid=${this.invalid ? 'true' : nothing}
+            aria-describedby=${this._showError ? this._errorId : nothing}
             aria-expanded=${this._open ? 'true' : 'false'}
             aria-autocomplete="list"
             aria-haspopup="listbox"
@@ -625,6 +758,7 @@ export class AmCombobox extends LitElement {
           : html`<div class="empty" role="option" aria-disabled="true">No results</div>`}
       </div>
       <div class="options-slot"><slot @slotchange=${this._handleOptionsSlotChange}></slot></div>
+      ${this._renderError()}
     `;
   }
 
@@ -648,9 +782,11 @@ export class AmCombobox extends LitElement {
         aria-expanded=${this._open ? 'true' : 'false'}
         aria-haspopup="listbox"
         aria-label=${this.label || nothing}
+        aria-invalid=${this.invalid ? 'true' : nothing}
+        aria-describedby=${this._showError ? this._errorId : nothing}
         tabindex=${this.disabled ? nothing : '0'}
         @focus=${() => { this._focused = true; }}
-        @blur=${() => { this._focused = false; }}
+        @blur=${() => { this._focused = false; this._validation.markTouched(); }}
         @keydown=${(e: KeyboardEvent) => {
           if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this._toggleSelect(); }
           else if (e.key === 'Escape' && this._open) { e.preventDefault(); this._open = false; this._dropdownQuery = ''; }
@@ -693,6 +829,7 @@ export class AmCombobox extends LitElement {
         </div>
       </div>
       <div class="options-slot"><slot @slotchange=${this._handleOptionsSlotChange}></slot></div>
+      ${this._renderError()}
     `;
   }
 }
