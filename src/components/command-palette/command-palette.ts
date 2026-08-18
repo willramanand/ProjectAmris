@@ -223,7 +223,7 @@ export class AmCommandPalette extends LitElement {
         requestAnimationFrame(() => this._input?.focus());
       } else {
         this._dialog?.close();
-        if (this._previouslyFocused instanceof HTMLElement) {
+        if (this._previouslyFocused instanceof HTMLElement && this._previouslyFocused.isConnected) {
           this._previouslyFocused.focus();
         }
         this.dispatchEvent(new CustomEvent('am-close', { bubbles: true, composed: true }));
