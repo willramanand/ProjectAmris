@@ -1,7 +1,13 @@
 import { LitElement, css, html, nothing, type PropertyValues } from 'lit';
 import { customElement, property, query, state } from 'lit/decorators.js';
 import { repeat } from 'lit/directives/repeat.js';
+import { ContextConsumer } from '@lit/context';
 import { resetStyles } from '../../styles/reset.css.js';
+import { shortcutRegistryContext } from '../shortcuts/shortcuts.js';
+import type { ShortcutRegistry } from '../../internal/controllers/shortcut-registry.js';
+
+/** The id this palette uses when it registers its open combo through a provider. */
+const OPEN_SHORTCUT_ID = 'command-palette.open';
 
 export interface CommandItem {
   id: string;
@@ -17,6 +23,11 @@ export interface CommandItem {
  *
  * Open with Ctrl+K / Cmd+K, or set `open` programmatically.
  * Pass an array of `CommandItem` objects via the `commands` property.
+ *
+ * When placed inside an `am-shortcuts` provider, the open combo is registered
+ * through the shared registry (rebindable as `command-palette.open`). With no
+ * provider present it falls back to a hardcoded Cmd/Ctrl+K document listener,
+ * so the drop-in behavior is unchanged (D-09).
  *
  * @csspart dialog - The dialog element
  * @csspart input - The search input
@@ -44,6 +55,33 @@ export class AmCommandPalette extends LitElement {
   @query('input') private _input!: HTMLInputElement;
 
   private _previouslyFocused: Element | null = null;
+
+  /**
+   * The registry this palette registered its open combo with, when an
+   * `am-shortcuts` provider exists in its subtree. `undefined` means no provider
+   * is present and the hardcoded Cmd/Ctrl+K document listener is the active path
+   * (D-09 graceful fallback).
+   */
+  private _activeRegistry?: ShortcutRegistry;
+
+  /** Whether the hardcoded document-keydown fallback is currently attached. */
+  private _fallbackActive = false;
+
+  constructor() {
+    super();
+    // Subscribe to a shortcut registry provided up the subtree (D-09). The
+    // ContextConsumer registers itself as a reactive controller (side effect),
+    // so no stored reference is needed. When a registry appears the palette
+    // registers a rebindable `mod+k` through it and drops the hardcoded document
+    // listener; when it disappears, the hardcoded Cmd/Ctrl+K fallback is restored.
+    new ContextConsumer(this, {
+      context: shortcutRegistryContext,
+      subscribe: true,
+      callback: (registry?: ShortcutRegistry) => {
+        this._onRegistryChange(registry);
+      },
+    });
+  }
 
   static styles = [
     resetStyles,
@@ -205,12 +243,65 @@ export class AmCommandPalette extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
-    document.addEventListener('keydown', this._handleGlobalKeydown);
+    // The context consumer requests the registry during super.connectedCallback()
+    // (its hostConnected). If a provider responded synchronously, the registry
+    // path is already active; otherwise fall back to the hardcoded listener.
+    if (!this._activeRegistry) {
+      this._addFallback();
+    }
   }
 
   disconnectedCallback() {
     super.disconnectedCallback();
+    this._removeFallback();
+    if (this._activeRegistry) {
+      this._activeRegistry.unregister(OPEN_SHORTCUT_ID);
+      this._activeRegistry = undefined;
+    }
+  }
+
+  /**
+   * React to a change in the provided registry (D-09). Registering through a
+   * provider takes over from the hardcoded fallback; losing the provider
+   * restores it. Idempotent for repeat callbacks with the same registry.
+   */
+  private _onRegistryChange(registry?: ShortcutRegistry) {
+    if (registry === this._activeRegistry) return;
+
+    // Tear down the previous registration (if any).
+    if (this._activeRegistry) {
+      this._activeRegistry.unregister(OPEN_SHORTCUT_ID);
+      this._activeRegistry = undefined;
+    }
+
+    if (registry) {
+      // Provider present: register a rebindable open combo, drop the fallback.
+      this._removeFallback();
+      registry.register({
+        id: OPEN_SHORTCUT_ID,
+        keys: 'mod+k',
+        handler: () => {
+          this.open = !this.open;
+        },
+        description: 'Open command palette',
+      });
+      this._activeRegistry = registry;
+    } else {
+      // Provider gone: restore today's hardcoded Cmd/Ctrl+K behavior.
+      this._addFallback();
+    }
+  }
+
+  private _addFallback() {
+    if (this._fallbackActive) return;
+    document.addEventListener('keydown', this._handleGlobalKeydown);
+    this._fallbackActive = true;
+  }
+
+  private _removeFallback() {
+    if (!this._fallbackActive) return;
     document.removeEventListener('keydown', this._handleGlobalKeydown);
+    this._fallbackActive = false;
   }
 
   protected updated(changed: PropertyValues) {

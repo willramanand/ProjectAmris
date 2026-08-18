@@ -1,8 +1,23 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import '../../src/components/command-palette/command-palette';
+import '../../src/components/shortcuts/shortcuts';
 import type { CommandItem } from '../../src/components/command-palette/command-palette';
+import type { ShortcutRegistry } from '../../src/internal/controllers/shortcut-registry';
 import { fixture, inputText, keydown, oneEvent, shadowQuery, waitForUpdate } from '../helpers';
+
+type ShortcutsHost = HTMLElement & { registry: ShortcutRegistry };
+
+function dispatchComboKeydown(mods: { metaKey?: boolean; ctrlKey?: boolean }): void {
+  document.dispatchEvent(
+    new KeyboardEvent('keydown', {
+      key: 'k',
+      bubbles: true,
+      cancelable: true,
+      ...mods,
+    }),
+  );
+}
 
 type PaletteEl = HTMLElement & {
   open: boolean;
@@ -225,5 +240,77 @@ describe('am-command-palette', () => {
     expect(items(el).length).toBe(0);
     const empty = el.shadowRoot?.querySelector('.empty');
     expect(empty).toBeTruthy();
+  });
+});
+
+describe('am-command-palette shortcut integration (D-09)', () => {
+  it('without a provider, Cmd+K and Ctrl+K toggle open (hardcoded fallback preserved)', async () => {
+    const el = await fixture<PaletteEl>('<am-command-palette></am-command-palette>');
+    await waitForUpdate(el);
+    expect(el.open).toBe(false);
+
+    // Cmd+K opens, Cmd+K again closes.
+    dispatchComboKeydown({ metaKey: true });
+    await waitForUpdate(el);
+    expect(el.open).toBe(true);
+
+    dispatchComboKeydown({ metaKey: true });
+    await waitForUpdate(el);
+    expect(el.open).toBe(false);
+
+    // Ctrl+K also toggles (cross-platform fallback unchanged).
+    dispatchComboKeydown({ ctrlKey: true });
+    await waitForUpdate(el);
+    expect(el.open).toBe(true);
+
+    el.remove();
+  });
+
+  it('with an am-shortcuts provider, registers command-palette.open and drives toggling through the registry', async () => {
+    const host = await fixture<ShortcutsHost>(
+      '<am-shortcuts><am-command-palette></am-command-palette></am-shortcuts>',
+    );
+    const palette = host.querySelector('am-command-palette') as PaletteEl;
+    await waitForUpdate(palette);
+
+    const registry = host.registry;
+    const entry = registry.list().find((e) => e.id === 'command-palette.open');
+    expect(entry).toBeTruthy();
+    // The original `mod+k` notation is preserved so the combo is rebindable.
+    expect(entry?.keys).toBe('mod+k');
+
+    // Toggling is driven through the registry: the resolved handler flips open.
+    const handler = registry.resolve('mod+k', ['global']);
+    expect(typeof handler).toBe('function');
+    expect(palette.open).toBe(false);
+    handler!(new KeyboardEvent('keydown'));
+    await waitForUpdate(palette);
+    expect(palette.open).toBe(true);
+
+    host.remove();
+  });
+
+  it('with a provider present, the hardcoded document listener is not the active path', async () => {
+    const host = await fixture<ShortcutsHost>(
+      '<am-shortcuts><am-command-palette></am-command-palette></am-shortcuts>',
+    );
+    const palette = host.querySelector('am-command-palette') as PaletteEl;
+    await waitForUpdate(palette);
+
+    const registry = host.registry;
+
+    // Discover which physical modifier `mod` maps to on this platform, then
+    // dispatch the OTHER one. am-shortcuts will not resolve it, so any resulting
+    // toggle could only come from the palette's hardcoded Cmd/Ctrl+K listener —
+    // which must have been removed once a provider took over (D-09).
+    const modIsMeta = registry.resolve('meta+k', ['global']) !== undefined;
+    const otherMod = modIsMeta ? { ctrlKey: true } : { metaKey: true };
+
+    expect(palette.open).toBe(false);
+    dispatchComboKeydown(otherMod);
+    await waitForUpdate(palette);
+    expect(palette.open).toBe(false);
+
+    host.remove();
   });
 });
