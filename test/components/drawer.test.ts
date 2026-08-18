@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import '../../src/components/drawer/drawer';
 import { click, mount, oneEvent, shadowQuery, waitForUpdate } from '../helpers';
@@ -54,6 +54,64 @@ describe('am-drawer', () => {
     await closeEvent;
 
     expect(element.open).toBe(false);
+  });
+
+  it('restores focus to a still-connected opener on close (FIX-03)', async () => {
+    const opener = document.createElement('button');
+    opener.textContent = 'Open drawer';
+    document.body.appendChild(opener);
+    opener.focus();
+
+    const element = document.createElement('am-drawer') as HTMLElement & {
+      open: boolean;
+    };
+    await mount(element);
+
+    element.open = true;
+    await waitForUpdate(element);
+
+    const focusSpy = vi.spyOn(opener, 'focus');
+
+    const closeEvent = oneEvent(element, 'am-close');
+    element.open = false;
+    await waitForUpdate(element);
+    await closeEvent;
+
+    // Opener is still connected, so focus is restored to it.
+    expect(focusSpy).toHaveBeenCalled();
+    focusSpy.mockRestore();
+    opener.remove();
+  });
+
+  it('does not focus a removed opener on close (FIX-03)', async () => {
+    const opener = document.createElement('button');
+    opener.textContent = 'Open drawer';
+    document.body.appendChild(opener);
+    opener.focus();
+
+    const element = document.createElement('am-drawer') as HTMLElement & {
+      open: boolean;
+    };
+    await mount(element);
+
+    element.open = true;
+    await waitForUpdate(element);
+
+    // Opener is removed while the drawer is open — its node is now disconnected.
+    const focusSpy = vi.spyOn(opener, 'focus');
+    opener.remove();
+
+    // Closing must not throw and must not call focus() on the disconnected node
+    // (the isConnected guard skips it).
+    const closeEvent = oneEvent(element, 'am-close');
+    expect(() => {
+      element.open = false;
+    }).not.toThrow();
+    await waitForUpdate(element);
+    await closeEvent;
+
+    expect(focusSpy).not.toHaveBeenCalled();
+    focusSpy.mockRestore();
   });
 
   it('reflects placement attribute', async () => {
