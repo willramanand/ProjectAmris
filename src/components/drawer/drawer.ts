@@ -208,7 +208,7 @@ export class AmDrawer extends LitElement {
 
   private _hide() {
     this._dialog?.close();
-    if (this._previouslyFocused instanceof HTMLElement) {
+    if (this._previouslyFocused instanceof HTMLElement && this._previouslyFocused.isConnected) {
       this._previouslyFocused.focus();
     }
     this.dispatchEvent(new CustomEvent('am-close', { bubbles: true, composed: true }));
