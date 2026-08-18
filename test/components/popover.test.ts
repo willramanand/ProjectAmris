@@ -122,3 +122,43 @@ describe('am-popover — document listener teardown (TEST-05)', () => {
     removeSpy.mockRestore();
   });
 });
+
+// FIX-03 finding — am-popover performs NO focus restoration.
+//
+// Unlike am-dialog / am-drawer / am-command-palette, am-popover has no
+// `_previouslyFocused` field and never moves focus into itself: it is a
+// non-modal click/hover/manual panel. On close it only detaches its document
+// listeners, tears down auto-update, and dispatches `am-close` — it never calls
+// `focus()` on any node. There is therefore no disconnected-node `focus()` call
+// to guard, so the `isConnected` discipline applied to the other overlays is
+// N/A here and the no-throw predicate holds trivially. This case documents that
+// finding and asserts the trivial no-throw, completing the FIX-03 overlay set
+// (dialog/drawer/command-palette guarded; popover documented).
+describe('am-popover — focus restoration (FIX-03 finding)', () => {
+  type PopoverEl = HTMLElement & { open: boolean };
+
+  it('closing after the trigger is removed does not throw (no focus-restoration path)', async () => {
+    const el = await fixture<PopoverEl>(
+      `<am-popover trigger="manual" open>
+        <button>Trigger</button>
+        <div slot="content">Body</div>
+      </am-popover>`,
+    );
+    await waitForUpdate(el);
+
+    const trigger = el.querySelector('button') as HTMLButtonElement;
+    trigger.focus();
+
+    // Remove the trigger while the popover is open — its node is now disconnected.
+    trigger.remove();
+
+    // Closing must not throw. am-popover holds no _previouslyFocused reference and
+    // performs no focus restoration, so there is nothing to guard.
+    expect(() => {
+      el.open = false;
+    }).not.toThrow();
+    await waitForUpdate(el);
+
+    expect(el.open).toBe(false);
+  });
+});
