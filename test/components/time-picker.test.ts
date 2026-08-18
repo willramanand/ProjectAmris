@@ -91,3 +91,77 @@ describe('am-time-picker', () => {
     await waitForUpdate(el);
   });
 });
+
+describe('am-time-picker — validation (jsdom lane)', () => {
+  type ValidatingTimePicker = TimePickerEl & {
+    setCustomError(message: string): void;
+    updateComplete: Promise<unknown>;
+  };
+
+  function firstSegment(el: TimePickerEl): HTMLButtonElement {
+    return shadowQuery<HTMLButtonElement>(el, '.segment');
+  }
+
+  it('shows NO validation error on first paint for a required empty time-picker (D-01)', async () => {
+    const el = await fixture<ValidatingTimePicker>('<am-time-picker label="Start" required></am-time-picker>');
+    expect(el.invalid).toBe(false);
+    expect(el.shadowRoot?.querySelector('[part="error"]')).toBeNull();
+    expect(firstSegment(el).getAttribute('aria-describedby')).toBeNull();
+  });
+
+  it('surfaces the native message only after a segment is touched (D-01 gate)', async () => {
+    const el = await fixture<ValidatingTimePicker>('<am-time-picker label="Start" required></am-time-picker>');
+    const seg = firstSegment(el);
+
+    expect(el.shadowRoot?.querySelector('[part="error"]')).toBeNull();
+
+    seg.dispatchEvent(new FocusEvent('blur', { bubbles: true }));
+    await el.updateComplete;
+    await waitForUpdate(el);
+
+    const error = el.shadowRoot?.querySelector('[part="error"]');
+    expect(error).not.toBeNull();
+    expect(el.invalid).toBe(true);
+    const describedBy = seg.getAttribute('aria-describedby');
+    expect(describedBy).not.toBeNull();
+    expect(el.shadowRoot?.getElementById(describedBy!)).toBe(error);
+  });
+
+  it('setCustomError shows immediately and reflects the invalid attribute (D-03)', async () => {
+    const el = await fixture<ValidatingTimePicker>('<am-time-picker label="Start"></am-time-picker>');
+    el.setCustomError('Pick a time');
+    await el.updateComplete;
+    await waitForUpdate(el);
+
+    expect(el.hasAttribute('invalid')).toBe(true);
+    const error = el.shadowRoot?.querySelector('[part="error"]');
+    expect(error?.textContent).toBe('Pick a time');
+    expect(error?.getAttribute('aria-live')).toBe('polite');
+    expect(error?.getAttribute('role')).toBeNull();
+  });
+
+  it("setCustomError('') clears the error when there is no native violation", async () => {
+    const el = await fixture<ValidatingTimePicker>('<am-time-picker label="Start"></am-time-picker>');
+    el.setCustomError('Server says no');
+    await el.updateComplete;
+    await waitForUpdate(el);
+    expect(el.hasAttribute('invalid')).toBe(true);
+
+    el.setCustomError('');
+    await el.updateComplete;
+    await waitForUpdate(el);
+    expect(el.hasAttribute('invalid')).toBe(false);
+    expect(el.shadowRoot?.querySelector('[part="error"]')).toBeNull();
+  });
+
+  it('custom error wins over the native required message (D-03 precedence)', async () => {
+    const el = await fixture<ValidatingTimePicker>('<am-time-picker label="Start" required></am-time-picker>');
+    firstSegment(el).dispatchEvent(new FocusEvent('blur', { bubbles: true }));
+    el.setCustomError('Custom wins');
+    await el.updateComplete;
+    await waitForUpdate(el);
+
+    const error = el.shadowRoot?.querySelector('[part="error"]');
+    expect(error?.textContent).toBe('Custom wins');
+  });
+});
