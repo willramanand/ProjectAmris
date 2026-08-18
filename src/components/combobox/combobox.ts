@@ -1,7 +1,8 @@
-import { LitElement, css, html, nothing, type PropertyValues } from 'lit';
+import { LitElement, css, html, nothing, type PropertyValues, type TemplateResult } from 'lit';
 import { customElement, property, query, state } from 'lit/decorators.js';
 import { live } from 'lit/directives/live.js';
 import { repeat } from 'lit/directives/repeat.js';
+import { virtualize } from '@lit-labs/virtualizer/virtualize.js';
 import { size as sizeMiddleware } from '@floating-ui/dom';
 import { resetStyles } from '../../styles/reset.css.js';
 import { requestAssociatedFormSubmit } from '../../utilities/form-actions.js';
@@ -10,6 +11,15 @@ import { ListboxNavController } from '../../internal/controllers/listbox-nav.js'
 import { filterOptions } from '../../internal/controllers/option-filter.js';
 import { ValidationController } from '../../internal/controllers/validation.js';
 import { uniqueId } from '../../utilities/unique-id.js';
+import {
+  VIRTUALIZE_ROW_THRESHOLD,
+  ariaPosinset,
+  ariaSetsize,
+  scrollVirtualizerToIndex,
+} from '../../internal/helpers/virtualize-support.js';
+
+/** PageUp/PageDown highlight jump distance for listbox keyboard navigation. */
+const OPTION_PAGE_SIZE = 10;
 
 export type ComboboxSize = 'sm' | 'md' | 'lg';
 
@@ -96,12 +106,24 @@ export class AmCombobox extends LitElement {
 
   @query('input') private inputEl!: HTMLInputElement;
   @query('.listbox') private listboxEl!: HTMLElement;
+  @query('.select-listbox') private _selectListboxEl!: HTMLElement;
   @query('.dropdown-search') private _dropdownSearchEl!: HTMLInputElement;
 
   private internals: ElementInternals;
 
   /** Stable id shared by the error message node and the focusable's aria-describedby. */
   private readonly _errorId = uniqueId('am-combobox-error');
+
+  /**
+   * Per-instance base for deterministic per-option `id`s. The active option's id
+   * is surfaced via `aria-activedescendant` on the focusable (PERF-03 — combobox
+   * had neither option ids nor activedescendant before). Deterministic by index
+   * so the id stays stable across `repeat()`/`virtualize()` recycling.
+   */
+  private readonly _optionIdBase = uniqueId('am-combobox-opt');
+
+  /** Stable listbox id, referenced by the focusable's `aria-controls`. */
+  private readonly _listboxId = uniqueId('am-combobox-listbox');
 
   /**
    * Resolves the displayed validation message + shown-state from the native
@@ -155,7 +177,10 @@ export class AmCombobox extends LitElement {
   private _listboxNav = new ListboxNavController(this, {
     getOptions: () => filterOptions(this._allOptions, this.value, this.remote),
     getIndex: () => this._highlightedIndex,
-    setIndex: (index: number) => { this._highlightedIndex = index; },
+    // Route every highlight move through the host so the target option is
+    // scrolled into the virtualization window BEFORE the re-render surfaces it
+    // via aria-activedescendant (the referenced id must exist — Pitfall 2).
+    setIndex: (index: number) => { this._setHighlighted(index); },
     getOpen: () => this._open,
     setOpen: (open: boolean) => { this._open = open; },
     onSelect: (option: string) => this._selectOption(option),
@@ -599,7 +624,112 @@ export class AmCombobox extends LitElement {
   }
 
   private _handleKeydown(e: KeyboardEvent) {
+    // Home/End/PageUp/PageDown jump to a possibly off-screen option; handle them
+    // here (the shared ListboxNavController owns only Arrow/Enter/Escape/Tab and
+    // must stay untouched to preserve FIX-02's no-re-clamp-on-replace). Every
+    // jump routes through _setHighlighted so the target scrolls into the window
+    // before aria-activedescendant points at it.
+    const filtered = filterOptions(this._allOptions, this.value, this.remote);
+    if (this._handleExtendedNav(e, filtered)) return;
     this._listboxNav.handleKeydown(e);
+  }
+
+  /**
+   * Handle Home/End/PageUp/PageDown highlight jumps over the filtered option
+   * list. Returns true when the key was consumed. No-op (returns false) when the
+   * listbox is closed or empty, so normal typing/navigation is unaffected.
+   */
+  private _handleExtendedNav(e: KeyboardEvent, filtered: string[]): boolean {
+    if (!this._open || filtered.length === 0) return false;
+    const current = this._highlightedIndex < 0 ? 0 : this._highlightedIndex;
+    let target: number;
+    switch (e.key) {
+      case 'Home': target = 0; break;
+      case 'End': target = filtered.length - 1; break;
+      case 'PageDown': target = Math.min(current + OPTION_PAGE_SIZE, filtered.length - 1); break;
+      case 'PageUp': target = Math.max(current - OPTION_PAGE_SIZE, 0); break;
+      default: return false;
+    }
+    e.preventDefault();
+    if (!this._open) this._open = true;
+    this._setHighlighted(target);
+    return true;
+  }
+
+  /** Deterministic per-option id (index-based) — stable across recycling. */
+  private _optionId(index: number): string {
+    return `${this._optionIdBase}-${index}`;
+  }
+
+  /** The element hosting the active `virtualize()` directive for the open popup. */
+  private get _optionScrollHost(): HTMLElement | null {
+    return this.searchInTrigger ? this._selectListboxEl : this.listboxEl;
+  }
+
+  /**
+   * Move the highlight and scroll the target into the virtualization window
+   * FIRST, so a subsequent render can surface it via aria-activedescendant with
+   * the id already present in the DOM (Pitfall 2 / T-04-21). Below the threshold
+   * the scroll is a no-op (no virtualizer attached).
+   */
+  private _setHighlighted(index: number): void {
+    this._highlightedIndex = index;
+    if (index >= 0) scrollVirtualizerToIndex(this._optionScrollHost, index);
+  }
+
+  /**
+   * The active option's id for `aria-activedescendant`, or `nothing` when no
+   * in-range option is highlighted. Clamped to the rendered range WITHOUT
+   * re-clamping `_highlightedIndex` state (FIX-02) — a transiently stale index
+   * simply yields no activedescendant rather than pointing at an absent id.
+   */
+  private _activeDescendant(total: number): string | typeof nothing {
+    return this._highlightedIndex >= 0 && this._highlightedIndex < total
+      ? this._optionId(this._highlightedIndex)
+      : nothing;
+  }
+
+  /**
+   * Render a single option row. Shared by the `repeat()` (at/below threshold)
+   * and `virtualize()` (above threshold) paths so the ARIA shape is identical.
+   * `aria-setsize` is the FULL filtered total from state (never the mounted
+   * count) and `aria-selected` is driven by `this.value`, never node presence.
+   */
+  private _renderOption(option: string, i: number, total: number): TemplateResult {
+    return html`
+      <div
+        class="option ${i === this._highlightedIndex ? 'highlighted' : ''}"
+        role="option"
+        id=${this._optionId(i)}
+        aria-setsize=${ariaSetsize(total)}
+        aria-posinset=${ariaPosinset(i)}
+        aria-selected=${this.value === option ? 'true' : 'false'}
+        @click=${() => this._selectOption(option)}
+      >${option}</div>
+    `;
+  }
+
+  /**
+   * Render the option list body. Above {@link VIRTUALIZE_ROW_THRESHOLD} (D-06)
+   * the `virtualize()` directive windows the list; at/below it the existing
+   * `repeat()` path stands. Both share {@link _renderOption} so ARIA is uniform.
+   */
+  private _renderOptionList(filtered: string[]): unknown {
+    if (filtered.length === 0) {
+      return html`<div class="empty" role="option" aria-disabled="true">No results</div>`;
+    }
+    if (filtered.length > VIRTUALIZE_ROW_THRESHOLD) {
+      return virtualize({
+        items: filtered,
+        keyFunction: (opt: string) => opt,
+        renderItem: (opt: string, i: number) => this._renderOption(opt, i, filtered.length),
+      });
+    }
+    return repeat(
+      filtered,
+      option => option,
+      (option, i) => this._renderOption(option, i, filtered.length),
+    );
   }
 
   private _selectOption(option: string) {
@@ -625,14 +755,15 @@ export class AmCombobox extends LitElement {
 
   private _handleDropdownSearchKeydown(e: KeyboardEvent) {
     const filtered = this._selectFilteredOptions;
+    if (this._handleExtendedNav(e, filtered)) return;
     switch (e.key) {
       case 'ArrowDown':
         e.preventDefault();
-        this._highlightedIndex = Math.min(this._highlightedIndex + 1, filtered.length - 1);
+        this._setHighlighted(Math.min(this._highlightedIndex + 1, filtered.length - 1));
         break;
       case 'ArrowUp':
         e.preventDefault();
-        this._highlightedIndex = Math.max(this._highlightedIndex - 1, 0);
+        this._setHighlighted(Math.max(this._highlightedIndex - 1, 0));
         break;
       case 'Enter':
         if (this._highlightedIndex >= 0 && this._highlightedIndex < filtered.length) {
@@ -728,6 +859,8 @@ export class AmCombobox extends LitElement {
             aria-expanded=${this._open ? 'true' : 'false'}
             aria-autocomplete="list"
             aria-haspopup="listbox"
+            aria-controls=${this._open ? this._listboxId : nothing}
+            aria-activedescendant=${this._open ? this._activeDescendant(filteredOptions.length) : nothing}
             role="combobox"
             @input=${this._handleInput}
             @focus=${this._handleFocus}
@@ -741,21 +874,8 @@ export class AmCombobox extends LitElement {
               <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>`}
       </div>
-      <div class="listbox ${this._open ? 'open' : ''}" part="listbox" role="listbox" tabindex="0" aria-label=${this.label || 'Options'}>
-        ${filteredOptions.length > 0
-          ? repeat(
-              filteredOptions,
-              option => option,
-              (option, i) => html`
-                <div
-                  class="option ${i === this._highlightedIndex ? 'highlighted' : ''}"
-                  role="option"
-                  aria-selected=${this.value === option ? 'true' : 'false'}
-                  @click=${() => this._selectOption(option)}
-                >${option}</div>
-              `,
-            )
-          : html`<div class="empty" role="option" aria-disabled="true">No results</div>`}
+      <div id=${this._listboxId} class="listbox ${this._open ? 'open' : ''}" part="listbox" role="listbox" tabindex="0" aria-label=${this.label || 'Options'}>
+        ${this._renderOptionList(filteredOptions)}
       </div>
       <div class="options-slot"><slot @slotchange=${this._handleOptionsSlotChange}></slot></div>
       ${this._renderError()}
@@ -811,21 +931,10 @@ export class AmCombobox extends LitElement {
             @input=${this._handleDropdownSearch}
             @keydown=${this._handleDropdownSearchKeydown} />
         </div>
-        <div role="listbox" tabindex="0" aria-label=${this.label || 'Options'}>
-          ${filtered.length > 0
-            ? repeat(
-                filtered,
-                option => option,
-                (option, i) => html`
-                  <div
-                    class="option ${i === this._highlightedIndex ? 'highlighted' : ''}"
-                    role="option"
-                    aria-selected=${this.value === option ? 'true' : 'false'}
-                    @click=${() => this._selectOption(option)}
-                  >${option}</div>
-                `,
-              )
-            : html`<div class="empty" role="option" aria-disabled="true">No results</div>`}
+        <div class="select-listbox" role="listbox" tabindex="0"
+          aria-label=${this.label || 'Options'}
+          aria-activedescendant=${this._activeDescendant(filtered.length)}>
+          ${this._renderOptionList(filtered)}
         </div>
       </div>
       <div class="options-slot"><slot @slotchange=${this._handleOptionsSlotChange}></slot></div>

@@ -154,6 +154,99 @@ describe('am-combobox', () => {
   });
 });
 
+// PERF-03 — stable option ids + activedescendant/setsize/posinset (jsdom logic
+// lane). These assert the a11y wiring the combobox lacked before virtualization;
+// the ARIA shape is applied to BOTH the repeat() (at/below threshold, exercised
+// here) and virtualize() paths, so it is provable in jsdom with a small list.
+describe('am-combobox — option ARIA + aria-activedescendant (PERF-03)', () => {
+  async function openCombobox(): Promise<ComboboxEl> {
+    const el = await makeCombobox();
+    const input = getInput(el);
+    input.focus();
+    input.dispatchEvent(new FocusEvent('focus', { bubbles: true, composed: true }));
+    await waitForUpdate(el);
+    return el;
+  }
+
+  it('gives every option a stable id and truthful aria-setsize/aria-posinset from the full filtered total', async () => {
+    const el = await openCombobox();
+    const options = getOptions(el);
+    expect(options.length).toBe(FRUITS.length);
+
+    options.forEach((opt, i) => {
+      // Stable, non-empty id.
+      expect(opt.id).toBeTruthy();
+      // aria-setsize is the FULL filtered total (state), not a windowed count.
+      expect(opt.getAttribute('aria-setsize')).toBe(String(FRUITS.length));
+      // aria-posinset is the 1-based absolute index.
+      expect(opt.getAttribute('aria-posinset')).toBe(String(i + 1));
+    });
+
+    // ids are unique across the rendered options.
+    const ids = new Set(options.map((o) => o.id));
+    expect(ids.size).toBe(options.length);
+  });
+
+  it('sets aria-activedescendant on the input to the highlighted option id and tracks arrow nav', async () => {
+    const el = await openCombobox();
+    const input = getInput(el);
+
+    // No active option before navigating.
+    expect(input.getAttribute('aria-activedescendant')).toBeNull();
+
+    await keydown(input, 'ArrowDown', el); // index 0
+    let options = getOptions(el);
+    expect(input.getAttribute('aria-activedescendant')).toBe(options[0].id);
+
+    await keydown(input, 'ArrowDown', el); // index 1
+    options = getOptions(el);
+    expect(input.getAttribute('aria-activedescendant')).toBe(options[1].id);
+
+    // End jumps to the last option and activedescendant follows.
+    await keydown(input, 'End', el);
+    options = getOptions(el);
+    expect(input.getAttribute('aria-activedescendant')).toBe(options[FRUITS.length - 1].id);
+
+    // Home returns to the first option.
+    await keydown(input, 'Home', el);
+    options = getOptions(el);
+    expect(input.getAttribute('aria-activedescendant')).toBe(options[0].id);
+  });
+
+  it('drives aria-selected and setFormValue from this.value, never from option-node presence', async () => {
+    const el = await openCombobox();
+
+    el.value = 'Banana';
+    await waitForUpdate(el);
+
+    const options = getOptions(el);
+    const banana = options.find((o) => o.textContent?.trim() === 'Banana');
+    expect(banana?.getAttribute('aria-selected')).toBe('true');
+    // Every other option is not selected.
+    options
+      .filter((o) => o !== banana)
+      .forEach((o) => expect(o.getAttribute('aria-selected')).toBe('false'));
+
+    // Form value mirrors state.
+    expect(getMockInternals(el).formValue).toBe('Banana');
+  });
+
+  it('does not point aria-activedescendant at an absent id when the highlight is out of range (FIX-02)', async () => {
+    const el = await openCombobox();
+    const input = getInput(el);
+
+    // Force a stale, out-of-bounds index (FIX-02: nav controller does not
+    // re-clamp on option replace). activedescendant must NOT reference an id
+    // that is not rendered — it clamps to nothing without touching the index.
+    (el as unknown as { _highlightedIndex: number })._highlightedIndex = 999;
+    await waitForUpdate(el);
+
+    expect(input.getAttribute('aria-activedescendant')).toBeNull();
+    // The raw state index is untouched (no re-clamp).
+    expect((el as unknown as { _highlightedIndex: number })._highlightedIndex).toBe(999);
+  });
+});
+
 describe('am-combobox — validation (jsdom lane)', () => {
   type ValidatingCombobox = ComboboxEl & {
     invalid: boolean;
