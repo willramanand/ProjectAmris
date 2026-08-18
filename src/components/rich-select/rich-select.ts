@@ -3,8 +3,18 @@ import { customElement, property, query, state } from 'lit/decorators.js';
 import { computePosition, autoUpdate, flip, shift, offset, size as sizeMiddleware } from '@floating-ui/dom';
 import { repeat } from 'lit/directives/repeat.js';
 import { resetStyles } from '../../styles/reset.css.js';
+import { ValidationController } from '../../internal/controllers/validation.js';
+import { uniqueId } from '../../utilities/unique-id.js';
 
 export type RichSelectSize = 'sm' | 'md' | 'lg';
+
+/**
+ * Default message surfaced for a required-empty rich-select. The primary
+ * focusable is a `role=combobox` trigger button (no native inner input), so the
+ * host supplies the `valueMissing` message it mirrors onto
+ * `ElementInternals.setValidity` (D-01/FEAT-01).
+ */
+const VALUE_MISSING_MESSAGE = 'Please fill out this field.';
 
 export interface RichOption {
   value: string;
@@ -63,9 +73,35 @@ export class AmRichSelect extends LitElement {
   private _internals: ElementInternals;
   private _cleanupAutoUpdate: (() => void) | null = null;
 
+  /** Stable id shared by the error message node and the trigger's aria-describedby. */
+  private readonly _errorId = uniqueId('am-rich-select-error');
+
+  /**
+   * Resolves the displayed validation message + shown-state from the native
+   * constraint message and any consumer-supplied {@link setCustomError} error.
+   * Lives on the src/internal boundary — never on the public surface (D-09).
+   */
+  private _validation = new ValidationController(this, {
+    internals: () => this._internals,
+    anchor: () => this._trigger,
+    describedById: this._errorId,
+  });
+
+  /** Resolved error text mirrored from the controller for render. */
+  @state() private _errorMessage = '';
+  /** Whether the error message region is currently shown. */
+  @state() private _showError = false;
+  /** True once a failed form submit occurred — drives assertive role=alert (D-04). */
+  @state() private _submitFailed = false;
+  /** Tracks whether the reflected `invalid` attribute is owned by validation. */
+  private _invalidFromValidation = false;
+
   constructor() {
     super();
     this._internals = this.attachInternals();
+    // A failed constraint check on form submit fires `invalid` on this host;
+    // suppress the browser's default bubble and surface our own message (D-04).
+    this.addEventListener('invalid', this._onInvalid);
   }
 
   static styles = [
@@ -233,6 +269,13 @@ export class AmRichSelect extends LitElement {
         color: var(--am-text-tertiary);
       }
 
+      .error-text {
+        margin-top: var(--am-space-1);
+        color: var(--am-danger);
+        font-size: var(--am-text-sm);
+        line-height: 1.3;
+      }
+
       @media (prefers-reduced-motion: reduce) {
         .trigger, .chevron, .listbox, .option { transition: none; }
       }
@@ -263,6 +306,65 @@ export class AmRichSelect extends LitElement {
         this._cleanupAutoUpdate = null;
       }
     }
+    // Native constraint validity is computed from the required/empty state (no
+    // inner native input) and mirrored onto internals post-render; this
+    // reflection may schedule one further bounded update.
+    this._syncValidation();
+  }
+
+  /**
+   * Mirror the control's required/empty validity onto ElementInternals, then
+   * reflect the controller's resolved message + shown-state into render state
+   * and the `invalid` attribute. Never throws; bounded (idempotent) re-render.
+   */
+  private _syncValidation(): void {
+    const anchor = this._trigger;
+    if (anchor) {
+      if (this.required && this.value === '') {
+        this._internals.setValidity({ valueMissing: true }, VALUE_MISSING_MESSAGE, anchor);
+      } else {
+        this._internals.setValidity({});
+      }
+    }
+
+    const show = this._validation.invalid;
+    const message = show ? this._validation.message : '';
+
+    if (message !== this._errorMessage) {
+      this._errorMessage = message;
+    }
+    if (show !== this._showError) {
+      this._showError = show;
+      if (show) {
+        this.invalid = true;
+        this._invalidFromValidation = true;
+      } else if (this._invalidFromValidation) {
+        this.invalid = false;
+        this._invalidFromValidation = false;
+      }
+    }
+    if (!show) {
+      this._submitFailed = false;
+    }
+  }
+
+  private _onInvalid = (event: Event): void => {
+    event.preventDefault();
+    this._submitFailed = true;
+    this._validation.markTouched();
+  };
+
+  /**
+   * Set or clear a custom validation error (e.g. a server-side rejection).
+   *
+   * A non-empty message overrides the native constraint message and is shown
+   * immediately; passing `''` clears the custom error and falls back to the
+   * native constraint message (if any). Custom message wins over native (D-03).
+   *
+   * @param message - The error text to display, or `''` to clear to native.
+   */
+  setCustomError(message: string): void {
+    this._validation.setCustomError(message);
   }
 
   private _startAutoUpdate() {
@@ -417,11 +519,12 @@ export class AmRichSelect extends LitElement {
         aria-expanded=${String(this._open)}
         aria-haspopup="listbox"
         aria-invalid=${this.invalid ? 'true' : nothing}
+        aria-describedby=${this._showError ? this._errorId : nothing}
         aria-label=${this.label || nothing}
         ?disabled=${this.disabled}
         @click=${this._toggleOpen}
         @focus=${() => { this._focused = true; }}
-        @blur=${() => { this._focused = false; }}
+        @blur=${() => { this._focused = false; this._validation.markTouched(); }}
         @keydown=${this._handleKeydown}>
         <div class="selected-display">
           ${selected
@@ -450,6 +553,15 @@ export class AmRichSelect extends LitElement {
           ${this._renderOptions()}
         </div>
       </div>
+      ${this._showError
+        ? html`<div
+            id=${this._errorId}
+            part="error"
+            class="error-text"
+            role=${this._submitFailed ? 'alert' : nothing}
+            aria-live=${this._submitFailed ? 'off' : 'polite'}
+          >${this._errorMessage}</div>`
+        : nothing}
     `;
   }
 }
