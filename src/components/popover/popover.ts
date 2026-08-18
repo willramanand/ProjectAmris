@@ -1,7 +1,8 @@
 import { LitElement, css, html, nothing } from 'lit';
 import { customElement, property, query } from 'lit/decorators.js';
-import { computePosition, autoUpdate, flip, shift, offset, arrow, type Placement } from '@floating-ui/dom';
+import { arrow, type Placement } from '@floating-ui/dom';
 import { resetStyles } from '../../styles/reset.css.js';
+import { FloatingPositionController } from '../../internal/controllers/floating-position.js';
 
 /**
  * Popover — a floating content panel anchored to a trigger element.
@@ -46,7 +47,36 @@ export class AmPopover extends LitElement {
 
   private _showTimer?: ReturnType<typeof setTimeout>;
   private _hideTimer?: ReturnType<typeof setTimeout>;
-  private _cleanupAutoUpdate: (() => void) | null = null;
+
+  /**
+   * Floating positioning delegated to the shared controller (PERF-04). Options
+   * mirror the previous inline setup exactly: anchored to the slotted trigger,
+   * fixed strategy, live `offset`/`placement` getters, and an `arrow` middleware
+   * (when enabled) whose readback positions the arrow via `onPositioned`.
+   * autoUpdate is gated to the open transition — {@link start} on open,
+   * {@link stop} on close, and {@link hostDisconnected} on disconnect.
+   */
+  private _floatingController = new FloatingPositionController(this, {
+    reference: () => this.firstElementChild as HTMLElement | null,
+    floating: () => this.popoverEl,
+    placement: () => this.placement,
+    strategy: 'fixed',
+    offset: () => this.offset,
+    middleware: () =>
+      this.arrow && this.arrowEl ? [arrow({ element: this.arrowEl })] : [],
+    onPositioned: ({ placement, middlewareData }) => {
+      if (this.arrow && this.arrowEl && middlewareData.arrow) {
+        const { x: ax, y: ay } = middlewareData.arrow;
+        const side = placement.split('-')[0];
+        const staticSide = { top: 'bottom', right: 'left', bottom: 'top', left: 'right' }[side]!;
+        Object.assign(this.arrowEl.style, {
+          left: ax != null ? `${ax}px` : '',
+          top: ay != null ? `${ay}px` : '',
+          [staticSide]: '-0.25rem',
+        });
+      }
+    },
+  });
 
   static styles = [
     resetStyles,
@@ -100,8 +130,8 @@ export class AmPopover extends LitElement {
     this._detachGlobalListeners();
     clearTimeout(this._showTimer);
     clearTimeout(this._hideTimer);
-    this._cleanupAutoUpdate?.();
-    this._cleanupAutoUpdate = null;
+    // The floating autoUpdate teardown is mirrored in the controller's
+    // hostDisconnected (invoked during super.disconnectedCallback above).
   }
 
   private _attachGlobalListeners() {
@@ -155,59 +185,13 @@ export class AmPopover extends LitElement {
     if (changed.has('open')) {
       if (this.open) {
         this._attachGlobalListeners();
-        this._startAutoUpdate();
+        this._floatingController.start();
         this.dispatchEvent(new CustomEvent('am-open', { bubbles: true, composed: true }));
       } else {
         this._detachGlobalListeners();
-        this._cleanupAutoUpdate?.();
-        this._cleanupAutoUpdate = null;
+        this._floatingController.stop();
         this.dispatchEvent(new CustomEvent('am-close', { bubbles: true, composed: true }));
       }
-    }
-  }
-
-  private _startAutoUpdate() {
-    this._cleanupAutoUpdate?.();
-    const trigger = this.firstElementChild as HTMLElement;
-    if (!trigger || !this.popoverEl) return;
-    this._cleanupAutoUpdate = autoUpdate(trigger, this.popoverEl, () => this._updatePosition());
-  }
-
-  private async _updatePosition() {
-    const trigger = this.firstElementChild as HTMLElement;
-    if (!trigger || !this.popoverEl) return;
-
-    const middleware = [
-      offset(this.offset),
-      flip(),
-      shift({ padding: 8 }),
-    ];
-
-    if (this.arrow && this.arrowEl) {
-      middleware.push(arrow({ element: this.arrowEl }));
-    }
-
-    const { x, y, placement, middlewareData } = await computePosition(
-      trigger,
-      this.popoverEl,
-      {
-        placement: this.placement,
-        strategy: 'fixed',
-        middleware,
-      }
-    );
-
-    Object.assign(this.popoverEl.style, { left: `${x}px`, top: `${y}px` });
-
-    if (this.arrow && this.arrowEl && middlewareData.arrow) {
-      const { x: ax, y: ay } = middlewareData.arrow;
-      const side = placement.split('-')[0];
-      const staticSide = { top: 'bottom', right: 'left', bottom: 'top', left: 'right' }[side]!;
-      Object.assign(this.arrowEl.style, {
-        left: ax != null ? `${ax}px` : '',
-        top: ay != null ? `${ay}px` : '',
-        [staticSide]: '-0.25rem',
-      });
     }
   }
 
