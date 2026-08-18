@@ -131,7 +131,35 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. A keyboard-shortcut registry provides scopes, `mod`/`opt` platform normalization, conflict detection, and a reserved-combo blocklist (single keys remappable/disablable per WCAG 2.1.4).
   5. An `am-shortcuts` provider element (per-subtree via `@lit/context`) drives shortcuts, and `am-command-palette` is refactored off the hardcoded Cmd+K with graceful fallback when no provider is present.
 
-**Plans**: TBD
+**Plans**: 10 plans
+
+**Wave 1**
+
+- [ ] 04-01-PLAN.md — Tracer: ValidationController + am-input end-to-end (same-root ARIA, setCustomError, D-01/D-04 timing) proven vs real ElementInternals (FEAT-01, FEAT-02)
+
+**Wave 2** *(blocked on Wave 1)*
+
+- [ ] 04-02-PLAN.md — Validation: am-field D-02 hint↔error swap + text-input family (textarea, number-field, input-otp) (FEAT-01)
+- [ ] 04-03-PLAN.md — Validation: choice controls (checkbox, switch, radio, slider, color-picker) (FEAT-01, FEAT-02)
+- [ ] 04-04-PLAN.md — Validation: composite controls (select, combobox, rich-select, date-picker, time-picker) (FEAT-01, FEAT-02)
+- [ ] 04-05-PLAN.md — Registry core: ShortcutRegistry class (conflict/blocklist/scope/normalization) + jsdom tests (FEAT-03)
+
+**Wave 3** *(blocked on Wave 2)*
+
+- [ ] 04-06-PLAN.md — am-shortcuts provider + @lit/context + command-palette D-09 refactor + browser composedPath test (FEAT-03, FEAT-04)
+- [ ] 04-07-PLAN.md — PERF-04: autoUpdate open-transition gating audit + popover migration + teardown-spy test (PERF-04)
+
+**Wave 4** *(blocked on Wave 3)*
+
+- [ ] 04-08-PLAN.md — PERF-02: @lit-labs/virtualizer (external) + data-grid div-grid virtualization + browser test (PERF-02)
+
+**Wave 5** *(blocked on Wave 4)*
+
+- [ ] 04-09-PLAN.md — PERF-03: combobox/select popup virtualization (option ids + aria-activedescendant + scroll-into-window) + browser test (PERF-03)
+
+**Wave 6** *(blocked on Wave 5)*
+
+- [ ] 04-10-PLAN.md — Phase gate: CEM baseline + Changesets (setCustomError + am-shortcuts) + coverage re-baseline + green suite (FEAT-02, FEAT-04)
 
 ### Phase 5: Documentation
 
@@ -171,6 +199,6 @@ Phase 2 (API cleanup) and Phase 3 (leak fixes) both depend only on Phase 1 and m
 | 1. Test Coverage + CI Gates Foundation | 8/8 | Complete    | 2026-08-11 |
 | 2. API Cleanup + CEM Baseline | 9/9 | Complete    | 2026-08-17 |
 | 3. Reliability & Leak Fixes | 4/4 | Complete   | 2026-08-17 |
-| 4. Performance & Feature Capabilities | 0/TBD | Not started | - |
+| 4. Performance & Feature Capabilities | 0/10 | Planned | - |
 | 5. Documentation | 0/TBD | Not started | - |
 | 6. API Freeze + Release | 0/TBD | Not started | - |
