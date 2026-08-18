@@ -134,6 +134,7 @@ export class AmContextMenu extends LitElement {
     if (!this.open) return;
     if (!e.composedPath().includes(this)) {
       this.open = false;
+      this.dispatchEvent(new CustomEvent('am-close', { bubbles: true, composed: true }));
     }
   };
 
