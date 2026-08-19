@@ -62,6 +62,7 @@
     "build:contract-doc": "node scripts/build-contract-doc.mjs",
     "build:tokens-css": "node scripts/build-tokens-css.mjs",
     "diff:surface": "node scripts/cem-diff.mjs api/custom-elements.baseline.json dist/custom-elements.json",
+    "smoke": "node scripts/smoke-pack.mjs",
     "changeset": "changeset",
     "version": "changeset version",
     "release": "npm run build && changeset publish",
