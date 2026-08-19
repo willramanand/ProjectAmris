@@ -30,7 +30,7 @@ truth for the numbers and names on this page.
 | Global `--am-*` tokens (src/tokens/{primitives,semantic,dark}.css.ts) | **212** |
 | Per-component `--am-*` tokens (CEM `@cssprop`) | **54** |
 | Slots (unique names) | **21** |
-| `::part()` names (unique) | **76** |
+| `::part()` names (unique) | **77** |
 
 ## Global `--am-*` tokens
 
@@ -123,6 +123,7 @@ composition. Project content into a component with `slot="<name>"`.
 | `am-radio` | (default) |
 | `am-radio-group` | (default) |
 | `am-select` | (default) |
+| `am-shortcuts` | (default) |
 | `am-side-nav` | (default), footer, header |
 | `am-side-nav-item` | (default), prefix |
 | `am-split-view` | end, start |
@@ -147,7 +148,7 @@ composition. Project content into a component with `slot="<name>"`.
 
 ## `::part()` names (`@csspart`)
 
-The 76 unique `::part()` names exposed for external styling. Target
+The 77 unique `::part()` names exposed for external styling. Target
 them from outside the Shadow DOM with `am-component::part(<name>) { … }`.
 
 | Component | Parts |
@@ -162,8 +163,8 @@ them from outside the Shadow DOM with `am-component::part(<name>) { … }`.
 | `am-button-group` | group |
 | `am-calendar` | day, grid, header |
 | `am-card` | body, card, footer, header |
-| `am-checkbox` | control, label |
-| `am-color-picker` | panel, swatch |
+| `am-checkbox` | control, error, label |
+| `am-color-picker` | error, panel, swatch |
 | `am-combobox` | input, label, listbox |
 | `am-command-palette` | dialog, input, item, list |
 | `am-context-menu` | panel |
@@ -177,14 +178,14 @@ them from outside the Shadow DOM with `am-component::part(<name>) { … }`.
 | `am-file-upload` | dropzone, file-list |
 | `am-icon` | svg |
 | `am-icon-button` | button |
-| `am-input` | clear, input, label, wrapper |
-| `am-input-otp` | cell |
+| `am-input` | clear, error, input, label, wrapper |
+| `am-input-otp` | cell, error |
 | `am-label` | label |
 | `am-link-button` | label, link |
 | `am-list` | list |
 | `am-list-item` | content, item, prefix, suffix |
 | `am-nav-bar` | actions, brand, items, nav |
-| `am-number-field` | decrement, increment, input |
+| `am-number-field` | decrement, error, increment, input |
 | `am-panel` | body, header, panel |
 | `am-popover` | arrow, popover |
 | `am-progress` | fill, track |
@@ -196,17 +197,17 @@ them from outside the Shadow DOM with `am-component::part(<name>) { … }`.
 | `am-side-nav` | nav |
 | `am-side-nav-item` | item |
 | `am-skeleton` | skeleton |
-| `am-slider` | input |
+| `am-slider` | error, input |
 | `am-split-view` | divider, end, start |
 | `am-stack` | stack |
 | `am-stat` | description, label, stat, trend, value |
 | `am-status-dot` | dot, label |
 | `am-surface` | surface |
-| `am-switch` | label, thumb, track |
+| `am-switch` | error, label, thumb, track |
 | `am-tab` | tab |
 | `am-table` | table |
 | `am-tabs` | nav |
-| `am-textarea` | clear, label, textarea, wrapper |
+| `am-textarea` | clear, error, label, textarea, wrapper |
 | `am-time-picker` | input |
 | `am-timeline-item` | content, dot, item |
 | `am-toast` | toast |
