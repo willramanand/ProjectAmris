@@ -5,10 +5,10 @@ milestone_name: milestone
 current_phase: 06
 current_phase_name: API Freeze + Release
 status: executing
-stopped_at: Completed 05-04-PLAN.md
+stopped_at: Held at 06-04 publish gate — waves 1-3 complete, awaiting human authorization
 last_updated: "2026-08-19T17:16:11.622Z"
 last_activity: 2026-08-19
-last_activity_desc: Phase 05 execution started
+last_activity_desc: Phase 06 waves 1-3 complete; held at 06-04 one-way publish gate
 progress:
   total_phases: 6
   completed_phases: 5
@@ -28,10 +28,10 @@ See: .planning/PROJECT.md (updated 2026-08-10)
 
 ## Current Position
 
-Phase: 06 (API Freeze + Release) — EXECUTING
-Plan: 1 of 4
-Status: Executing Phase 06
-Last activity: 2026-08-19 — Phase 06 execution started
+Phase: 06 (API Freeze + Release) — HELD at publish gate
+Plan: 4 of 4 (06-04 held — awaiting human authorization)
+Status: Waves 1-3 complete, all release gates green; 06-04 one-way publish held by user
+Last activity: 2026-08-19 — Phase 06 waves 1-3 complete; held at 06-04 publish gate
 
 Progress: [██████████] 100%
 
