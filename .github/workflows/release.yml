@@ -1,7 +1,14 @@
 name: Release
 
+# Green-gated release (SHIP-04). This workflow runs ONLY after the CI workflow
+# (verify + coverage, real-browser a11y, surface-diff, bundle-size, smoke)
+# completes SUCCESSFULLY on main. The single release job is guarded by
+# `github.event.workflow_run.conclusion == 'success'`, so nothing publishes on a
+# red pipeline — the green gate is machine-enforced here, not trusted to review.
 on:
-  push:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
     branches: [main]
 
 concurrency:
@@ -10,17 +17,27 @@ concurrency:
 
 jobs:
   release:
+    # Machine-verified green gate: publish is unreachable unless the gating CI
+    # run concluded `success` on main (all of verify/browser/surface-diff/size/
+    # smoke passed). This is the SHIP-04 gate condition.
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
+    # Least-privilege (SHIP-04 / threat T-06-08): exactly the scopes needed to
+    # tag the release commit (contents) and publish to GitHub Packages
+    # (packages). No pull-requests scope; no PR-triggered trigger ever carries
+    # this publish scope (the trigger is workflow_run on a green CI run, not a PR).
     permissions:
       contents: write
-      pull-requests: write
       packages: write
     steps:
-      - uses: actions/checkout@v4
+      # Check out the exact commit that passed CI (workflow_run defaults to the
+      # default-branch HEAD otherwise). fetch-depth: 0 so changesets can read tags.
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           fetch-depth: 0
+          ref: ${{ github.event.workflow_run.head_sha }}
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 20
           registry-url: https://npm.pkg.github.com
@@ -29,8 +46,13 @@ jobs:
 
       - run: npm ci
 
+      # SHA-pinned changesets/action (threat T-06-07): the moving `@v1` tag is
+      # replaced with the exact commit it points at so a re-pointed tag cannot
+      # inject code into the publish path. Runs `npm run version`
+      # (changeset version -> 1.0.0) then `npm run release` (build + changeset
+      # publish). Tokens are passed only as step `env`, never echoed (T-06-09).
       - name: Create Release Pull Request or Publish
-        uses: changesets/action@v1
+        uses: changesets/action@a45c4d594aa4e2c509dc14a9f2b3b67ba3780d0d # v1.9.0
         with:
           publish: npm run release
           version: npm run version

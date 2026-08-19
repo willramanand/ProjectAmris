@@ -1,29 +1,97 @@
-name: Publish to GitHub Packages
+name: Publish (manual gated fallback)
 
+# Reconciled to a SINGLE green-gated live-publish path (SHIP-04 / threat
+# T-06-09). The primary publish path is release.yml (green-gated on the CI
+# workflow). This file is now a documented BREAK-GLASS manual fallback only:
+#   * The ungated `release: published` auto-publish trigger has been REMOVED —
+#     it fired on every GitHub release with no test/a11y/size gate.
+#   * The remaining `workflow_dispatch` path still runs the full gate set
+#     (typecheck + coverage, real-browser a11y, surface-diff, bundle-size)
+#     before publishing, so a manual publish is never ungated either.
 on:
-  release:
-    types: [published]
   workflow_dispatch:
 
+# Least-privilege at the top level: read-only by default. Only the publish job
+# is granted packages:write; the gate jobs never see a publish credential.
+permissions:
+  contents: read
+
 jobs:
+  # Node 20 gate lane: typecheck + jsdom coverage, real-browser a11y, and the
+  # enforcing surface-diff release gate. Mirrors the CI `verify`/`browser`/
+  # `surface-diff` jobs so a manual publish is held to the same bar.
+  gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Test (jsdom + coverage gate)
+        run: npx vitest run --project jsdom --coverage
+
+      - name: Install Chromium
+        run: npx playwright install chromium
+
+      - name: Browser lane (real ElementInternals + in-browser axe)
+        run: npm run test:browser
+
+      - name: Build
+        run: npm run build
+
+      - name: Surface diff (release gate)
+        run: npm run diff:surface
+
+  # size-limit@13 requires Node >=22.18; kept a separate lane like CI's `size`.
+  size:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Bundle-size budget
+        run: npm run size
+
+  # Publish only after BOTH gate lanes are green. This is the only job that
+  # carries packages:write — the manual fallback is green-gated, not ungated.
   publish:
+    needs: [gate, size]
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 20
           registry-url: https://npm.pkg.github.com
           scope: '@willramanand'
+          cache: npm
 
       - run: npm ci
 
       - run: npm run build
 
+      # Token passed only as step env, never echoed (threat T-06-09).
       - run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
