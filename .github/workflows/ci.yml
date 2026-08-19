@@ -98,3 +98,26 @@ jobs:
 
       - name: Bundle-size budget
         run: npm run size
+
+  # Packed-artifact smoke (SHIP-03): pack -> install into a throwaway project ->
+  # resolve the full/per-component/tokens.css matrix (raw ESM + a real esbuild
+  # bundle). Proves every documented entry resolves from an install and Lit is
+  # never inlined. Node 20 only; inherits the read-only top-level permissions —
+  # this PR-triggered job never sees a publish credential (threat T-06-06).
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Tarball resolution smoke
+        run: npm run smoke
