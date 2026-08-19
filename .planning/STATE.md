@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 05
 current_phase_name: documentation
 status: executing
-stopped_at: Completed 05-01-PLAN.md
-last_updated: "2026-08-19T13:19:29.409Z"
+stopped_at: Completed 05-02-PLAN.md
+last_updated: "2026-08-19T13:28:15.013Z"
 last_activity: 2026-08-19
 last_activity_desc: Phase 05 execution started
 progress:
   total_phases: 6
   completed_phases: 4
   total_plans: 35
-  completed_plans: 32
+  completed_plans: 33
   percent: 67
 ---
 
@@ -29,11 +29,11 @@ See: .planning/PROJECT.md (updated 2026-08-10)
 ## Current Position
 
 Phase: 05 (documentation) — EXECUTING
-Plan: 2 of 4
+Plan: 3 of 4
 Status: Ready to execute
 Last activity: 2026-08-19 — Phase 05 execution started
 
-Progress: [█████████░] 91%
+Progress: [█████████░] 94%
 
 ## Performance Metrics
 
@@ -82,6 +82,7 @@ Progress: [█████████░] 91%
 | Phase 03 P03 | 3min | 3 tasks | 5 files |
 | Phase 03 P04 | 4min | 3 tasks | 8 files |
 | Phase 05 P01 | 9 | 2 tasks | 4 files |
+| Phase 05 P02 | 8min | 3 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -122,6 +123,9 @@ Recent decisions affecting current work:
 - [Phase ?]: WR-02: toast dismiss onEnd gated on animationName==='toast-out', dropped once:true; 300ms fallback calls onEnd() eventless
 - [Phase ?]: 05-01: Contract doc generated from the CEM (build-contract-doc.mjs), freeze intro embedded as a constant so the whole doc is deterministically regenerable
 - [Phase ?]: 05-01: Contract-doc drift gated in CI via git diff --exit-code in the surface-diff job; report-only diff:surface left for Phase 6 to flip
+- [Phase ?]: 05-02: prose docs authored as GitHub-native Markdown (theming/validation/usage) under docs/, guide-vs-enumeration split linking to generated contract.md
+- [Phase ?]: 05-02: data-theme documented only for the global tokens.css path (build-tokens-css promotes :host([theme=dark]) -> :root[data-theme=dark]); am-theme-provider uses theme= attribute
+- [Phase ?]: 05-02: keyboard shortcuts folded into usage.md (not a standalone page); validation.md cross-links Patterns/Validation Storybook demo (discretion items)
 
 ### Pending Todos
 
@@ -150,6 +154,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-19T13:19:20.424Z
-Stopped at: Completed 05-01-PLAN.md
+Last session: 2026-08-19T13:27:56.536Z
+Stopped at: Completed 05-02-PLAN.md
 Resume file: None
