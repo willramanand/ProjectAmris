@@ -17,7 +17,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: API Cleanup + CEM Baseline** - Normalize the public surface and commit a reviewable CEM baseline so the freeze can snapshot a consistent contract (completed 2026-08-17)
 - [x] **Phase 3: Reliability & Leak Fixes** - Fix known timer/listener/focus/animation lifecycle leaks under one discipline, verified with teardown spies (completed 2026-08-17)
 - [x] **Phase 4: Performance & Feature Capabilities** - Deliver virtualization, validation-message display, and the keyboard-shortcut registry on the `src/internal/` boundary (completed 2026-08-18)
-- [ ] **Phase 5: Documentation** - Document the frozen contract: peer-dep/browser floor, validation/theming/usage, and slot/part/token surface
+- [x] **Phase 5: Documentation** - Document the frozen contract: peer-dep/browser floor, validation/theming/usage, and slot/part/token surface (completed 2026-08-19)
 - [ ] **Phase 6: API Freeze + Release** - Flip the surface-diff gate to enforcing and publish v1.0 to GitHub Packages on a green pipeline
 
 ## Phase Details
@@ -213,5 +213,5 @@ Phase 2 (API cleanup) and Phase 3 (leak fixes) both depend only on Phase 1 and m
 | 2. API Cleanup + CEM Baseline | 9/9 | Complete    | 2026-08-17 |
 | 3. Reliability & Leak Fixes | 4/4 | Complete   | 2026-08-17 |
 | 4. Performance & Feature Capabilities | 10/10 | Complete   | 2026-08-18 |
-| 5. Documentation | 4/4 | In Progress|  |
+| 5. Documentation | 4/4 | Complete    | 2026-08-19 |
 | 6. API Freeze + Release | 0/TBD | Not started | - |
