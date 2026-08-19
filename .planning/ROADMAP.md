@@ -199,11 +199,11 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. A tarball-install smoke test passes: `npm pack`, install the tarball, and import full + per-component + `tokens.css` in both raw ESM and a bundler.
   4. The green-gated release pipeline (tests + coverage + a11y + bundle-size) publishes to GitHub Packages and tags **v1.0**.
 
-**Plans**: 4 plans
+**Plans**: 1/4 plans executed
 
 **Wave 1**
 
-- [ ] 06-01-PLAN.md — Tracer: flip the CEM surface-diff gate to enforcing (Changeset-aware) + minimal tarball pack/install/resolve smoke (SHIP-01, SHIP-03)
+- [x] 06-01-PLAN.md — Tracer: flip the CEM surface-diff gate to enforcing (Changeset-aware) + minimal tarball pack/install/resolve smoke (SHIP-01, SHIP-03)
 
 **Wave 2** *(blocked on Wave 1)*
 
@@ -230,4 +230,4 @@ Phase 2 (API cleanup) and Phase 3 (leak fixes) both depend only on Phase 1 and m
 | 3. Reliability & Leak Fixes | 4/4 | Complete   | 2026-08-17 |
 | 4. Performance & Feature Capabilities | 10/10 | Complete   | 2026-08-18 |
 | 5. Documentation | 4/4 | Complete    | 2026-08-19 |
-| 6. API Freeze + Release | 0/4 | Planned | - |
+| 6. API Freeze + Release | 1/4 | In Progress|  |
