@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 04
-status: completed
-stopped_at: Phase 05 context gathered
-last_updated: "2026-08-18T23:28:39.610Z"
-last_activity: 2026-08-18
+current_phase: 05
+current_phase_name: documentation
+status: executing
+stopped_at: Completed 05-01-PLAN.md
+last_updated: "2026-08-19T13:19:29.409Z"
+last_activity: 2026-08-19
+last_activity_desc: Phase 05 execution started
 progress:
   total_phases: 6
   completed_phases: 4
-  total_plans: 31
-  completed_plans: 31
+  total_plans: 35
+  completed_plans: 32
   percent: 67
-current_phase_name: performance-feature-capabilities
-last_activity_desc: Phase 03 plan 03 executed (FIX-03 overlay set complete, FIX-02 locked)
 ---
 
 # Project State
@@ -24,16 +24,16 @@ last_activity_desc: Phase 03 plan 03 executed (FIX-03 overlay set complete, FIX-
 See: .planning/PROJECT.md (updated 2026-08-10)
 
 **Core value:** A frozen, dependable public API backed by real test coverage — consumers can drop `@willramanand/amris` into any app and trust it to be correct, accessible, and API-stable.
-**Current focus:** Phase 04 — performance-feature-capabilities
+**Current focus:** Phase 05 — documentation
 
 ## Current Position
 
-Phase: 04 — COMPLETE
-Plan: 1 of 10
-Status: Phase 04 complete
-Last activity: 2026-08-18
+Phase: 05 (documentation) — EXECUTING
+Plan: 2 of 4
+Status: Ready to execute
+Last activity: 2026-08-19 — Phase 05 execution started
 
-Progress: [██████████] 100%
+Progress: [█████████░] 91%
 
 ## Performance Metrics
 
@@ -81,6 +81,7 @@ Progress: [██████████] 100%
 | Phase 03 P02 | 3min | 2 tasks | 3 files |
 | Phase 03 P03 | 3min | 3 tasks | 5 files |
 | Phase 03 P04 | 4min | 3 tasks | 8 files |
+| Phase 05 P01 | 9 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -119,6 +120,8 @@ Recent decisions affecting current work:
 - [Phase ?]: CR-01: command-palette keyboard nav + Enter index into _ordered (rendered grouped order), so highlight == selection on interleaved groups
 - [Phase ?]: WR-01: dialog/drawer/command-palette gate am-close on a real transition (else if prev), not the bare !==undefined guard which would break mount-with-open am-open
 - [Phase ?]: WR-02: toast dismiss onEnd gated on animationName==='toast-out', dropped once:true; 300ms fallback calls onEnd() eventless
+- [Phase ?]: 05-01: Contract doc generated from the CEM (build-contract-doc.mjs), freeze intro embedded as a constant so the whole doc is deterministically regenerable
+- [Phase ?]: 05-01: Contract-doc drift gated in CI via git diff --exit-code in the surface-diff job; report-only diff:surface left for Phase 6 to flip
 
 ### Pending Todos
 
@@ -147,6 +150,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-18T23:28:39.599Z
-Stopped at: Phase 05 context gathered
-Resume file: .planning/phases/05-documentation/05-CONTEXT.md
+Last session: 2026-08-19T13:19:20.424Z
+Stopped at: Completed 05-01-PLAN.md
+Resume file: None

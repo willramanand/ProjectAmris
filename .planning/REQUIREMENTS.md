@@ -50,7 +50,7 @@ Requirements for the v1.0 release. Each maps to a roadmap phase. Grounded in `.p
 ### Documentation
 
 - [ ] **DOCS-01**: README documents the Lit peer-dependency requirement and the Safari 16.4 browser floor (ElementInternals)
-- [ ] **DOCS-02**: Validation, theming/token contract, and usage docs — including the frozen slot/part/token contract
+- [x] **DOCS-02**: Validation, theming/token contract, and usage docs — including the frozen slot/part/token contract
 - [ ] **DOCS-03**: Storybook examples for virtualization and validation-message patterns
 
 ### Release & Publish
@@ -125,7 +125,7 @@ Which phases cover which requirements. Populated during roadmap creation.
 | FEAT-03 | Phase 4 | Pending |
 | FEAT-04 | Phase 4 | Pending |
 | DOCS-01 | Phase 5 | Pending |
-| DOCS-02 | Phase 5 | Pending |
+| DOCS-02 | Phase 5 | Complete |
 | DOCS-03 | Phase 5 | Pending |
 | SHIP-01 | Phase 6 | Pending |
 | SHIP-02 | Phase 6 | Pending |
