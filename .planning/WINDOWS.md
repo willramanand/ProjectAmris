@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 2
+open_count: 3
 waived_count: 0
 fixed_count: 0
-total_count: 2
-last_updated: 2026-08-19T17:25:13.375Z
+total_count: 3
+last_updated: 2026-08-19T17:45:32.349Z
 ---
 
 # Broken Windows Ledger
@@ -17,6 +17,7 @@ last_updated: 2026-08-19T17:25:13.375Z
 |----|-------|------|------|------|-------------|--------|--------|-------------|-------------|
 | 1 | 01 | unrun-verify | src/components/dialog/dialog.ts | 196 | Overlay focus restoration lacks isConnected guard; restore to a removed opener silently no-ops (FIX-03, Phase 3) | open |  | 2026-08-11T22:29:43.739Z |  |
 | 2 | 06 | deviation | docs/contract.md |  | Pre-existing stale docs/contract.md (::part count 76->77, new am-shortcuts slot, new error parts on am-checkbox/am-color-picker); npm run build regenerates it; CI Contract-doc drift check will fail until regenerated+committed. Out of scope for 06-01 (touches no src/ or contract generator). See phase deferred-items.md. | open |  | 2026-08-19T17:25:13.375Z |  |
+| 3 | 06 | unmet-truth | .size-limit.json |  | Pre-existing: npm run size RED on base commit 3274a9a with zero edits (core 25.07kB/23, full 68.16kB/55, data-grid 11.99kB/3.5). SHIP-02 truth 'Phase 1 tree-shaking/size canary stays green' is unmet. Plan 06-02 changes are size-neutral (identical numbers with/without edits) — NOT caused by 06-02. size CI job will fail until budgets are re-baselined or bundles shrunk (user decision). Out of scope for 06-02. | open |  | 2026-08-19T17:45:32.349Z |  |
 
 ````json
 [
@@ -43,7 +44,20 @@ last_updated: 2026-08-19T17:25:13.375Z
     "reason": "",
     "recorded_at": "2026-08-19T17:25:13.375Z",
     "resolved_at": null
+  },
+  {
+    "id": 3,
+    "kind": "unmet-truth",
+    "phase": "06",
+    "file": ".size-limit.json",
+    "line": null,
+    "description": "Pre-existing: npm run size RED on base commit 3274a9a with zero edits (core 25.07kB/23, full 68.16kB/55, data-grid 11.99kB/3.5). SHIP-02 truth 'Phase 1 tree-shaking/size canary stays green' is unmet. Plan 06-02 changes are size-neutral (identical numbers with/without edits) — NOT caused by 06-02. size CI job will fail until budgets are re-baselined or bundles shrunk (user decision). Out of scope for 06-02.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-08-19T17:45:32.349Z",
+    "resolved_at": null
   }
 ]
 ````
+
 

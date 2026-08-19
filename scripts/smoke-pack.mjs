@@ -1,17 +1,23 @@
-// Minimal tarball smoke (SHIP-03, thin slice). Zero-dependency ESM Node script
-// using only node built-ins. Proves the PACKED artifact RESOLVES — not runtime
-// execution: importing a component module runs customElements.define(), which
-// throws in bare Node, so this asserts the `exports` map resolves the primary
-// entry to a real shipped file (the actual risk for a freshly published
-// package; the browser lane already proves runtime behavior).
+// Tarball smoke (SHIP-03, full resolution matrix). Zero-new-dependency ESM Node
+// script using only node built-ins + the repo-resident esbuild. Proves the
+// PACKED artifact RESOLVES — not runtime execution: importing a component module
+// runs customElements.define(), which throws in bare Node, so this asserts the
+// `exports` map resolves each documented entry to a real shipped file and that a
+// real bundler can consume the package with Lit kept external (the actual risk
+// for a freshly published package; the browser lane already proves runtime).
 //
 // Steps (each fails loud with a non-zero exit + a clear message):
 //   1. `npm pack --json` at the repo root -> discover the tarball dynamically.
 //   2. Create a throwaway ESM project under os.tmpdir() and install the tarball
 //      + the Lit peer into it (no publish credential needed).
-//   3. In the throwaway project, assert import.meta.resolve('@willramanand/amris')
-//      resolves through the `exports` map to an existing file.
-//   4. Always remove the temp dir and the tarball on exit.
+//   3. Raw ESM leg — in the installed throwaway project, assert
+//      import.meta.resolve(...) returns an existing file: target for EACH of the
+//      full entry, a per-component deep entry, and the token stylesheet.
+//   4. Bundler leg — invoke esbuild's JS API (imported from the repo) to bundle
+//      an entry importing the full package + the button deep entry, with
+//      lit/@lit/@floating-ui kept external (proving Lit is not inlined); assert
+//      the build succeeds and the produced bundle is non-empty.
+//   5. Always remove the temp dir and the tarball on exit.
 //
 // Cross-platform: node built-ins + argument-array execFileSync only (no shell
 // string interpolation, no bash-only syntax) so it runs on the Windows dev box
@@ -24,6 +30,15 @@ import { fileURLToPath } from 'node:url';
 
 const IS_WIN = process.platform === 'win32';
 const PKG = '@willramanand/amris';
+
+// The SHIP-03 resolution matrix: the full entry, a per-component deep entry, and
+// the token stylesheet must each resolve from an installed tarball via `exports`.
+const SUBPATHS = [PKG, `${PKG}/components/button`, `${PKG}/styles/tokens.css`];
+
+// Peer/externals a consumer bundle must NOT inline — Lit stays a peer, and the
+// bundler leg keeps @floating-ui external too. `@lit/*` catches @lit/context;
+// this proves Lit is never inlined while the package's own deps still bundle.
+const EXTERNAL = ['lit', '@lit/*', '@floating-ui/*'];
 
 const repoRoot = resolve(fileURLToPath(import.meta.url), '..', '..');
 
@@ -103,20 +118,32 @@ try {
     fail(`installing the tarball + lit into the throwaway project failed: ${err.message}`);
   }
 
-  // (3) Prove the primary entry resolves through the `exports` map to a real file.
+  // (3) Raw ESM leg — prove EACH matrix entry resolves through the `exports`
+  // map to a real file. Runs inside the installed throwaway project so the
+  // resolution is exactly what a consumer sees. Fails loud naming the first
+  // subpath that does not resolve.
   const checkPath = join(tempDir, 'resolve-check.mjs');
   writeFileSync(
     checkPath,
     [
       "import { existsSync } from 'node:fs';",
       "import { fileURLToPath } from 'node:url';",
-      `const url = import.meta.resolve('${PKG}');`,
-      'const file = fileURLToPath(url);',
-      'if (!existsSync(file)) {',
-      `  console.error('resolve-check FAILED: ${PKG} resolved to a missing file: ' + file);`,
-      '  process.exit(1);',
+      `const subpaths = ${JSON.stringify(SUBPATHS)};`,
+      'for (const spec of subpaths) {',
+      '  let url;',
+      '  try {',
+      '    url = import.meta.resolve(spec);',
+      '  } catch (err) {',
+      "    console.error('resolve-check FAILED: ' + spec + ' did not resolve via the exports map: ' + err.message);",
+      '    process.exit(1);',
+      '  }',
+      '  const file = fileURLToPath(url);',
+      '  if (!existsSync(file)) {',
+      "    console.error('resolve-check FAILED: ' + spec + ' resolved to a missing file: ' + file);",
+      '    process.exit(1);',
+      '  }',
+      "  console.log('resolved ' + spec + ' -> ' + file);",
       '}',
-      `console.log('resolved ${PKG} -> ' + file);`,
       '',
     ].join('\n'),
   );
@@ -127,12 +154,56 @@ try {
     });
     process.stdout.write(resolveOut);
   } catch (err) {
-    fail(`resolving ${PKG} in the throwaway project failed: ${err.message}`);
+    fail(`raw-ESM resolution matrix failed in the throwaway project: ${err.message}`);
   }
 
-  console.log(`\nsmoke-pack OK: verified packed tarball ${entry.filename}`);
+  // (4) Bundler leg — a real bundler (esbuild, imported from the repo's
+  // node_modules) must consume the installed package with lit/@floating-ui kept
+  // external (proving Lit is never inlined) and produce a non-empty bundle.
+  const entryFile = join(tempDir, 'entry.mjs');
+  writeFileSync(
+    entryFile,
+    [`import '${PKG}';`, `import '${PKG}/components/button';`, ''].join('\n'),
+  );
+
+  let esbuild;
+  try {
+    esbuild = await import('esbuild');
+  } catch (err) {
+    fail(
+      `esbuild is required for the bundler leg but could not be imported from the repo: ${err.message}`,
+    );
+  }
+
+  try {
+    const result = await esbuild.build({
+      entryPoints: [entryFile],
+      bundle: true,
+      format: 'esm',
+      // Resolve `@willramanand/amris` from the installed tarball in the temp
+      // project, not the repo source.
+      absWorkingDir: tempDir,
+      external: EXTERNAL,
+      write: false,
+      logLevel: 'silent',
+    });
+    const outputs = result.outputFiles ?? [];
+    const totalBytes = outputs.reduce((sum, f) => sum + f.contents.length, 0);
+    if (totalBytes === 0) {
+      fail('esbuild produced an empty bundle from the installed package');
+    }
+    console.log(
+      `bundled ${PKG} + button deep entry via esbuild (lit/@floating-ui external) -> ${totalBytes} bytes`,
+    );
+  } catch (err) {
+    fail(`esbuild failed to bundle the installed package: ${err.message}`);
+  }
+
+  console.log(
+    `\nsmoke-pack OK: verified packed tarball ${entry.filename} across the full resolution matrix (raw ESM + esbuild bundler)`,
+  );
 } finally {
-  // (4) Always clean up the temp dir and the tarball.
+  // (5) Always clean up the temp dir and the tarball.
   if (tempDir) rmSync(tempDir, { recursive: true, force: true });
   if (tarballPath) rmSync(tarballPath, { force: true });
 }

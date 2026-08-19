@@ -56,8 +56,8 @@ Requirements for the v1.0 release. Each maps to a roadmap phase. Grounded in `.p
 ### Release & Publish
 
 - [ ] **SHIP-01**: CEM surface diff gate flipped from report-only to enforcing at freeze (`@wc-toolkit/changelog`, or a small JSON comparator fallback)
-- [ ] **SHIP-02**: `package.json` `exports` declares every deep entry incl. `styles/tokens.css`; `sideEffects` allowlists element-registration + CSS modules; Lit stays in `peerDependencies` (`^3.3.0`)
-- [ ] **SHIP-03**: Tarball-install smoke test — `npm pack` → install the tarball, import full + per-component + `tokens.css` in both ESM and a bundler
+- [x] **SHIP-02**: `package.json` `exports` declares every deep entry incl. `styles/tokens.css`; `sideEffects` allowlists element-registration + CSS modules; Lit stays in `peerDependencies` (`^3.3.0`)
+- [x] **SHIP-03**: Tarball-install smoke test — `npm pack` → install the tarball, import full + per-component + `tokens.css` in both ESM and a bundler
 - [ ] **SHIP-04**: Green-gated release pipeline (`changesets/action@v1`, pinned to a commit SHA) publishes to GitHub Packages and tags **v1.0**
 
 ## v2 Requirements
@@ -128,8 +128,8 @@ Which phases cover which requirements. Populated during roadmap creation.
 | DOCS-02 | Phase 5 | Complete |
 | DOCS-03 | Phase 5 | Complete |
 | SHIP-01 | Phase 6 | Pending |
-| SHIP-02 | Phase 6 | Pending |
-| SHIP-03 | Phase 6 | Pending |
+| SHIP-02 | Phase 6 | Complete |
+| SHIP-03 | Phase 6 | Complete |
 | SHIP-04 | Phase 6 | Pending |
 
 **Coverage:**
