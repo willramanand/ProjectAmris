@@ -176,6 +176,26 @@ function discoverComponentEntries(): Record<string, string> {
   return entries;
 }
 
+// Emit a JS entry for every `*.ts` file directly inside `src/<subdir>` so the
+// package's deep `exports` subpaths (`./styles/*`, `./utilities/*`) actually
+// resolve to shipped files. Without these entries only the bundled component
+// chunks are emitted and a consumer importing e.g. `@willramanand/amris/styles/reset.css`
+// or `@willramanand/amris/utilities/form-actions` would hit ERR_MODULE_NOT_FOUND.
+// The entry key preserves the file's base name (minus `.ts`), so `reset.css.ts`
+// -> `dist/styles/reset.css.js`, matching the `./styles/*` -> `./dist/styles/*.js` map.
+function discoverFlatEntries(subdir: string): Record<string, string> {
+  const dir = resolve(__dirname, 'src', subdir);
+  const entries: Record<string, string> = {};
+  for (const name of readdirSync(dir)) {
+    if (!name.endsWith('.ts')) continue;
+    const full = resolve(dir, name);
+    if (!statSync(full).isFile()) continue;
+    const base = name.slice(0, -'.ts'.length);
+    entries[`${subdir}/${base}`] = full;
+  }
+  return entries;
+}
+
 export default defineConfig(() => ({
   plugins: [stripLitCssComments()],
   build: {
@@ -187,6 +207,11 @@ export default defineConfig(() => ({
       entry: {
         amris: resolve(__dirname, 'src/index.all.ts'),
         'amris-core': resolve(__dirname, 'src/index.ts'),
+        // Deep public entries so `./tokens`, `./utilities/*`, `./styles/*` resolve
+        // to real shipped JS (not just `.d.ts`) — see the `exports` map in package.json.
+        'tokens/index': resolve(__dirname, 'src/tokens/index.ts'),
+        ...discoverFlatEntries('utilities'),
+        ...discoverFlatEntries('styles'),
         ...discoverComponentEntries(),
       },
       formats: ['es' as const],

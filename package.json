@@ -6,7 +6,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/willramanand/ProjectQuartz.git"
+    "url": "git+https://github.com/willramanand/ProjectAmris.git"
   },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com",
@@ -53,7 +53,8 @@
     "./dist/amris.js",
     "./dist/amris-core.js",
     "./dist/components/**/*.js",
-    "./dist/chunks/**/*.js"
+    "./dist/chunks/**/*.js",
+    "./dist/styles/*.js"
   ],
   "scripts": {
     "dev": "vite --host",
