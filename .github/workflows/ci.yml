@@ -65,6 +65,14 @@ jobs:
       - name: Build manifest
         run: npm run build:manifest # emits dist/custom-elements.json
 
+      # Regenerate the frozen-contract doc from the fresh CEM and fail if the
+      # committed copy is stale — docs/contract.md can never drift from the
+      # enforced surface (D-05, threat T-05-02). Read-only: no write-back.
+      - name: Contract doc drift check
+        run: |
+          npm run build:contract-doc
+          git diff --exit-code docs/contract.md
+
       # Report-only surface diff (D-13). The script itself always exits 0 this
       # phase — NOT continue-on-error — so Phase 6's enforcing flip is a one-line
       # script change, not a workflow edit.
