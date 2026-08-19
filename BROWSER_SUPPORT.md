@@ -47,7 +47,7 @@ These features look better when supported but degrade gracefully on the floor br
 
 ## SSR
 
-Amris is **client-only** today. See [README §17a](./README.md#17a-ssr-server-side-rendering--current-status). Tokens shipped via `@willramanand/amris/styles/tokens.css` are SSR-safe (plain CSS).
+Amris is **client-only** today. See [docs/vision.md §17a](./docs/vision.md#17a-ssr-server-side-rendering--current-status). Tokens shipped via `@willramanand/amris/styles/tokens.css` are SSR-safe (plain CSS).
 
 ## Verifying
 
