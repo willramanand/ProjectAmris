@@ -199,7 +199,23 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. A tarball-install smoke test passes: `npm pack`, install the tarball, and import full + per-component + `tokens.css` in both raw ESM and a bundler.
   4. The green-gated release pipeline (tests + coverage + a11y + bundle-size) publishes to GitHub Packages and tags **v1.0**.
 
-**Plans**: TBD
+**Plans**: 4 plans
+
+**Wave 1**
+
+- [ ] 06-01-PLAN.md — Tracer: flip the CEM surface-diff gate to enforcing (Changeset-aware) + minimal tarball pack/install/resolve smoke (SHIP-01, SHIP-03)
+
+**Wave 2** *(blocked on Wave 1)*
+
+- [ ] 06-02-PLAN.md — package.json hardening (exports incl. tokens.css, CSS-inclusive sideEffects, Lit peer ^3.3.0) + full smoke matrix (raw ESM + bundler) + CI smoke job (SHIP-02, SHIP-03)
+
+**Wave 3** *(blocked on Wave 2)*
+
+- [ ] 06-03-PLAN.md — Release pipeline: SHA-pin changesets/action + green-gate publish + v1.0 major Changeset + frozen baseline refresh (SHIP-04)
+
+**Wave 4** *(blocked on Wave 3)*
+
+- [ ] 06-04-PLAN.md — One-way publish gate: checkpoint:decision + human-action publish @1.0.0 to GitHub Packages + tag v1.0 (SHIP-04)
 
 ## Progress
 
@@ -214,4 +230,4 @@ Phase 2 (API cleanup) and Phase 3 (leak fixes) both depend only on Phase 1 and m
 | 3. Reliability & Leak Fixes | 4/4 | Complete   | 2026-08-17 |
 | 4. Performance & Feature Capabilities | 10/10 | Complete   | 2026-08-18 |
 | 5. Documentation | 4/4 | Complete    | 2026-08-19 |
-| 6. API Freeze + Release | 0/TBD | Not started | - |
+| 6. API Freeze + Release | 0/4 | Planned | - |
