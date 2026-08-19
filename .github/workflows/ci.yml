@@ -73,10 +73,11 @@ jobs:
           npm run build:contract-doc
           git diff --exit-code docs/contract.md
 
-      # Report-only surface diff (D-13). The script itself always exits 0 this
-      # phase — NOT continue-on-error — so Phase 6's enforcing flip is a one-line
-      # script change, not a workflow edit.
-      - name: Surface diff (report-only)
+      # Enforcing surface-diff release gate (SHIP-01). The script exits non-zero
+      # when the public surface drifts from the baseline and no pending Changeset
+      # accompanies it. No continue-on-error and no `|| true` — a non-zero exit
+      # fails the job, blocking any unversioned public-surface change.
+      - name: Surface diff (release gate)
         run: npm run diff:surface
 
   size:
