@@ -27,7 +27,10 @@ const elements = [];
 for (const mod of manifest.modules ?? [])
   for (const d of mod.declarations ?? [])
     if (d.tagName) elements.push({ tagName: d.tagName, decl: d });
-elements.sort((a, b) => a.tagName.localeCompare(b.tagName));
+// Code-point comparison (NOT localeCompare): this doc is drift-gated by
+// `git diff --exit-code` in CI, so ordering must be locale-independent —
+// ICU collation can differ between the generating machine and CI (WR-01).
+elements.sort((a, b) => (a.tagName < b.tagName ? -1 : a.tagName > b.tagName ? 1 : 0));
 
 // --- Global --am-* token source of truth (src/tokens/*.css.ts). ---
 // Same css`` block extraction as scripts/build-audit.mjs / build-tokens-css.mjs.
