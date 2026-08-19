@@ -172,7 +172,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. Validation, theming/token-contract, and usage docs exist — including the frozen slot/part/token contract a consumer can rely on.
   3. Storybook has runnable examples for the virtualization and validation-message patterns.
 
-**Plans**: 2/4 plans executed
+**Plans**: 3/4 plans executed
 
 **Wave 1**
 
@@ -185,7 +185,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 **Wave 3** *(blocked on 05-01, 05-02)*
 
-- [ ] 05-03-PLAN.md — README rebuild (consumer-first quick-start + browser floor) + vision relocation + docs/*.html retirement (DOCS-01)
+- [x] 05-03-PLAN.md — README rebuild (consumer-first quick-start + browser floor) + vision relocation + docs/*.html retirement (DOCS-01)
 
 ### Phase 6: API Freeze + Release
 
@@ -213,5 +213,5 @@ Phase 2 (API cleanup) and Phase 3 (leak fixes) both depend only on Phase 1 and m
 | 2. API Cleanup + CEM Baseline | 9/9 | Complete    | 2026-08-17 |
 | 3. Reliability & Leak Fixes | 4/4 | Complete   | 2026-08-17 |
 | 4. Performance & Feature Capabilities | 10/10 | Complete   | 2026-08-18 |
-| 5. Documentation | 2/4 | In Progress|  |
+| 5. Documentation | 3/4 | In Progress|  |
 | 6. API Freeze + Release | 0/TBD | Not started | - |
