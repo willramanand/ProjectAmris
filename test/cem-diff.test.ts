@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 // @ts-expect-error — zero-dep .mjs comparator, no accompanying .d.ts (build tooling, not shipped).
-import { diffManifests } from '../scripts/cem-diff.mjs';
+import { diffManifests, releaseGateExitCode } from '../scripts/cem-diff.mjs';
 
 // Build a minimal CEM manifest wrapping one custom-element declaration.
 // Only the fields the comparator reads are populated; `source` and `description`
@@ -82,5 +82,23 @@ describe('cem-diff comparator normalization', () => {
     const result = diffManifests(baseline, current);
     expect(result.hasDrift).toBe(false);
     expect(result.changed).toEqual({});
+  });
+});
+
+describe('release gate exit code', () => {
+  it('fails (1) when the surface drifts and NO Changeset accompanies it', () => {
+    expect(releaseGateExitCode({ hasDrift: true, pendingChangesetCount: 0 })).toBe(1);
+  });
+
+  it('passes (0) when the surface drifts but a pending Changeset is present', () => {
+    expect(releaseGateExitCode({ hasDrift: true, pendingChangesetCount: 2 })).toBe(0);
+  });
+
+  it('passes (0) when the surface is clean and no Changeset is pending', () => {
+    expect(releaseGateExitCode({ hasDrift: false, pendingChangesetCount: 0 })).toBe(0);
+  });
+
+  it('passes (0) when the surface is clean and a Changeset is pending', () => {
+    expect(releaseGateExitCode({ hasDrift: false, pendingChangesetCount: 3 })).toBe(0);
   });
 });
