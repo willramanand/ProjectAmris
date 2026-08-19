@@ -161,6 +161,11 @@ None - no external service configuration required. The smoke installs only the p
 - The two load-bearing halves of "ship v1.0 safely" — the enforcing Changeset-aware surface gate and packed-artifact exports-map resolution — are proven end-to-end on a thin path. Plans 06-02 (package hardening: `files`/`exports`), 06-03 (full smoke matrix), and 06-04 (one-way publish) can build on this.
 - **Blocker to flag for ship:** the pre-existing stale `docs/contract.md` will fail CI's contract-doc drift check until regenerated + committed (tracked in WINDOWS.md and deferred-items.md).
 
+## Self-Check: PASSED
+
+- FOUND: scripts/cem-diff.mjs, scripts/smoke-pack.mjs, test/cem-diff.test.ts, .planning/phases/06-api-freeze-release/06-01-SUMMARY.md
+- FOUND commits: 8d16341 (Task 1), fc4bcbd (Task 2), c9844c0 (docs)
+
 ---
 *Phase: 06-api-freeze-release*
 *Completed: 2026-08-19*
