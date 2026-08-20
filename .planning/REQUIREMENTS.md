@@ -36,16 +36,16 @@ Requirements for the v1.0 release. Each maps to a roadmap phase. Grounded in `.p
 ### Performance & Bundle
 
 - [x] **PERF-01**: Bundle-size budgets enforced in CI — `size-limit`, minified+gzipped, per-entry (core/full/single-component), with a tree-shaking assertion that fails on regression
-- [ ] **PERF-02**: List virtualization for `am-data-grid` (1000+ rows) via `@lit-labs/virtualizer`, opt-in/threshold, a11y-correct (`aria-setsize`/`aria-posinset`/`aria-rowcount`), selection/sort/focus identity-keyed
-- [ ] **PERF-03**: List virtualization for combobox/select option popups, a11y-correct (`aria-activedescendant` scrolls target into window), form-value integrity preserved
-- [ ] **PERF-04**: floating-ui `autoUpdate` gated to open transitions across all overlay components
+- [x] **PERF-02**: List virtualization for `am-data-grid` (1000+ rows) via `@lit-labs/virtualizer`, opt-in/threshold, a11y-correct (`aria-setsize`/`aria-posinset`/`aria-rowcount`), selection/sort/focus identity-keyed
+- [x] **PERF-03**: List virtualization for combobox/select option popups, a11y-correct (`aria-activedescendant` scrolls target into window), form-value integrity preserved
+- [x] **PERF-04**: floating-ui `autoUpdate` gated to open transitions across all overlay components
 
 ### Features (new v1.0 capabilities)
 
-- [ ] **FEAT-01**: Form controls auto-surface `ElementInternals.validationMessage` through `am-field`/`am-error-text` with same-shadow-root `aria-describedby`/`aria-invalid` and `:user-invalid` timing
-- [ ] **FEAT-02**: Manual/server validation error API (e.g. `setCustomError`) for consumer-supplied messages, with defined precedence against `am-hint-text`/`am-error-text`
-- [ ] **FEAT-03**: Keyboard-shortcut registry with scopes, `mod`/`opt` platform normalization, conflict detection, and a reserved-combo blocklist (WCAG 2.1.4 — single keys remappable/disablable)
-- [ ] **FEAT-04**: `am-shortcuts` provider element (per-subtree via `@lit/context`); `am-command-palette` refactored off hardcoded Cmd+K with graceful fallback when no provider is present
+- [x] **FEAT-01**: Form controls auto-surface `ElementInternals.validationMessage` through `am-field`/`am-error-text` with same-shadow-root `aria-describedby`/`aria-invalid` and `:user-invalid` timing
+- [x] **FEAT-02**: Manual/server validation error API (e.g. `setCustomError`) for consumer-supplied messages, with defined precedence against `am-hint-text`/`am-error-text`
+- [x] **FEAT-03**: Keyboard-shortcut registry with scopes, `mod`/`opt` platform normalization, conflict detection, and a reserved-combo blocklist (WCAG 2.1.4 — single keys remappable/disablable)
+- [x] **FEAT-04**: `am-shortcuts` provider element (per-subtree via `@lit/context`); `am-command-palette` refactored off hardcoded Cmd+K with graceful fallback when no provider is present
 
 ### Documentation
 
@@ -55,10 +55,10 @@ Requirements for the v1.0 release. Each maps to a roadmap phase. Grounded in `.p
 
 ### Release & Publish
 
-- [ ] **SHIP-01**: CEM surface diff gate flipped from report-only to enforcing at freeze (`@wc-toolkit/changelog`, or a small JSON comparator fallback)
+- [x] **SHIP-01**: CEM surface diff gate flipped from report-only to enforcing at freeze (`@wc-toolkit/changelog`, or a small JSON comparator fallback)
 - [x] **SHIP-02**: `package.json` `exports` declares every deep entry incl. `styles/tokens.css`; `sideEffects` allowlists element-registration + CSS modules; Lit stays in `peerDependencies` (`^3.3.0`)
 - [x] **SHIP-03**: Tarball-install smoke test — `npm pack` → install the tarball, import full + per-component + `tokens.css` in both ESM and a bundler
-- [ ] **SHIP-04**: Green-gated release pipeline (`changesets/action@v1`, pinned to a commit SHA) publishes to GitHub Packages and tags **v1.0**
+- [x] **SHIP-04**: Green-gated release pipeline (`changesets/action@v1`, pinned to a commit SHA) publishes to GitHub Packages and tags **v1.0**
 
 ## v2 Requirements
 
@@ -117,20 +117,20 @@ Which phases cover which requirements. Populated during roadmap creation.
 | FIX-02 | Phase 3 | Complete |
 | FIX-03 | Phase 3 | Complete |
 | FIX-04 | Phase 3 | Complete |
-| PERF-02 | Phase 4 | Pending |
-| PERF-03 | Phase 4 | Pending |
-| PERF-04 | Phase 4 | Pending |
-| FEAT-01 | Phase 4 | Pending |
-| FEAT-02 | Phase 4 | Pending |
-| FEAT-03 | Phase 4 | Pending |
-| FEAT-04 | Phase 4 | Pending |
+| PERF-02 | Phase 4 | Complete |
+| PERF-03 | Phase 4 | Complete |
+| PERF-04 | Phase 4 | Complete |
+| FEAT-01 | Phase 4 | Complete |
+| FEAT-02 | Phase 4 | Complete |
+| FEAT-03 | Phase 4 | Complete |
+| FEAT-04 | Phase 4 | Complete |
 | DOCS-01 | Phase 5 | Complete |
 | DOCS-02 | Phase 5 | Complete |
 | DOCS-03 | Phase 5 | Complete |
-| SHIP-01 | Phase 6 | Pending |
+| SHIP-01 | Phase 6 | Complete |
 | SHIP-02 | Phase 6 | Complete |
 | SHIP-03 | Phase 6 | Complete |
-| SHIP-04 | Phase 6 | Pending |
+| SHIP-04 | Phase 6 | Complete |
 
 **Coverage:**
 
