@@ -2,7 +2,7 @@
 
 ## What This Is
 
-Amris is a framework-agnostic UI component library built on Lit 3 and Web Components. It ships 60+ Shadow-DOM-encapsulated custom elements (buttons, forms, overlays, navigation, data display) with a `--am-*` design-token system and light/dark theming, usable in plain HTML or any framework (React, Vue, Angular, Svelte). This milestone hardens the existing library into a frozen, production-ready **v1.0** published to GitHub Packages.
+Amris is a framework-agnostic UI component library built on Lit 3 and Web Components. It ships 60+ Shadow-DOM-encapsulated custom elements (buttons, forms, overlays, navigation, data display) with a `--am-*` design-token system and light/dark theming, usable in plain HTML or any framework (React, Vue, Angular, Svelte). **v1.0** shipped as a frozen, dependable, published release; the current **v1.1** milestone hardens it for low-end enterprise devices and slow networks — smaller bundles, faster runtime, and broader browser reach — without changing the frozen public API.
 
 ## Core Value
 
@@ -16,6 +16,17 @@ Consumers can drop `@willramanand/amris` into any app and trust the components t
 - **Revenue model**: Not monetized — open component library under the maintainer's scope
 - **Success metric**: v1.0 tagged and published with CI quality gates green; zero known P0/P1 defects
 - **Strategy notes**: —
+
+## Current Milestone: v1.1 Performance & Compatibility Hardening
+
+**Goal:** Make Amris load and run well on low-end enterprise devices and slow networks, and reach as many browsers as cheaply possible — without changing the frozen v1.0 public surface — locked in by CI perf/size gates.
+
+**Target features:**
+- Measure-first harness + budgets: reproducible bundle-size + runtime-perf measurement, heavy-component profiling, low-end target profile chosen from the real baseline
+- Bundle-size reduction: leaner core/full/per-component payloads via tree-shaking, internal deferral/lazy-load of heavy deps (floating-ui, highlight.js), trimmed CSS/token delivery
+- Runtime perf tuning: less main-thread work, fewer re-renders, lower memory on throttled CPUs — heaviest components first (data-grid, overlays)
+- Graceful degradation below Safari 16.4: feature-detect ElementInternals & modern APIs, degrade forms instead of silently failing, reach as far back as cheap allows (documented true limit), widen the tested-engine matrix
+- CI-enforced perf + bundle-size gates: budgets that block regressions (report-only → enforcing), same discipline as v1.0 coverage gates
 
 ## Requirements
 
@@ -45,16 +56,22 @@ Consumers can drop `@willramanand/amris` into any app and trust the components t
 
 - ✓ API surface normalized dimension-by-dimension (7 audit matrices), breaking renames landed per-wave with Changesets, big-4 components (combobox/select/date-picker/time-picker) refactored onto a non-exported `src/internal/` boundary, and the slot/`::part()`/`--am-*` token surface enumerated + marked FROZEN in `api/AUDIT.md` with a committed, report-only `custom-elements.baseline.json` diff in CI — Phase 2
 
+<!-- Validated across Phases 3–6 (v1.0 milestone shipped 2026-08-20) -->
+
+- ✓ Lifecycle leaks fixed under one `TeardownScope` discipline — toast dismiss timer tracked/cleared, global listeners gated on open + torn down on disconnect, `isConnected` focus-restoration guards, dialog animation cleanup — teardown-spy verified — Phase 3
+- ✓ Three load-bearing capabilities delivered on the non-exported `src/internal/` boundary: list virtualization (data-grid + combobox/select popups, a11y-correct), validation-message display (`ValidationController` + `setCustomError`), and the keyboard-shortcut registry (`am-shortcuts` provider) — Phase 4
+- ✓ Frozen contract documented: README (Lit peer-dep + Safari 16.4 floor), theming/validation/usage docs, and a `contract.md` generated from the CEM with a CI drift check — Phase 5
+- ✓ CEM surface-diff gate flipped to enforcing; `package.json` `exports`/`sideEffects` hardened; tarball pack/install smoke test; **v1.0.0** published to GitHub Packages and tagged `v1.0` — Phase 6
+
 ### Active
 
-<!-- v1.0 hardening scope. Hypotheses until shipped and validated. -->
+<!-- v1.1 scope: perf, size, and browser reach for low-end enterprise. Hypotheses until shipped and validated. -->
 
-- [ ] Bug/leak fixes: track toast dismiss `setTimeout`; gate global listener attach/detach on open state; guard focus restoration against removed nodes; harden dialog animation cleanup
-- [ ] Performance: implement list virtualization for DataGrid/combobox (1000+ rows); gate floating-ui `autoUpdate` to open transitions; add bundle-size monitoring in CI
-- [ ] Feature: form controls display `ElementInternals.validationMessage`
-- [ ] Feature: global keyboard-shortcut registry (replace hardcoded Cmd+K in command-palette)
-- [ ] Docs: validation/theming/usage docs, README with Lit peer-dependency and browser-support requirements
-- [ ] Release: green CI release pipeline (tests + coverage + a11y + bundle-size), then tag and publish **v1.0**
+- [ ] Measurement: reproducible bundle-size + runtime-perf harness; profile heavy components on a throttled device/network; establish baselines and derive budgets (low-end target profile chosen from the data)
+- [ ] Bundle size: reduce core/full/per-component payloads — tree-shaking wins, internal deferral/lazy-load of heavy deps (`floating-ui`, `highlight.js`), leaner CSS/token delivery
+- [ ] Runtime perf: cut main-thread work, re-renders, and memory on throttled CPUs — heaviest components first (data-grid, overlays)
+- [ ] Compatibility: graceful degradation below Safari 16.4 via feature detection (no hard ElementInternals polyfill); reach as far back as cheap allows; document the true limit; widen the tested-engine matrix (WebKit/Firefox/Chromium)
+- [ ] Gates: CI-enforced perf + bundle-size budgets that block regressions (report-only → enforcing), same discipline as the v1.0 coverage gates
 
 ### Out of Scope
 
@@ -62,9 +79,11 @@ Consumers can drop `@willramanand/amris` into any app and trust the components t
 
 - New components beyond the current ~67 — feature freeze; 1.0 hardens what exists, prevents sprawl
 - Framework-specific wrapper packages (React/Vue/Angular bindings) — custom elements already interop; wrappers are a post-1.0 concern
-- SSR / server rendering support — Vite 8 build targets client ESM; not a 1.0 goal
-- Full automated real-browser test matrix (whole suite, multi-engine incl. WebKit) — a minimal Chromium lane covers the 4 load-bearing areas (see Active); the full matrix stays deferred to v2 per research (avoid over-tooling a 1.0)
-- Figma sync, CLI tooling, design-tool integrations — out of the library's 1.0 remit
+- SSR / server rendering support — client-only ESM model retained for v1.1; not a goal (revisit post-v1.1 if first-paint demands it)
+- Exhaustive per-component multi-engine test matrix — v1.1 widens the tested-engine matrix (WebKit/Firefox/Chromium) where cheap, but a full every-component × every-engine matrix stays deferred (cost outweighs value)
+- Hard ElementInternals polyfill — not polyfillable and collides with the frozen surface; degrade gracefully below the floor instead
+- New public API surface in v1.1 — v1.0 API is frozen; optimization and graceful degradation must be behavior- and surface-preserving (any exception needs a Changeset)
+- Figma sync, CLI tooling, design-tool integrations — out of the library's remit
 
 ## Context
 
@@ -88,13 +107,18 @@ Consumers can drop `@willramanand/amris` into any app and trust the components t
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Ship a frozen v1.0 (not just quality bar) | Consumers need an API-stable, dependable release | — Pending |
-| Allow breaking API changes before the freeze | Last chance to fix rough/inconsistent APIs before locking the contract | — Pending |
-| Include validation messages, list virtualization, and keyboard-shortcut registry in 1.0 | The three CONCERNS "missing critical features" are load-bearing for real consumers | — Pending |
-| Enforce coverage + bundle-size + a11y gates in CI | Automate the confidence needed to freeze and publish | — Pending |
-| Feature-freeze the component set at ~67 | Prevent sprawl; 1.0 hardens existing surface | — Pending |
-| Carve out a minimal real-browser test lane (Vitest Browser Mode + Playwright/Chromium) for 4 load-bearing areas | jsdom mocks ElementInternals/focus/dialog/positioning; a form-heavy 1.0 cannot be credibly frozen on mocks. Narrows the earlier "no non-jsdom infra" boundary | — Pending |
-| Adopt a new non-exported `src/internal/` boundary for feature machinery | Keeps virtualization/validation/shortcut controllers off the frozen CEM/public surface so 1.0 stays small and diffable | — Pending |
+| Ship a frozen v1.0 (not just quality bar) | Consumers need an API-stable, dependable release | ✓ Good |
+| Allow breaking API changes before the freeze | Last chance to fix rough/inconsistent APIs before locking the contract | ✓ Good |
+| Include validation messages, list virtualization, and keyboard-shortcut registry in 1.0 | The three CONCERNS "missing critical features" are load-bearing for real consumers | ✓ Good |
+| Enforce coverage + bundle-size + a11y gates in CI | Automate the confidence needed to freeze and publish | ✓ Good |
+| Feature-freeze the component set at ~67 | Prevent sprawl; 1.0 hardens existing surface | ✓ Good |
+| Carve out a minimal real-browser test lane (Vitest Browser Mode + Playwright/Chromium) for 4 load-bearing areas | jsdom mocks ElementInternals/focus/dialog/positioning; a form-heavy 1.0 cannot be credibly frozen on mocks. Narrows the earlier "no non-jsdom infra" boundary | ✓ Good |
+| Adopt a new non-exported `src/internal/` boundary for feature machinery | Keeps virtualization/validation/shortcut controllers off the frozen CEM/public surface so 1.0 stays small and diffable | ✓ Good |
+| v1.1 is optimization/compat only — no new public API | v1.0 surface is frozen; hardening must stay behavior- and surface-preserving | — Pending |
+| Measure before optimizing — build a perf + size baseline harness first | Avoids blind cuts; the low-end target profile is chosen from real data | — Pending |
+| Degrade gracefully below Safari 16.4, no hard ElementInternals polyfill | Reach older browsers as cheaply as feature-detection allows, without heavy shims | — Pending |
+| Enforce CI perf + bundle-size budgets (report-only → enforcing) | Lock in gains and block regressions, mirroring the v1.0 coverage gates | — Pending |
+| Stay client-only ESM — no SSR in v1.1 | Optimize within the current model; SSR is a larger lift, deferred | — Pending |
 
 ## Evolution
 
@@ -114,4 +138,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-08-17 after Phase 2 (API Cleanup + CEM Baseline) complete*
+*Last updated: 2026-08-20 after starting milestone v1.1 (Performance & Compatibility Hardening)*
