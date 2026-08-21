@@ -23,7 +23,7 @@ Consumers can drop `@willramanand/amris` into any app and trust the components t
 
 **Target features:**
 - Measure-first harness + budgets: reproducible bundle-size + runtime-perf measurement, heavy-component profiling, low-end target profile chosen from the real baseline
-- Bundle-size reduction: leaner core/full/per-component payloads via tree-shaking, internal deferral/lazy-load of heavy deps (floating-ui, highlight.js), trimmed CSS/token delivery
+- Bundle-size reduction: leaner core/full/per-component payloads via tree-shaking, internal deferral/lazy-load of the real shipped heavy deps (@floating-ui/dom, @lit-labs/virtualizer), trimmed CSS/token delivery
 - Runtime perf tuning: less main-thread work, fewer re-renders, lower memory on throttled CPUs — heaviest components first (data-grid, overlays)
 - Graceful degradation below Safari 16.4: feature-detect ElementInternals & modern APIs, degrade forms instead of silently failing, reach as far back as cheap allows (documented true limit), widen the tested-engine matrix
 - CI-enforced perf + bundle-size gates: budgets that block regressions (report-only → enforcing), same discipline as v1.0 coverage gates
@@ -68,7 +68,7 @@ Consumers can drop `@willramanand/amris` into any app and trust the components t
 <!-- v1.1 scope: perf, size, and browser reach for low-end enterprise. Hypotheses until shipped and validated. -->
 
 - [ ] Measurement: reproducible bundle-size + runtime-perf harness; profile heavy components on a throttled device/network; establish baselines and derive budgets (low-end target profile chosen from the data)
-- [ ] Bundle size: reduce core/full/per-component payloads — tree-shaking wins, internal deferral/lazy-load of heavy deps (`floating-ui`, `highlight.js`), leaner CSS/token delivery
+- [ ] Bundle size: reduce core/full/per-component payloads — tree-shaking wins, internal deferral/lazy-load of the real shipped heavy deps (`@floating-ui/dom`, `@lit-labs/virtualizer`; `highlight.js` is Storybook-only, not shipped), leaner CSS/token delivery
 - [ ] Runtime perf: cut main-thread work, re-renders, and memory on throttled CPUs — heaviest components first (data-grid, overlays)
 - [ ] Compatibility: graceful degradation below Safari 16.4 via feature detection (no hard ElementInternals polyfill); reach as far back as cheap allows; document the true limit; widen the tested-engine matrix (WebKit/Firefox/Chromium)
 - [ ] Gates: CI-enforced perf + bundle-size budgets that block regressions (report-only → enforcing), same discipline as the v1.0 coverage gates
