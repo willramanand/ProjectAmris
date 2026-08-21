@@ -94,37 +94,37 @@ Which phases cover which requirements. Populated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| MEAS-01 | — | Pending |
-| MEAS-02 | — | Pending |
-| MEAS-03 | — | Pending |
-| MEAS-04 | — | Pending |
-| MEAS-05 | — | Pending |
-| SIZE-01 | — | Pending |
-| SIZE-02 | — | Pending |
-| SIZE-03 | — | Pending |
-| SIZE-04 | — | Pending |
-| SIZE-05 | — | Pending |
-| RPERF-01 | — | Pending |
-| RPERF-02 | — | Pending |
-| RPERF-03 | — | Pending |
-| RPERF-04 | — | Pending |
-| COMPAT-01 | — | Pending |
-| COMPAT-02 | — | Pending |
-| COMPAT-03 | — | Pending |
-| COMPAT-04 | — | Pending |
-| COMPAT-05 | — | Pending |
-| COMPAT-06 | — | Pending |
-| GATE-01 | — | Pending |
-| GATE-02 | — | Pending |
-| GATE-03 | — | Pending |
-| DOCS-04 | — | Pending |
+| MEAS-01 | Phase 7 | Pending |
+| MEAS-02 | Phase 7 | Pending |
+| MEAS-03 | Phase 7 | Pending |
+| MEAS-04 | Phase 7 | Pending |
+| MEAS-05 | Phase 7 | Pending |
+| SIZE-01 | Phase 8 | Pending |
+| SIZE-02 | Phase 8 | Pending |
+| SIZE-03 | Phase 8 | Pending |
+| SIZE-04 | Phase 8 | Pending |
+| SIZE-05 | Phase 8 | Pending |
+| RPERF-01 | Phase 9 | Pending |
+| RPERF-02 | Phase 9 | Pending |
+| RPERF-03 | Phase 9 | Pending |
+| RPERF-04 | Phase 9 | Pending |
+| COMPAT-01 | Phase 10 | Pending |
+| COMPAT-02 | Phase 10 | Pending |
+| COMPAT-03 | Phase 10 | Pending |
+| COMPAT-04 | Phase 10 | Pending |
+| COMPAT-05 | Phase 10 | Pending |
+| COMPAT-06 | Phase 10 | Pending |
+| GATE-01 | Phase 11 | Pending |
+| GATE-02 | Phase 11 | Pending |
+| GATE-03 | Phase 11 | Pending |
+| DOCS-04 | Phase 11 | Pending |
 
 **Coverage:**
 
 - v1.1 requirements: 24 total (5 MEAS + 5 SIZE + 4 RPERF + 6 COMPAT + 3 GATE + 1 DOCS)
-- Mapped to phases: 0 (roadmap pending)
-- Unmapped: 24 ⚠️ (populated at roadmap creation)
+- Mapped to phases: 24 (24/24 mapped ✓)
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-08-21*
-*Last updated: 2026-08-21 after initial definition*
+*Last updated: 2026-08-21 after roadmap creation (Phases 7–11 mapped)*

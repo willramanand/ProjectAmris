@@ -3,129 +3,66 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Performance & Compatibility Hardening
 status: planning
-last_updated: "2026-08-21T02:52:25.847Z"
-last_activity: 2026-08-20
+last_updated: "2026-08-21T00:00:00.000Z"
+last_activity: 2026-08-21
 progress:
-  total_phases: 0
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  total_phases: 11
+  completed_phases: 6
+  total_plans: 39
+  completed_plans: 39
+  percent: 55
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-08-10)
+See: .planning/PROJECT.md (updated 2026-08-21)
 
-**Core value:** A frozen, dependable public API backed by real test coverage — consumers can drop `@willramanand/amris` into any app and trust it to be correct, accessible, and API-stable.
-**Current focus:** Phase 06 — API Freeze + Release
+**Core value:** Amris loads and runs well on low-end enterprise devices and slow networks and reaches as far down the browser stack as cheaply possible — without changing the frozen v1.0 public surface, locked in by CI perf/size gates.
+**Current focus:** Phase 7 — Measurement, Baselines & Budgets (v1.1)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-08-20 — Milestone v1.1 started
+Phase: 7 of 11 (Measurement, Baselines & Budgets) — first v1.1 phase
+Plan: — of — (roadmap just created; no plans yet)
+Status: Ready to plan
+Last activity: 2026-08-21 — v1.1 roadmap created (Phases 7–11), 24/24 requirements mapped
+
+Progress: [█████░░░░░] 55% (6 of 11 phases complete; v1.0 shipped)
 
 ## Performance Metrics
 
-**Velocity:**
+**Velocity (v1.0, shipped 2026-08-20):**
 
-- Total plans completed: 25
-- Average duration: — min
-- Total execution time: 0.0 hours
+- Total plans completed: 39 across 6 phases
+- v1.1 plans: not yet planned
 
-**By Phase:**
+**By Phase (v1.0):**
 
-| Phase | Plans | Total | Avg/Plan |
-|-------|-------|-------|----------|
-| 01 | 8 | - | - |
-| 02 | 9 | - | - |
-| 05 | 4 | - | - |
-| 06 | 4 | - | - |
-
-**Recent Trend:**
-
-- Last 5 plans: —
-- Trend: —
+| Phase | Plans | Status |
+|-------|-------|--------|
+| 1. Test Coverage + CI Gates | 8 | Complete |
+| 2. API Cleanup + CEM Baseline | 9 | Complete |
+| 3. Reliability & Leak Fixes | 4 | Complete |
+| 4. Performance & Feature Capabilities | 10 | Complete |
+| 5. Documentation | 4 | Complete |
+| 6. API Freeze + Release | 4 | Complete |
 
 *Updated after each plan completion*
-**Per-Plan Metrics:**
-
-| Plan | Duration | Tasks | Files |
-|------|----------|-------|-------|
-| Phase 01 P01 | 12 | 3 tasks | 14 files |
-| Phase 01 P02 | 1min | 2 tasks | 6 files |
-| Phase 01 P03 | ~1 min | 2 tasks | 8 files |
-| Phase 01 P04 | 6min | 3 tasks | 8 files |
-| Phase 01 P05 | 5min | 3 tasks | 3 files |
-| Phase 01 P06 | 3min | 2 tasks | 1 files |
-| Phase 01 P07 | 4min | 3 tasks | 8 files |
-| Phase 01 P08 | 7min | 3 tasks | 3 files |
-| Phase 02 P01 | 3 | 3 tasks | 5 files |
-| Phase 02 P02 | 14 | 3 tasks | 2 files |
-| Phase 02 P03 | 4 | 2 tasks | 7 files |
-| Phase 02 P04 | 4min | 3 tasks | 5 files |
-| Phase 02 P05 | 4min | 2 tasks | 5 files |
-| Phase 02 P06 | 5min | 3 tasks | 4 files |
-| Phase 02 P07 | 4min | 3 tasks | 3 files |
-| Phase 02 P08 | 3min | 2 tasks | 2 files |
-| Phase 02 P09 | 6min | 3 tasks | 5 files |
-| Phase 03 P01 | 5min | 2 tasks | 4 files |
-| Phase 03 P02 | 3min | 2 tasks | 3 files |
-| Phase 03 P03 | 3min | 3 tasks | 5 files |
-| Phase 03 P04 | 4min | 3 tasks | 8 files |
-| Phase 05 P01 | 9 | 2 tasks | 4 files |
-| Phase 05 P02 | 8min | 3 tasks | 3 files |
-| Phase 05 P03 | ~18m | 3 tasks | 8 files |
-| Phase 05 P04 | 13min | 3 tasks | 2 files |
 
 ## Accumulated Context
 
 ### Decisions
 
-Decisions are logged in PROJECT.md Key Decisions table.
-Recent decisions affecting current work:
+Full log in PROJECT.md Key Decisions table and the archived v1.0 roadmap. Decisions now active for v1.1:
 
-- Ship a frozen v1.0, not just a quality bar — consumers need an API-stable release.
-- Allow breaking API changes before the freeze — last chance to fix rough/inconsistent APIs (Phase 2 precedes the Phase 6 freeze).
-- Carve out a minimal real-browser test lane (Vitest Browser Mode + Playwright/Chromium) for the 4 load-bearing areas — jsdom cannot prove ElementInternals/focus/dialog/positioning (Phase 1).
-- Adopt a non-exported `src/internal/` boundary for feature machinery — keeps virtualization/validation/shortcut controllers off the frozen surface (Phase 4).
-- [Phase ?]: Vitest split into jsdom+browser projects; browser lane omits setupFiles for native ElementInternals (Pitfall 2)
-- [Phase ?]: Coverage folds over jsdom only (OQ-1); branch-gated with per-dir tiers at measured baseline (D-01/D-02)
-- [Phase ?]: Layout primitives (stack/grid/surface/panel/card) split into dedicated 1:1 jsdom test files; grouped layout-primitives.test.ts retired with zero coverage loss
-- [Phase ?]: 01-03: split 8 display components into dedicated 1:1 test files; each imports only fixture (noUnusedLocals); display-trivial.test.ts left intact for plans 04/08.
-- [Phase ?]: 01-06: TEST-02 proven for all form-associated controls via real FormData/native setFormValue in Chromium (mock-free browser suite)
-- [Phase ?]: 01-07: TEST-04/05 covered in jsdom lane green-on-arrival; clamp asserts observable DOM highlight bound (raw _highlightedIndex un-clamped on option replace — Phase 3 FIX-02 finding)
-- [Phase ?]: 01-07: am-tooltip attaches NO document listeners (scoped mouse/focus + floating-ui autoUpdate) — TEST-05 asserts absence, captured for Phase 3 FIX-02
-- [Phase ?]: Phase 1 gates finalized: size-limit budget set + tree-shaking canary (gzip), coverage ratcheted to final floor, 66/66 1:1 test invariant, four-gate pipeline green
-- [Phase ?]: 02-02: api/AUDIT.md tabulates all 79 registered tagNames (not just 66 component files) — matrices key on tagName like cem-diff.mjs
-- [Phase ?]: 02-02: Rename mapping rows PENDING-DECISION — targets (open/close, change/select, change/toggle) confirmed at each rename wave checkpoint (Plans 03-05)
-- [Phase ?]: 02-02: Audit gap detector flagged --am-z-toast used in toast css but never defined/@cssprop-tagged — pre-freeze action for Plan 09
-- [Phase ?]: 02-03: overlay lifecycle events renamed am-show/am-hide -> am-open/am-close on dropdown/popover/context-menu (D-01/D-04 hard rename); one wave Changeset (minor, pre-1.0); baseline re-committed (D-14)
-- [Phase ?]: 02-04: selection events normalized under D-02 change-vs-select split — am-select-option -> am-change (am-option); am-row-select + am-selection-change -> single am-change with aggregate detail { keys } (am-data-grid); old names removed, no alias (D-04); one Changeset; baseline re-committed (D-14)
-- [Phase ?]: 02-05: final rename wave (D-03) — tabs am-tab-change -> am-change; combobox select -> searchInTrigger (search-in-trigger) and async -> remote; expand-state am-toggle preserved; old names removed (D-04); one Changeset; baseline re-committed (D-14)
-- [Phase ?]: 02-06: established non-exported src/internal/ boundary with 3 shared units — FloatingPositionController, ListboxNavController, option-filter pure module; combobox delegates positioning/nav/filtering behavior-preservingly, Phase 1 tests green with zero edits (API-03/D-07/D-08/D-09/D-10)
-- [Phase ?]: 02-06: option-filter is a pure module not a controller (D-07 — stateless); ListboxNav operates on host's _highlightedIndex via callbacks to keep it observable @state and preserve un-clamp-on-replace; autoUpdate left ungated (Phase 3 FIX-02 / Phase 4 PERF-04 seams preserved)
-- [Phase ?]: 02-07: select + date-picker delegate dropdown positioning to the shared FloatingPositionController; date-picker date math extracted to pure src/internal/helpers/date-utils.ts (API-03/D-07/D-08). Behavior-preserving — full suite (jsdom+Chromium) green, zero test edits, surface unchanged.
-- [Phase ?]: 02-07: select nav kept inline and no shared controller edited — select's element-based wraparound keyboard nav is a different model from combobox's string-clamp ListboxNav, and select has no option filtering; delegating only genuine (positioning) duplication keeps combobox untouched (D-08/A3 discretion).
-- [Phase ?]: 02-08: time-picker refactored via pure src/internal/helpers/time-utils.ts (parse/format + clock arithmetic, D-07/D-08). No listbox and no @floating-ui/dom, so neither ListboxNavController nor FloatingPositionController applied (Pitfall 5) — completes the Big-4 refactor. Behavior-preserving: full jsdom+Chromium suite green, zero test edits, surface unchanged.
-- [Phase ?]: 02-09: froze public slot/::part()/--am-* token surface (212 global + 54 per-component tokens, 21 slots, 76 parts) as v1.0 contract (D-11); tagged --am-z-toast @cssprop on am-toast-region (freeze-all-documented); final baseline re-committed, diff:surface clean, surface-diff CI stays report-only (D-13)
-- [Phase ?]: 03-01: established TeardownScope shared teardown primitive (src/internal/, off frozen surface) as the phase tracer; am-toast dismiss fallback timer + animationend listener now tracked/cleared via _clearTimer() (FIX-01) — behavior-preserving, ready for reuse by FIX-04 (03-02).
-- [Phase ?]: am-dialog: reused TeardownScope (03-01) in disconnectedCallback for nudge listener (FIX-04); isConnected guard on _hide() focus restoration (FIX-03)
-- [Phase ?]: 03-03: isConnected focus-guard extended to am-drawer + am-command-palette (FIX-03 overlay set complete; am-popover documented as no-focus-restoration path); FIX-02 verified — six overlay components' gated-on-open + torn-down-on-disconnect listeners proven green by TEST-05 spies as pre-freeze regression lock, no refactor.
-- [Phase ?]: CR-01: command-palette keyboard nav + Enter index into _ordered (rendered grouped order), so highlight == selection on interleaved groups
-- [Phase ?]: WR-01: dialog/drawer/command-palette gate am-close on a real transition (else if prev), not the bare !==undefined guard which would break mount-with-open am-open
-- [Phase ?]: WR-02: toast dismiss onEnd gated on animationName==='toast-out', dropped once:true; 300ms fallback calls onEnd() eventless
-- [Phase ?]: 05-01: Contract doc generated from the CEM (build-contract-doc.mjs), freeze intro embedded as a constant so the whole doc is deterministically regenerable
-- [Phase ?]: 05-01: Contract-doc drift gated in CI via git diff --exit-code in the surface-diff job; report-only diff:surface left for Phase 6 to flip
-- [Phase ?]: 05-02: prose docs authored as GitHub-native Markdown (theming/validation/usage) under docs/, guide-vs-enumeration split linking to generated contract.md
-- [Phase ?]: 05-02: data-theme documented only for the global tokens.css path (build-tokens-css promotes :host([theme=dark]) -> :root[data-theme=dark]); am-theme-provider uses theme= attribute
-- [Phase ?]: 05-02: keyboard shortcuts folded into usage.md (not a standalone page); validation.md cross-links Patterns/Validation Storybook demo (discretion items)
-- [Phase ?]: README rebuilt as consumer-first quick-start (D-03); vision prose relocated to docs/vision.md (D-04); docs/*.html static site retired (D-02)
-- [Phase ?]: DOCS-03 examples ship as Patterns/* Storybook stories (validation, virtualization) with live controls (D-07/D-08)
+- v1.1 is optimization/compat only — no new public API; hardening stays behavior- and surface-preserving against the frozen v1.0 CEM (COMPAT-03 hidden-input fallback is the one Changeset exception).
+- Measure before optimizing — the perf + size baseline harness (Phase 7) is the universal prerequisite; the low-end target profile is chosen from real data.
+- Degrade gracefully below Safari 16.4 via independent capability probing — no hard ElementInternals polyfill.
+- Enforce CI perf + bundle-size budgets last (report-only → enforcing), mirroring the v1.0 coverage gates; size gates flip before count-metric gates; wall-clock stays report-only.
+- Stay client-only ESM — no SSR in v1.1.
+- Roadmap ordering: measure → cut (bundle deferral before runtime tuning) → reach (degradation before widened-engine matrix) → lock in (gates last). COMPAT-01 capabilities folded into the front of Phase 10.
 
 ### Pending Todos
 
@@ -137,23 +74,23 @@ None yet.
 
 [Issues that affect future work]
 
-- REQUIREMENTS.md coverage counter previously read "27 total," but there are 32 distinct v1 requirement IDs (8 TEST + 5 API + 4 FIX + 4 PERF + 4 FEAT + 3 DOCS + 4 SHIP). Traceability now reflects the true 32; counter corrected.
-- Phase 1 (browser-mode coverage instrumentation / provider pinning) and Phase 4a (virtualization a11y) are flagged for `--research-phase` during planning (research: STACK/virtualizer MEDIUM confidence).
-- Validation UX policy (hint-text vs error-text precedence, error-clearing) is undecided — settle during Phase 4 spec.
-- No form-associated control implements ElementInternals.setValidity — TEST-02 required-field validation deferred to Phase 4 (validation-UX policy)
-- am-search-field and am-file-upload are NOT form-associated (no ElementInternals; file-upload has no name) — do not participate in FormData. Finding for validation/form phase.
-- ~~02-06: pre-existing tsc --noEmit errors in data-grid.ts (unused _toggleRow params, from commit 2f20e2f/02-04)~~ **RESOLVED** in commit bbe853e — params underscore-prefixed; `tsc --noEmit` exit 0.
+- **Phase 7** flagged for `--research-phase`: perf-gate noise characterization — whether shared CI run-to-run variance lets the count gate enforce, or needs a dedicated/manual-dispatch low-noise runner.
+- **Phase 10** flagged for `--research-phase`: true per-capability browser floor (FACE vs ARIA reflection vs `:has()`/`adoptedStyleSheets`) resolved empirically on the widened matrix; Tier-2 hidden-input (COMPAT-03) Changeset decision pending enterprise-demand call.
+- Open baseline unknowns (resolve in Phase 7): exact CPU/network throttle profile, per-entry brotli budget KB numbers.
 
 ## Deferred Items
 
-Items acknowledged and carried forward from previous milestone close:
+Items acknowledged and carried forward, most recent first:
 
-| Category | Item | Status | Deferred At |
-|----------|------|--------|-------------|
-| *(none)* | | | |
+| Category | Item | Status | Deferred At | Milestone |
+|----------|------|--------|-------------|-----------|
+| Testing | TEST-V2-02 — api-extractor `.d.ts` surface guard | Deferred | v1.0 close | v2 |
+| A11y/i18n | RTL-V2-01 — full RTL audit across overlays | Deferred | v1.0 close | v2 |
+| Features | FEAT-V2-01/02 — shortcut persistence, editable grid | Deferred | v1.0 close | v2 |
+| Performance | PERF-V2-01 — `manualChunks` dedupe if purity insufficient | Deferred | v1.1 scope | v2 |
 
 ## Session Continuity
 
-Last session: 2026-08-19T14:04:59.264Z
-Stopped at: Phase 06 complete — all phases complete
+Last session: 2026-08-21
+Stopped at: v1.1 roadmap created — Phases 7–11 written, REQUIREMENTS traceability at 24/24 mapped
 Resume file: None
