@@ -38,7 +38,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. `.size-limit.json` is re-scoped so the delivered-payload metric **counts** `@floating-ui/dom` (making the deferral win visible), and a separate assertion — independent of size-limit — proves Lit is never bundled. (MEAS-04)
   5. A dev-only bundle-attribution report (`rollup-plugin-visualizer` + `@size-limit/esbuild-why`) is available and confirms `highlight.js` is absent from every shipped chunk. (MEAS-05)
 
-**Plans**: 6/7 plans executed (waves 1-4)
+**Plans**: 7/7 plans executed (waves 1-4)
 **Wave 1**
 
 - [x] 07-00-PLAN.md — Setup & de-risk spikes: cdp() privilege (A2), Lit markers (A3), install 3 dev tools (wave 1)
@@ -56,7 +56,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 07-06-PLAN.md — Report-only CI wiring (perf + size jobs) + local-only tachometer config (all MEAS, wave 4)
+- [x] 07-06-PLAN.md — Report-only CI wiring (perf + size jobs) + local-only tachometer config (all MEAS, wave 4)
 
 ### Phase 8: Bundle-Size Deferral
 
@@ -124,7 +124,7 @@ Phase 10 (graceful degradation) depends only on the Phase 7 harness/browser lane
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 7. Measurement, Baselines & Budgets | 6/7 | In Progress|  |
+| 7. Measurement, Baselines & Budgets | 7/7 | In Progress|  |
 | 8. Bundle-Size Deferral | 0/TBD | Not started | - |
 | 9. Runtime-Performance Tuning | 0/TBD | Not started | - |
 | 10. Graceful Degradation & Compatibility Matrix | 0/TBD | Not started | - |
