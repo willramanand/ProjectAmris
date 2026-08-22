@@ -2,10 +2,13 @@ import { LitElement, css, html, nothing, type PropertyValues, type TemplateResul
 import { customElement, property, query, state } from 'lit/decorators.js';
 import { live } from 'lit/directives/live.js';
 import { repeat } from 'lit/directives/repeat.js';
-import { virtualize } from '@lit-labs/virtualizer/virtualize.js';
 import { resetStyles } from '../../styles/reset.css.js';
 import { requestAssociatedFormSubmit } from '../../utilities/form-actions.js';
-import { prefetchFloating } from '../../internal/helpers/lazy-load.js';
+import {
+  loadVirtualizer,
+  prefetchFloating,
+  prefetchVirtualizer,
+} from '../../internal/helpers/lazy-load.js';
 import { FloatingPositionController } from '../../internal/controllers/floating-position.js';
 import { ListboxNavController } from '../../internal/controllers/listbox-nav.js';
 import { filterOptions } from '../../internal/controllers/option-filter.js';
@@ -103,6 +106,17 @@ export class AmCombobox extends LitElement {
   @state() private _highlightedIndex = -1;
   @state() private _dropdownQuery = '';
   @state() private _slottedOptions: string[] = [];
+
+  /**
+   * The lazily-loaded `virtualize()` directive, `undefined` until the deferred
+   * `@lit-labs/virtualizer` chunk resolves (D-05). While `undefined`, the
+   * above-threshold render path falls back to a fully-functional unwindowed
+   * `repeat()` (cold-chunk / fetch-failure fallback), then swaps to `virtualize()`
+   * on resolve via {@link requestUpdate}. Kept off the CEM surface (plain field).
+   */
+  private _virtualize?: typeof import('@lit-labs/virtualizer/virtualize.js')['virtualize'];
+  /** True once the virtualizer load has been kicked — dedupes the request. */
+  private _virtualizerRequested = false;
 
   @query('input') private inputEl!: HTMLInputElement;
   @query('.listbox') private listboxEl!: HTMLElement;
@@ -516,6 +530,10 @@ export class AmCombobox extends LitElement {
       if (this._open) {
         document.addEventListener('click', this._handleDocumentClick);
         this._floatingController.start();
+        // Warm the virtualizer chunk when opening near/above the threshold so the
+        // repeat()→virtualize() swap resolves promptly (D-04). Below it, never
+        // fetched — the repeat() path needs no virtualizer.
+        if (this._openOptionCount() > VIRTUALIZE_ROW_THRESHOLD) prefetchVirtualizer();
       } else {
         document.removeEventListener('click', this._handleDocumentClick);
         this._floatingController.stop();
@@ -723,20 +741,55 @@ export class AmCombobox extends LitElement {
   }
 
   /**
+   * Kick the deferred `@lit-labs/virtualizer` load once, assigning the resolved
+   * directive and requesting a re-render so the above-threshold path swaps from
+   * the `repeat()` fallback to `virtualize()` (D-04/D-05). A failed fetch leaves
+   * `_virtualize` undefined and clears the guard so the fully-functional
+   * `repeat()` fallback stands and a later render can retry.
+   */
+  /** Currently-filtered option count for the active mode (select vs text). */
+  private _openOptionCount(): number {
+    return this.searchInTrigger
+      ? this._selectFilteredOptions.length
+      : filterOptions(this._allOptions, this.value, this.remote).length;
+  }
+
+  private _ensureVirtualizer(): void {
+    if (this._virtualize || this._virtualizerRequested) return;
+    this._virtualizerRequested = true;
+    loadVirtualizer()
+      .then((m) => {
+        this._virtualize = m.virtualize;
+        this.requestUpdate();
+      })
+      .catch(() => {
+        // Cold/failed chunk — stay on the repeat() fallback (D-05); allow retry.
+        this._virtualizerRequested = false;
+      });
+  }
+
+  /**
    * Render the option list body. Above {@link VIRTUALIZE_ROW_THRESHOLD} (D-06)
-   * the `virtualize()` directive windows the list; at/below it the existing
-   * `repeat()` path stands. Both share {@link _renderOption} so ARIA is uniform.
+   * the `virtualize()` directive windows the list once its deferred chunk has
+   * resolved; until then (cold chunk / fetch failure) the fully-functional
+   * unwindowed `repeat()` fallback stands (D-05). At/below the threshold the
+   * `repeat()` path always stands. Both share {@link _renderOption} so the ARIA
+   * shape (posinset/setsize from the absolute index) is identical across the swap.
    */
   private _renderOptionList(filtered: string[]): unknown {
     if (filtered.length === 0) {
       return html`<div class="empty" role="option" aria-disabled="true">No results</div>`;
     }
     if (filtered.length > VIRTUALIZE_ROW_THRESHOLD) {
-      return virtualize({
-        items: filtered,
-        keyFunction: (opt: string) => opt,
-        renderItem: (opt: string, i: number) => this._renderOption(opt, i, filtered.length),
-      });
+      this._ensureVirtualizer();
+      if (this._virtualize) {
+        return this._virtualize({
+          items: filtered,
+          keyFunction: (opt: string) => opt,
+          renderItem: (opt: string, i: number) => this._renderOption(opt, i, filtered.length),
+        });
+      }
+      // Cold-chunk / fetch-failure fallback: unwindowed but fully functional.
     }
     return repeat(
       filtered,
