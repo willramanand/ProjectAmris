@@ -24,6 +24,12 @@
     "limit": "13 kB"
   },
   {
+    "name": "popover (overlay deep import)",
+    "path": "dist/components/popover/index.js",
+    "ignore": ["lit"],
+    "limit": "12 kB"
+  },
+  {
     "name": "first-load composite (core+button+input+dialog)",
     "path": [
       "dist/amris-core.js",

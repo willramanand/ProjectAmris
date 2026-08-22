@@ -1,8 +1,9 @@
 import { LitElement, css, html, nothing } from 'lit';
-import { customElement, property, query } from 'lit/decorators.js';
-import { arrow, type Placement } from '@floating-ui/dom';
+import { customElement, property, query, state } from 'lit/decorators.js';
+import { type Placement } from '@floating-ui/dom';
 import { resetStyles } from '../../styles/reset.css.js';
 import { FloatingPositionController } from '../../internal/controllers/floating-position.js';
+import { prefetchFloating } from '../../internal/helpers/lazy-load.js';
 
 /**
  * Popover — a floating content panel anchored to a trigger element.
@@ -45,6 +46,16 @@ export class AmPopover extends LitElement {
   @query('.popover') private popoverEl!: HTMLElement;
   @query('.arrow') private arrowEl!: HTMLElement;
 
+  /**
+   * Hidden-until-positioned gate (D-02). The panel stays `visibility:hidden`
+   * until the first `computePosition` writes `left/top` (set true in
+   * `onPositioned`), so the deferred-loader `await` seam can never paint the
+   * panel at `0,0` before it is anchored. Reset on close so a re-open re-hides
+   * until the next reposition resolves. Internal `@state` — not reflected, off
+   * the frozen CEM surface.
+   */
+  @state() private _positioned = false;
+
   private _showTimer?: ReturnType<typeof setTimeout>;
   private _hideTimer?: ReturnType<typeof setTimeout>;
 
@@ -62,9 +73,11 @@ export class AmPopover extends LitElement {
     placement: () => this.placement,
     strategy: 'fixed',
     offset: () => this.offset,
-    middleware: () =>
-      this.arrow && this.arrowEl ? [arrow({ element: this.arrowEl })] : [],
+    middleware: (mod) =>
+      this.arrow && this.arrowEl ? [mod.arrow({ element: this.arrowEl })] : [],
     onPositioned: ({ placement, middlewareData }) => {
+      // First position resolved — reveal the panel (hidden-until-positioned, D-02).
+      this._positioned = true;
       if (this.arrow && this.arrowEl && middlewareData.arrow) {
         const { x: ax, y: ay } = middlewareData.arrow;
         const side = placement.split('-')[0];
@@ -100,13 +113,18 @@ export class AmPopover extends LitElement {
         box-shadow: var(--am-shadow-lg);
         padding: var(--am-space-3);
         opacity: 0;
+        /* Hidden-until-positioned (D-02): stay unpainted until the first
+           computePosition writes left/top, so the deferred-loader await seam
+           never flashes the panel at 0,0. */
+        visibility: hidden;
         pointer-events: none;
         transition: opacity var(--am-duration-fast) var(--am-ease-default);
         width: max-content;
       }
 
-      :host([open]) .popover {
+      :host([open]) .popover.positioned {
         opacity: 1;
+        visibility: visible;
         pointer-events: auto;
       }
 
@@ -165,6 +183,16 @@ export class AmPopover extends LitElement {
     }
   };
 
+  /**
+   * Warm the deferred floating-ui chunk on trigger intent (D-01/D-03) so the
+   * module is usually resolved by the time {@link start} awaits it on open —
+   * keeping the open→position→focus→autoUpdate ordering contract tight. Uniform
+   * policy across overlays; a wasted hover/focus fetch is accepted cost.
+   */
+  private _handlePrefetch = () => {
+    prefetchFloating();
+  };
+
   private _handleEnter = () => {
     if (this.trigger !== 'hover') return;
     clearTimeout(this._hideTimer);
@@ -190,6 +218,8 @@ export class AmPopover extends LitElement {
       } else {
         this._detachGlobalListeners();
         this._floatingController.stop();
+        // Re-hide until the next open repositions (hidden-until-positioned, D-02).
+        this._positioned = false;
         this.dispatchEvent(new CustomEvent('am-close', { bubbles: true, composed: true }));
       }
     }
@@ -200,13 +230,15 @@ export class AmPopover extends LitElement {
       <div
         class="trigger"
         @click=${this._handleTriggerClick}
+        @pointerenter=${this._handlePrefetch}
+        @focusin=${this._handlePrefetch}
         @mouseenter=${this._handleEnter}
         @mouseleave=${this._handleLeave}
       >
         <slot></slot>
       </div>
       <div
-        class="popover"
+        class="popover${this._positioned ? ' positioned' : ''}"
         part="popover"
         @mouseenter=${this._handleEnter}
         @mouseleave=${this._handleLeave}
