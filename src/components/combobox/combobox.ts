@@ -3,9 +3,9 @@ import { customElement, property, query, state } from 'lit/decorators.js';
 import { live } from 'lit/directives/live.js';
 import { repeat } from 'lit/directives/repeat.js';
 import { virtualize } from '@lit-labs/virtualizer/virtualize.js';
-import { size as sizeMiddleware } from '@floating-ui/dom';
 import { resetStyles } from '../../styles/reset.css.js';
 import { requestAssociatedFormSubmit } from '../../utilities/form-actions.js';
+import { prefetchFloating } from '../../internal/helpers/lazy-load.js';
 import { FloatingPositionController } from '../../internal/controllers/floating-position.js';
 import { ListboxNavController } from '../../internal/controllers/listbox-nav.js';
 import { filterOptions } from '../../internal/controllers/option-filter.js';
@@ -150,6 +150,10 @@ export class AmCombobox extends LitElement {
    * component's previous inline setup exactly: anchored to `.wrapper`, fixed
    * strategy, 4px offset, plus a `size` middleware that matches the listbox
    * width to the reference. autoUpdate stays ungated (behavior-preserving).
+   *
+   * The `size` middleware is built from the deferred-loaded `@floating-ui/dom`
+   * module inside the module-receiving getter (D-06) — NOT from a static import
+   * in a construction-time array, which would evaluate before the chunk loads.
    */
   private _floatingController = new FloatingPositionController(this, {
     reference: () => this.shadowRoot?.querySelector('.wrapper') as HTMLElement | null,
@@ -157,8 +161,8 @@ export class AmCombobox extends LitElement {
     placement: 'bottom-start',
     strategy: 'fixed',
     offset: 4,
-    middleware: [
-      sizeMiddleware({
+    middleware: (mod) => [
+      mod.size({
         apply({ rects, elements }) {
           Object.assign(elements.floating.style, {
             width: `${rects.reference.width}px`,
@@ -586,6 +590,15 @@ export class AmCombobox extends LitElement {
     }
   };
 
+  /**
+   * Warm the deferred floating-ui chunk on trigger intent (hover/focus, D-01/D-03)
+   * so the module is usually resolved by the time the controller `await`s it on
+   * open — keeping the open→position ordering tight. A wasted warm is accepted cost.
+   */
+  private _handlePrefetch = () => {
+    prefetchFloating();
+  };
+
   private _handleInput(e: Event) {
     const input = e.target as HTMLInputElement;
     this.value = input.value;
@@ -840,7 +853,8 @@ export class AmCombobox extends LitElement {
     ].filter(Boolean).join(' ');
 
     return html`
-      <div class=${wrapperClasses} @click=${this._handleWrapperClick}>
+      <div class=${wrapperClasses} @click=${this._handleWrapperClick}
+        @pointerenter=${this._handlePrefetch} @focusin=${this._handlePrefetch}>
         <div class="input-group">
           ${hasLabel
             ? html`<span class="floating-label" part="label">${this.label}</span>`
@@ -898,6 +912,7 @@ export class AmCombobox extends LitElement {
 
     return html`
       <div class="${wrapperClasses} select-mode" @click=${this._handleWrapperClick}
+        @pointerenter=${this._handlePrefetch}
         role="combobox"
         aria-expanded=${this._open ? 'true' : 'false'}
         aria-haspopup="listbox"
