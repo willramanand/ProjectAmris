@@ -1,9 +1,9 @@
 import { LitElement, css, html, nothing, type PropertyValues } from 'lit';
 import { customElement, property, query, state } from 'lit/decorators.js';
 import { styleMap } from 'lit/directives/style-map.js';
-import { computePosition, flip, offset, shift } from '@floating-ui/dom';
 import { resetStyles } from '../../styles/reset.css.js';
 import { ValidationController } from '../../internal/controllers/validation.js';
+import { loadFloating, prefetchFloating } from '../../internal/helpers/lazy-load.js';
 import { uniqueId } from '../../utilities/unique-id.js';
 
 export type ColorPickerSize = 'sm' | 'md' | 'lg';
@@ -387,6 +387,15 @@ export class AmColorPicker extends LitElement {
     this._validation.markTouched();
   };
 
+  /**
+   * Warm the deferred floating-ui chunk on trigger intent (D-03) so the module is
+   * usually resolved by the time the panel opens and {@link _updatePosition}
+   * awaits it — keeping the one-shot open→position path tight across the loader gap.
+   */
+  private _handlePrefetch = (): void => {
+    prefetchFloating();
+  };
+
   private _handleOutsideClick = (e: MouseEvent) => {
     if (this._open && !e.composedPath().includes(this)) this._open = false;
   };
@@ -532,12 +541,22 @@ export class AmColorPicker extends LitElement {
     this._emitChange();
   }
 
+  /**
+   * ONE-SHOT positioning (Pitfall CP1): color-picker computes its panel position
+   * a single time per open — NO `autoUpdate`, and deliberately NOT routed through
+   * {@link FloatingPositionController} (whose `start()` always arms an autoUpdate
+   * loop). floating-ui is deferred via the shared memoized {@link loadFloating}
+   * loader; the middleware stack + placement are byte-for-byte the previous inline
+   * setup, so behavior is unchanged apart from awaiting the loader on first open
+   * (usually already resolved via {@link _handlePrefetch}).
+   */
   private async _updatePosition() {
     if (!this._trigger || !this._panel) return;
-    const { x, y } = await computePosition(this._trigger, this._panel, {
+    const mod = await loadFloating();
+    const { x, y } = await mod.computePosition(this._trigger, this._panel, {
       placement: 'bottom-start',
       strategy: 'fixed',
-      middleware: [offset(4), flip(), shift({ padding: 8 })],
+      middleware: [mod.offset(4), mod.flip(), mod.shift({ padding: 8 })],
     });
     Object.assign(this._panel.style, { left: `${x}px`, top: `${y}px` });
   }
@@ -556,6 +575,8 @@ export class AmColorPicker extends LitElement {
         aria-describedby=${this._showError ? this._errorId : nothing}
         @click=${() => { if (!this.disabled) this._open = !this._open; }}
         @blur=${this._handleTriggerBlur}
+        @pointerenter=${this._handlePrefetch}
+        @focusin=${this._handlePrefetch}
       >
         <div class="swatch" part="swatch" style=${styleMap({'--_swatch-bg': currentColor})}></div>
         <span class="trigger-value">${this._hexInput || this.value}</span>

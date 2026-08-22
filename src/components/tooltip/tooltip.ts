@@ -1,8 +1,9 @@
 import { LitElement, css, html, nothing } from 'lit';
 import { customElement, property, query } from 'lit/decorators.js';
-import { arrow, type Placement } from '@floating-ui/dom';
+import { type Placement } from '@floating-ui/dom';
 import { resetStyles } from '../../styles/reset.css.js';
 import { FloatingPositionController } from '../../internal/controllers/floating-position.js';
+import { prefetchFloating } from '../../internal/helpers/lazy-load.js';
 
 /**
  * Tooltip — a floating label that appears on hover/focus.
@@ -58,7 +59,7 @@ export class AmTooltip extends LitElement {
     placement: () => this.placement,
     strategy: 'fixed',
     offset: 8,
-    middleware: () => (this.arrowEl ? [arrow({ element: this.arrowEl })] : []),
+    middleware: (mod) => (this.arrowEl ? [mod.arrow({ element: this.arrowEl })] : []),
     onPositioned: ({ placement, middlewareData }) => {
       if (middlewareData.arrow && this.arrowEl) {
         const { x: ax, y: ay } = middlewareData.arrow;
@@ -132,6 +133,10 @@ export class AmTooltip extends LitElement {
 
   private _handleEnter = () => {
     if (this.disabled || !this.content) return;
+    // Warm the deferred floating-ui chunk on trigger intent (D-03) so the module
+    // is usually resolved by the time the show-delay elapses and the controller
+    // awaits it on start() — keeping positioning tight across the loader gap.
+    prefetchFloating();
     clearTimeout(this._hideTimer);
     this._showTimer = setTimeout(() => {
       this.setAttribute('visible', '');
