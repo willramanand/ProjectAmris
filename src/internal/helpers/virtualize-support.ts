@@ -41,7 +41,19 @@
  * pre-1.0/labs — a minor bump can break the runtime API).
  */
 
-import { virtualizerRef, type VirtualizerHostElement } from '@lit-labs/virtualizer/virtualize.js';
+/**
+ * Minimal structural view of the `@lit-labs/virtualizer` `Virtualizer` instance
+ * — just the `element(index)` proxy used to scroll a virtualized-out item into
+ * view. Declared locally so this module carries NO import (static OR type) of
+ * `@lit-labs/virtualizer`: importing virtualize-support.ts must not pull the
+ * virtualizer into a consumer's static module graph (SIZE-02). The runtime
+ * `virtualizerRef` symbol the virtualizer stores itself under is read straight
+ * off the host's own symbol keys in {@link scrollVirtualizerToIndex}, so the
+ * virtualizer is reached ONLY via the deferred `import()` in `lazy-load.ts`.
+ */
+interface VirtualizerLike {
+  element(index: number): Element | null | undefined;
+}
 
 /**
  * Row-count threshold above which a list auto-activates virtualization (D-05 —
@@ -112,6 +124,29 @@ export function scrollVirtualizerToIndex(
   index: number,
   options: ScrollIntoViewOptions = { block: 'nearest' },
 ): void {
-  const virtualizer = (host as VirtualizerHostElement | null | undefined)?.[virtualizerRef];
+  const virtualizer = host ? resolveHostVirtualizer(host) : undefined;
   virtualizer?.element(index)?.scrollIntoView(options);
+}
+
+/**
+ * Resolve the `Virtualizer` a `virtualize()` directive stored on `host` under
+ * the `@lit-labs/virtualizer` `virtualizerRef` symbol — read directly off the
+ * host's OWN symbol keys rather than via a static import of that runtime symbol
+ * (SIZE-02: no virtualizer import may enter this module's static graph). The
+ * virtualizer defines `virtualizerRef = Symbol('virtualizerRef')` and assigns
+ * `hostElement[virtualizerRef] = this`; a description match plus an `element()`
+ * capability check identifies it without importing the symbol. Returns
+ * `undefined` when no virtualizer is attached (below the threshold or before the
+ * chunk loads / first layout) — the safe no-op the callers rely on. This never
+ * triggers the virtualizer load, so a below-threshold call stays deferral-clean.
+ */
+function resolveHostVirtualizer(host: Element): VirtualizerLike | undefined {
+  for (const sym of Object.getOwnPropertySymbols(host)) {
+    if (sym.description !== 'virtualizerRef') continue;
+    const value = (host as unknown as Record<symbol, unknown>)[sym];
+    if (value && typeof (value as VirtualizerLike).element === 'function') {
+      return value as VirtualizerLike;
+    }
+  }
+  return undefined;
 }
