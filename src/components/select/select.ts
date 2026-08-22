@@ -1,7 +1,6 @@
 import { LitElement, css, html, nothing, type PropertyValues, type TemplateResult } from 'lit';
 import { customElement, property, query, queryAssignedElements, state } from 'lit/decorators.js';
-import { size } from '@floating-ui/dom';
-import { virtualize } from '@lit-labs/virtualizer/virtualize.js';
+import { repeat } from 'lit/directives/repeat.js';
 import { resetStyles } from '../../styles/reset.css.js';
 import { FloatingPositionController } from '../../internal/controllers/floating-position.js';
 import { ValidationController } from '../../internal/controllers/validation.js';
@@ -12,6 +11,11 @@ import {
   ariaSetsize,
   scrollVirtualizerToIndex,
 } from '../../internal/helpers/virtualize-support.js';
+import {
+  prefetchFloating,
+  loadVirtualizer,
+  prefetchVirtualizer,
+} from '../../internal/helpers/lazy-load.js';
 
 export type SelectSize = 'sm' | 'md' | 'lg';
 
@@ -277,8 +281,11 @@ export class AmSelect extends LitElement {
     placement: 'bottom-start',
     strategy: 'fixed',
     offset: 4,
-    middleware: [
-      size({
+    // The `size` middleware is built from the deferred-loaded @floating-ui/dom
+    // module (D-06) so select carries no static floating-ui runtime import; the
+    // width-match behavior is byte-identical to the previous static form.
+    middleware: (mod) => [
+      mod.size({
         apply({ rects, elements }) {
           Object.assign(elements.floating.style, {
             width: `${rects.reference.width}px`,
@@ -287,6 +294,17 @@ export class AmSelect extends LitElement {
       }),
     ],
   });
+
+  /**
+   * The lazily-loaded `virtualize()` directive, set once the virtualizer chunk
+   * resolves (D-05/D-06). Until then the virtualized render path falls back to a
+   * fully-functional unwindowed `repeat()` so the popup works cold (D-05).
+   */
+  private _virtualize:
+    | typeof import('@lit-labs/virtualizer/virtualize.js')['virtualize']
+    | null = null;
+  /** Guards against re-issuing the memoized virtualizer load on every render. */
+  private _virtualizerLoading = false;
 
   constructor() {
     super();
@@ -592,6 +610,9 @@ export class AmSelect extends LitElement {
       if (this._open) {
         document.addEventListener('click', this._documentClickHandler);
         this._floatingController.start();
+        // Warm the virtualizer chunk on open when the option count is over the
+        // threshold (D-04), so the repeat()→virtualize() swap lands promptly.
+        if (this._isVirtual) prefetchVirtualizer();
       } else {
         document.removeEventListener('click', this._documentClickHandler);
         this._floatingController.stop();
@@ -684,6 +705,16 @@ export class AmSelect extends LitElement {
   private _handleTriggerClick() {
     this._toggleOpen();
   }
+
+  /**
+   * Warm the deferred chunks on trigger intent (pointer/focus, D-01/D-03/D-04):
+   * floating-ui for positioning, and the virtualizer when the option count is
+   * over the threshold — so the module is usually resolved before the popup opens.
+   */
+  private _handleTriggerIntent = () => {
+    prefetchFloating();
+    if (this._isVirtual) prefetchVirtualizer();
+  };
 
   private _handleOptionSelect = (e: CustomEvent<{ value: string }>) => {
     // Stop the internal am-option `am-change` at the am-select boundary so it
@@ -987,14 +1018,36 @@ export class AmSelect extends LitElement {
     `;
   }
 
-  /** Windowed option body via the shared `virtualize()` directive (D-06). */
+  /**
+   * Windowed option body via the shared `virtualize()` directive (D-06), lazily
+   * loaded. Until the virtualizer chunk resolves the popup renders a functional
+   * unwindowed `repeat()` over the SAME state model with identical per-row ARIA
+   * (D-05 cold-chunk fallback); it swaps to `virtualize()` on the next render
+   * once the directive is set. No 0,0 frame — both paths render real rows.
+   */
   private _renderVirtualOptions(model: SelectOptionModel[]): unknown {
-    return virtualize({
-      items: model,
-      keyFunction: (o: SelectOptionModel) => o.value,
-      renderItem: (o: SelectOptionModel, i: number) =>
-        this._renderVirtualOption(o, i, model.length),
-    });
+    if (this._virtualize) {
+      return this._virtualize({
+        items: model,
+        keyFunction: (o: SelectOptionModel) => o.value,
+        renderItem: (o: SelectOptionModel, i: number) =>
+          this._renderVirtualOption(o, i, model.length),
+      });
+    }
+    // Cold-chunk fallback: kick off the memoized load once, then render an
+    // unwindowed repeat() so the popup is fully usable during the fetch gap.
+    if (!this._virtualizerLoading) {
+      this._virtualizerLoading = true;
+      void loadVirtualizer().then(m => {
+        this._virtualize = m.virtualize;
+        this.requestUpdate();
+      });
+    }
+    return repeat(
+      model,
+      (o: SelectOptionModel) => o.value,
+      (o: SelectOptionModel, i: number) => this._renderVirtualOption(o, i, model.length),
+    );
   }
 
   private _handleClear(e: Event) {
@@ -1045,6 +1098,7 @@ export class AmSelect extends LitElement {
         aria-describedby=${this._showError ? this._errorId : nothing}
         ?disabled=${this.disabled}
         @click=${this._handleTriggerClick}
+        @pointerenter=${this._handleTriggerIntent}
         @focus=${this._handleFocus}
         @blur=${this._handleBlur}
         @keydown=${this._handleKeyDown}
