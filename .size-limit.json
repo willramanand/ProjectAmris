@@ -2,29 +2,25 @@
   {
     "name": "core bundle",
     "path": "dist/amris-core.js",
-    "ignore": ["lit", "@floating-ui/dom"],
-    "gzip": true,
+    "ignore": ["lit"],
     "limit": "28 kB"
   },
   {
     "name": "full bundle",
     "path": "dist/amris.js",
-    "ignore": ["lit", "@floating-ui/dom"],
-    "gzip": true,
+    "ignore": ["lit"],
     "limit": "75 kB"
   },
   {
     "name": "button (light deep import)",
     "path": "dist/components/button/index.js",
-    "ignore": ["lit", "@floating-ui/dom"],
-    "gzip": true,
+    "ignore": ["lit"],
     "limit": "2.5 kB"
   },
   {
     "name": "data-grid (heavy deep import)",
     "path": "dist/components/data-grid/index.js",
-    "ignore": ["lit", "@floating-ui/dom"],
-    "gzip": true,
+    "ignore": ["lit"],
     "limit": "13 kB"
   }
 ]
