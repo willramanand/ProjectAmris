@@ -57,6 +57,21 @@ async function waitForBodyRows(host: GridHost): Promise<HTMLElement[]> {
   return bodyRows(host);
 }
 
+/**
+ * Wait until the deferred virtualizer has resolved and WINDOWED the body — i.e.
+ * the mounted row count has dropped below the full `total` (SIZE-02: the grid
+ * first renders a cold-chunk repeat() body with all rows, then swaps to the
+ * windowed virtualize() path once the lazily-imported chunk loads).
+ */
+async function waitForWindowed(host: GridHost, total: number): Promise<HTMLElement[]> {
+  for (let i = 0; i < 80; i++) {
+    const rows = bodyRows(host);
+    if (rows.length > 0 && rows.length < total) return rows;
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+  }
+  return bodyRows(host);
+}
+
 async function waitForSortedIndex(host: GridHost, index: number): Promise<HTMLElement | null> {
   const body = shadowQuery<HTMLElement>(host, '.grid-body');
   for (let i = 0; i < 40; i++) {
@@ -85,7 +100,7 @@ describe('am-data-grid virtualization (real Chromium)', () => {
 
   it('mounts only a windowed subset of rows, each carrying a truthful aria-rowindex', async () => {
     const host = await makeGrid(2000);
-    const rows = await waitForBodyRows(host);
+    const rows = await waitForWindowed(host, 2000);
 
     // Windowed: nowhere near 2000 rows in the DOM.
     expect(rows.length).toBeGreaterThan(0);
@@ -107,7 +122,7 @@ describe('am-data-grid virtualization (real Chromium)', () => {
 
   it('keeps a selected row selected after it is recycled out of view and scrolled back (identity-keyed, state-driven)', async () => {
     const host = await makeGrid(2000);
-    await waitForBodyRows(host);
+    await waitForWindowed(host, 2000);
 
     // Select the row at sorted index 5 by clicking it.
     const row5 = await waitForSortedIndex(host, 5);
@@ -135,9 +150,41 @@ describe('am-data-grid virtualization (real Chromium)', () => {
     host.remove();
   });
 
+  it('cold-chunk: renders a functional unwindowed repeat() body first, then swaps to windowed virtualize() with identical aria-rowindex', async () => {
+    // makeGrid awaits only updateComplete (microtasks); the deferred virtualizer
+    // warm is rAF-scheduled, so the very first render is guaranteed to be the
+    // cold-chunk repeat() fallback (per-instance `_virtualize` still undefined).
+    const host = await makeGrid(250);
+
+    // Cold-chunk fallback: before the virtualizer chunk resolves, the grid body
+    // renders ALL rows via repeat() (unwindowed) — no windowing yet.
+    const cold = bodyRows(host);
+    expect(cold.length).toBe(250);
+
+    // aria-rowindex is absolute-index based (header is row 1) in the fallback.
+    expect(cold[0].getAttribute('data-sorted-index')).toBe('0');
+    expect(cold[0].getAttribute('aria-rowindex')).toBe('2');
+    expect(cold[249].getAttribute('aria-rowindex')).toBe('251');
+    const coldRow10Index = cold[10].getAttribute('aria-rowindex');
+    expect(coldRow10Index).toBe('12');
+
+    // After the deferred virtualizer resolves, the grid swaps to a windowed subset.
+    const warm = await waitForWindowed(host, 250);
+    expect(warm.length).toBeGreaterThan(0);
+    expect(warm.length).toBeLessThan(250);
+
+    // aria-rowindex parity across the swap: the row at absolute index 10 keeps
+    // the SAME aria-rowindex whether rendered via repeat() or virtualize().
+    const warmRow10 = await waitForSortedIndex(host, 10);
+    expect(warmRow10).not.toBeNull();
+    expect(warmRow10!.getAttribute('aria-rowindex')).toBe(coldRow10Index);
+
+    host.remove();
+  });
+
   it('renders div-grid rows with non-zero height and columns aligned to the header', async () => {
     const host = await makeGrid(1200);
-    const rows = await waitForBodyRows(host);
+    const rows = await waitForWindowed(host, 1200);
 
     const dataRow = rows[0];
     expect(dataRow.getBoundingClientRect().height).toBeGreaterThan(0);
