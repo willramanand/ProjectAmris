@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <!--
+    Local-only tachometer light-component control fixture (D-10). Never in CI.
+    Renders am-button as a noise-floor contrast arm so each heavy-component A/B
+    config has a light baseline to separate real regressions from measurement
+    noise (mirrors the perf harness `button` control, D-06). Publishes the
+    wall-clock duration on window.tachometerResult. Requires a prior `npm run build`.
+  -->
+  <head>
+    <meta charset="utf-8" />
+    <title>button control benchmark</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module">
+      import '/dist/amris.js';
+
+      await customElements.whenDefined('am-button');
+
+      const t0 = performance.now();
+      const button = document.createElement('am-button');
+      button.textContent = 'Click me';
+      document.getElementById('root').appendChild(button);
+      await button.updateComplete;
+      const t1 = performance.now();
+
+      window.tachometerResult = t1 - t0;
+    </script>
+  </body>
+</html>

@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+  <!--
+    Local-only tachometer A/B benchmark fixture (D-10). Never referenced by CI.
+    Renders am-combobox with a large option set and drives a filter-per-keystroke
+    pass, publishing the wall-clock duration on window.tachometerResult for
+    tachometer's `expression` measurement. Run from the repo ROOT:
+    `npx tachometer tachometer/combobox.json`. Requires a prior `npm run build`.
+  -->
+  <head>
+    <meta charset="utf-8" />
+    <title>combobox A/B benchmark</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module">
+      import '/dist/amris.js';
+
+      await customElements.whenDefined('am-combobox');
+
+      const options = Array.from({ length: 500 }, (_, i) => 'option-' + i);
+
+      const t0 = performance.now();
+      const combobox = document.createElement('am-combobox');
+      combobox.label = 'Filter';
+      combobox.options = options;
+      document.getElementById('root').appendChild(combobox);
+      await combobox.updateComplete;
+
+      // Filter-per-keystroke pass (the Phase 8-9 optimization target): narrow the
+      // set incrementally to exercise the render/update path per keystroke.
+      for (const value of ['o', 'op', 'opt', 'opti', 'option-1']) {
+        combobox.value = value;
+        await combobox.updateComplete;
+      }
+      const t1 = performance.now();
+
+      window.tachometerResult = t1 - t0;
+    </script>
+  </body>
+</html>

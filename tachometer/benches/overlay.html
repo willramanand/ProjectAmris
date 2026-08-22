@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+  <!--
+    Local-only tachometer A/B benchmark fixture (D-10). Never referenced by CI.
+    Uses am-popover as the representative controller-routed overlay (matches the
+    perf harness pick in test/perf/harness.ts) and drives open + reposition,
+    publishing the wall-clock duration on window.tachometerResult for tachometer's
+    `expression` measurement. Run from the repo ROOT:
+    `npx tachometer tachometer/overlay.json`. Requires a prior `npm run build`.
+    Captures the PRE-deferral baseline (floating-ui still statically imported) so
+    the Phase 8 deferral shows a real before/after delta.
+  -->
+  <head>
+    <meta charset="utf-8" />
+    <title>overlay (popover) A/B benchmark</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module">
+      import '/dist/amris.js';
+
+      await customElements.whenDefined('am-popover');
+
+      const t0 = performance.now();
+      const popover = document.createElement('am-popover');
+      popover.trigger = 'manual';
+      popover.placement = 'bottom-start';
+      popover.offset = 8;
+      const trigger = document.createElement('button');
+      trigger.slot = 'trigger';
+      trigger.textContent = 'Open';
+      popover.appendChild(trigger);
+      const panel = document.createElement('div');
+      panel.textContent = 'Popover content';
+      popover.appendChild(panel);
+      document.getElementById('root').appendChild(popover);
+      await popover.updateComplete;
+
+      // Open + reposition passes (the Phase 8-9 optimization target).
+      for (const placement of ['bottom-start', 'top-start', 'right-start', 'bottom-start']) {
+        popover.placement = placement;
+        popover.open = true;
+        await popover.updateComplete;
+      }
+      const t1 = performance.now();
+
+      window.tachometerResult = t1 - t0;
+    </script>
+  </body>
+</html>
