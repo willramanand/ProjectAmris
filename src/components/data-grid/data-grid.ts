@@ -2,13 +2,13 @@ import { LitElement, css, html, nothing } from 'lit';
 import { customElement, property, query, state } from 'lit/decorators.js';
 import { styleMap } from 'lit/directives/style-map.js';
 import { repeat } from 'lit/directives/repeat.js';
-import { virtualize } from '@lit-labs/virtualizer/virtualize.js';
 import { resetStyles } from '../../styles/reset.css.js';
 import {
   VIRTUALIZE_ROW_THRESHOLD,
   ariaRowindex,
   scrollVirtualizerToIndex,
 } from '../../internal/helpers/virtualize-support.js';
+import { loadVirtualizer, prefetchVirtualizer } from '../../internal/helpers/lazy-load.js';
 import '../checkbox/checkbox.js';
 
 export type DataGridColumnType = 'string' | 'number' | 'date' | 'boolean';
@@ -31,6 +31,14 @@ export type RowKey = string | number;
 export type GetRowId<T = Record<string, unknown>> = (row: T, index: number) => RowKey;
 
 const DEFAULT_GET_ROW_ID: GetRowId = (_row, index) => index;
+
+/**
+ * The `@lit-labs/virtualizer` `virtualize()` directive, referenced by type only
+ * (dynamic-`import()` type — no static runtime import) and resolved lazily at
+ * runtime via {@link loadVirtualizer} so the virtualizer chunk stays off the
+ * grid's synchronous graph (SIZE-02).
+ */
+type VirtualizeDirective = (typeof import('@lit-labs/virtualizer/virtualize.js'))['virtualize'];
 
 /**
  * Data Grid — a property-driven data table with sorting and selection.
@@ -113,9 +121,39 @@ export class AmDataGrid extends LitElement {
   /** Scroll container that hosts the virtualize() directive (virtual path only). */
   @query('.grid-body') private _gridBody!: HTMLElement | null;
 
+  /** The lazily-loaded `virtualize()` directive; undefined until the chunk resolves (D-05). */
+  private _virtualize?: VirtualizeDirective;
+
+  /** rAF handle for the deferred virtualizer warm; 0 when none is scheduled. */
+  private _virtualizerRaf = 0;
+
   /** True once the row count crosses the auto-virtualization threshold (D-05). */
   private get _isVirtual(): boolean {
     return this.rows.length > VIRTUALIZE_ROW_THRESHOLD;
+  }
+
+  /**
+   * Warm the virtualizer chunk once the grid is virtual, deferred off the
+   * first-paint path (D-04). Until it resolves the grid renders a functional
+   * unwindowed `repeat()` body (D-05, the cold-chunk / fetch-failure fallback);
+   * on resolve we assign `_virtualize` and `requestUpdate()` so the next render
+   * swaps to the windowed `virtualize()` path. `aria-rowindex` is computed from
+   * the absolute sorted index in both paths, so the swap is behavior-preserving.
+   */
+  private _scheduleVirtualizerWarm(): void {
+    if (this._virtualize || this._virtualizerRaf) return;
+    this._virtualizerRaf = requestAnimationFrame(() => {
+      this._virtualizerRaf = 0;
+      prefetchVirtualizer();
+      loadVirtualizer().then((m) => {
+        this._virtualize = m.virtualize;
+        this.requestUpdate();
+      });
+    });
+  }
+
+  updated() {
+    if (this._isVirtual) this._scheduleVirtualizerWarm();
   }
 
   static styles = [
@@ -485,6 +523,41 @@ export class AmDataGrid extends LitElement {
     const indexById = new Map<Record<string, unknown>, number>();
     this.rows.forEach((row, i) => indexById.set(row, i));
 
+    // keyFunction/renderItem are shared verbatim by the windowed virtualize()
+    // path and the cold-chunk repeat() fallback so the rendered rows are
+    // byte-identical across the swap (D-05).
+    const keyFunction = (row: Record<string, unknown>) =>
+      this.getRowId(row, indexById.get(row) ?? 0);
+    const renderItem = (row: Record<string, unknown>, absIndex: number) => {
+      const originalIndex = indexById.get(row) ?? absIndex;
+      const id = this.getRowId(row, originalIndex);
+      const selected = selection.has(id);
+      const focused = absIndex === this._focusedRowIndex;
+      return html`
+        <div part="row"
+          class="grid-row ${selected ? 'selected' : ''}"
+          role="row"
+          data-sorted-index=${absIndex}
+          aria-rowindex=${ariaRowindex(absIndex)}
+          tabindex=${focused ? '0' : '-1'}
+          aria-selected=${this.selectable ? (selected ? 'true' : 'false') : nothing}
+          style=${styleMap({ 'grid-template-columns': template })}
+          @click=${() => this._toggleRow(row, id, originalIndex)}
+          @focus=${() => { this._focusedRowIndex = absIndex; }}
+          @keydown=${(e: KeyboardEvent) => this._handleRowKeydown(e, row, id, originalIndex, absIndex, sorted.length)}>
+          ${this.selectable ? html`<div class="grid-cell checkbox-cell" role="gridcell">
+            <am-checkbox .checked=${selected} aria-label="Select row"></am-checkbox>
+          </div>` : nothing}
+          ${this.columns.map(col => html`
+            <div part="cell" role="gridcell"
+              class="grid-cell ${col.align === 'center' ? 'align-center' : col.align === 'end' ? 'align-end' : ''}">
+              ${row[col.key] ?? ''}
+            </div>
+          `)}
+        </div>
+      `;
+    };
+
     return html`
       <div class="grid" part="table" role="grid"
         aria-rowcount=${this.rows.length}
@@ -513,40 +586,9 @@ export class AmDataGrid extends LitElement {
           </div>
         </div>
         <div class="grid-body" part="body" role="rowgroup">
-          ${virtualize({
-            items: sorted,
-            keyFunction: (row: Record<string, unknown>) =>
-              this.getRowId(row, indexById.get(row) ?? 0),
-            renderItem: (row: Record<string, unknown>, absIndex: number) => {
-              const originalIndex = indexById.get(row) ?? absIndex;
-              const id = this.getRowId(row, originalIndex);
-              const selected = selection.has(id);
-              const focused = absIndex === this._focusedRowIndex;
-              return html`
-                <div part="row"
-                  class="grid-row ${selected ? 'selected' : ''}"
-                  role="row"
-                  data-sorted-index=${absIndex}
-                  aria-rowindex=${ariaRowindex(absIndex)}
-                  tabindex=${focused ? '0' : '-1'}
-                  aria-selected=${this.selectable ? (selected ? 'true' : 'false') : nothing}
-                  style=${styleMap({ 'grid-template-columns': template })}
-                  @click=${() => this._toggleRow(row, id, originalIndex)}
-                  @focus=${() => { this._focusedRowIndex = absIndex; }}
-                  @keydown=${(e: KeyboardEvent) => this._handleRowKeydown(e, row, id, originalIndex, absIndex, sorted.length)}>
-                  ${this.selectable ? html`<div class="grid-cell checkbox-cell" role="gridcell">
-                    <am-checkbox .checked=${selected} aria-label="Select row"></am-checkbox>
-                  </div>` : nothing}
-                  ${this.columns.map(col => html`
-                    <div part="cell" role="gridcell"
-                      class="grid-cell ${col.align === 'center' ? 'align-center' : col.align === 'end' ? 'align-end' : ''}">
-                      ${row[col.key] ?? ''}
-                    </div>
-                  `)}
-                </div>
-              `;
-            },
-          })}
+          ${this._virtualize
+            ? this._virtualize({ items: sorted, keyFunction, renderItem })
+            : repeat(sorted, keyFunction, renderItem)}
         </div>
       </div>
     `;
