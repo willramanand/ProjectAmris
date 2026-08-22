@@ -1,0 +1,15 @@
+{
+  "unit": "brotli-bytes",
+  "entries": {
+    "core bundle": 21076,
+    "full bundle": 59752,
+    "button (light deep import)": 1879,
+    "data-grid (heavy deep import)": 10848,
+    "first-load composite (core+button+input+dialog)": 22971,
+    "tokens.css": 2649
+  },
+  "marginal": {
+    "button (light deep import)": -19197,
+    "data-grid (heavy deep import)": -10228
+  }
+}
