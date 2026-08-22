@@ -1,0 +1,68 @@
+{
+  "button": {
+    "counts": {
+      "update": 4,
+      "updated": 4,
+      "render": 4,
+      "nodes": 5
+    },
+    "wallClock": {
+      "median": 15.699999988079071,
+      "band": 21.815780093128758
+    },
+    "throttle": {
+      "profile": "low-end-cellular"
+    },
+    "repeats": 5
+  },
+  "combobox": {
+    "counts": {
+      "update": 11,
+      "updated": 11,
+      "render": 11,
+      "nodes": 20
+    },
+    "wallClock": {
+      "median": 60.09999996423721,
+      "band": 81.79764932287343
+    },
+    "throttle": {
+      "profile": "low-end-cellular"
+    },
+    "repeats": 5
+  },
+  "data-grid": {
+    "counts": {
+      "update": 3,
+      "updated": 3,
+      "render": 3,
+      "nodes": 250
+    },
+    "wallClock": {
+      "median": 49.59999996423721,
+      "band": 77.25802211126563
+    },
+    "throttle": {
+      "profile": "low-end-cellular"
+    },
+    "repeats": 5
+  },
+  "overlay": {
+    "counts": {
+      "update": 4,
+      "updated": 4,
+      "render": 4,
+      "computePosition": 4,
+      "repositions": 2,
+      "nodes": 5
+    },
+    "wallClock": {
+      "median": 31.400000035762787,
+      "band": 46.61856161018204
+    },
+    "throttle": {
+      "profile": "low-end-cellular"
+    },
+    "repeats": 5
+  }
+}
