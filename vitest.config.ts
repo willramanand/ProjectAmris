@@ -1,4 +1,4 @@
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
 
 import { playwright } from '@vitest/browser-playwright';
@@ -11,15 +11,29 @@ import type { BrowserCommand } from 'vitest/node';
  * filesystem, so the perf harness collects its metrics object in-page then calls
  * this server-side command to write the committed JSON baseline/report.
  *
- * Stable name for Plan 03: specs call `commands.writeMetrics(path, data)` after
- * importing `{ commands } from 'vitest/browser'`. Kept a thin stub here (write
- * JSON, ensure parent dir) — the perf harness/scenarios that consume it land in
- * Plan 03. Source shape: vitest.dev/api/browser/commands (BrowserCommand from
- * 'vitest/node', server-side ctx).
+ * Specs call `commands.writeMetrics(path, data)` after importing
+ * `{ commands } from 'vitest/browser'`. Source shape: vitest.dev/api/browser/commands
+ * (BrowserCommand from 'vitest/node', server-side ctx).
+ *
+ * MERGE semantics (Plan 03): each of the four D-06 scenario specs is a separate
+ * file that contributes one top-level scenario key to a single api/perf.json.
+ * The command therefore read-merge-writes by top-level key rather than
+ * overwriting the whole file. The perf project runs files serially
+ * (fileParallelism: false) so this read-modify-write is race-free.
  */
 const writeMetrics: BrowserCommand<[string, unknown]> = async (_ctx, path, data) => {
   mkdirSync(dirname(path), { recursive: true });
-  writeFileSync(path, `${JSON.stringify(data, null, 2)}\n`);
+  let existing: Record<string, unknown> = {};
+  if (existsSync(path)) {
+    try {
+      const parsed = JSON.parse(readFileSync(path, 'utf8')) as unknown;
+      if (parsed && typeof parsed === 'object') existing = parsed as Record<string, unknown>;
+    } catch {
+      existing = {};
+    }
+  }
+  const merged = { ...existing, ...(data as Record<string, unknown>) };
+  writeFileSync(path, `${JSON.stringify(merged, null, 2)}\n`);
 };
 
 export default defineConfig({
@@ -67,6 +81,11 @@ export default defineConfig({
           // `*.cdp.test.ts` = the A2 throttle spike; `*.perf.test.ts` = the Plan 03
           // scenarios. Deliberately NOT matching `*.lit-markers.test.ts` (jsdom).
           include: ['test/perf/**/*.cdp.test.ts', 'test/perf/**/*.perf.test.ts'],
+          // Run perf spec files ONE AT A TIME. Two reasons: (1) the writeMetrics
+          // command read-merge-writes the shared api/perf.json, so serial files
+          // make that race-free; (2) a shared CPU/network throttle applied by one
+          // spec must not bleed into another's measurement window.
+          fileParallelism: false,
           browser: {
             enabled: true,
             provider: playwright(),
