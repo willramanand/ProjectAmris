@@ -148,6 +148,31 @@ describe('am-data-grid', () => {
     expect(bodyRows(el)[0].getAttribute('aria-selected')).toBe('true');
   });
 
+  it('SIZE-05: disconnecting a virtual grid before the deferred virtualizer warm fires does not throw or leak', async () => {
+    // A grid above VIRTUALIZE_ROW_THRESHOLD (100) schedules its virtualizer warm
+    // off the first-paint path via a double rAF. Removing the host before that
+    // callback fires must cancel the pending frame — no dangling scheduled work,
+    // no throw, and the guard handle reset to 0.
+    const el = await fixture<GridEl>(`<am-data-grid></am-data-grid>`);
+    el.columns = COLUMNS;
+    el.rows = Array.from({ length: 150 }, (_v, i) => ({ name: `n${i}`, age: i }));
+    await waitForUpdate(el);
+
+    // Disconnect before the double-rAF callback runs.
+    el.remove();
+
+    // The teardown cancels the pending rAF synchronously on disconnect.
+    const raf = (el as unknown as { _virtualizerRaf: number })._virtualizerRaf;
+    expect(raf).toBe(0);
+
+    // Let a few frames elapse; the cancelled warm must not run or throw, and the
+    // grid must not have swapped to the virtualize() path while disconnected.
+    for (let i = 0; i < 3; i++) {
+      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    }
+    expect((el as unknown as { _virtualize?: unknown })._virtualize).toBeUndefined();
+  });
+
   it('uses custom getRowId for selection identity', async () => {
     const el = await makeGrid('selectable');
     el.getRowId = (row: Row) => `row-${row.name}`;

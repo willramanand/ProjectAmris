@@ -133,23 +133,43 @@ export class AmDataGrid extends LitElement {
   }
 
   /**
-   * Warm the virtualizer chunk once the grid is virtual, deferred off the
-   * first-paint path (D-04). Until it resolves the grid renders a functional
-   * unwindowed `repeat()` body (D-05, the cold-chunk / fetch-failure fallback);
-   * on resolve we assign `_virtualize` and `requestUpdate()` so the next render
-   * swaps to the windowed `virtualize()` path. `aria-rowindex` is computed from
-   * the absolute sorted index in both paths, so the swap is behavior-preserving.
+   * SIZE-05: warm the virtualizer chunk OFF the first-paint path. The virtualizer
+   * load is non-critical init — until it resolves the grid renders a fully
+   * functional unwindowed `repeat()` body (D-05, the cold-chunk / fetch-failure
+   * fallback) — so it is scheduled AFTER first paint via a DOUBLE
+   * `requestAnimationFrame` (the second callback runs once the first frame has
+   * painted). The idle-callback scheduling API is intentionally NOT used: it is
+   * unsupported at the Safari 16.4 browser floor (D-09). On resolve we assign
+   * `_virtualize` and `requestUpdate()` so the next render swaps to the windowed
+   * `virtualize()` path; `aria-rowindex` is absolute-index based in both paths, so the swap is
+   * behavior-preserving. The pending rAF is cancelled on disconnect and the async
+   * resolve is guarded on `isConnected`, so a disconnect before the callback fires
+   * neither double-runs the load nor leaks a scheduled frame.
    */
   private _scheduleVirtualizerWarm(): void {
     if (this._virtualize || this._virtualizerRaf) return;
     this._virtualizerRaf = requestAnimationFrame(() => {
-      this._virtualizerRaf = 0;
-      prefetchVirtualizer();
-      loadVirtualizer().then((m) => {
-        this._virtualize = m.virtualize;
-        this.requestUpdate();
+      this._virtualizerRaf = requestAnimationFrame(() => {
+        this._virtualizerRaf = 0;
+        if (!this.isConnected) return;
+        prefetchVirtualizer();
+        loadVirtualizer().then((m) => {
+          if (!this.isConnected) return;
+          this._virtualize = m.virtualize;
+          this.requestUpdate();
+        });
       });
     });
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    // SIZE-05 teardown: cancel a pending virtualizer-warm rAF so a disconnect
+    // before it fires neither double-runs the load nor leaks a scheduled frame.
+    if (this._virtualizerRaf) {
+      cancelAnimationFrame(this._virtualizerRaf);
+      this._virtualizerRaf = 0;
+    }
   }
 
   updated() {
