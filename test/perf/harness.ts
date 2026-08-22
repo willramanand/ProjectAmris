@@ -71,10 +71,36 @@ export interface ThrottleProfile {
 }
 
 /**
- * THE pinned profile (MEAS-03). This is a PLACEHOLDER centered on the harsh
- * worst-case-cellular corner this phase measures — 6x CPU + Slow-3G (D-01). Plan
- * 04 re-pins the single named profile (one CPU multiplier + one tier) from the
- * measured candidate grid; the INTENT frozen here is worst-case field/mobile.
+ * THE pinned low-end target profile (MEAS-03) — DATA-DERIVED, not guessed.
+ *
+ * INTENT (frozen, D-01): worst-case field/mobile — an older device on cellular,
+ * not enterprise-desktop. The NUMBERS below are chosen from a measured candidate
+ * grid, per MEAS-03 (Pitfall 15: never pin a perf profile by guess).
+ *
+ * CANDIDATE GRID measured (Plan 04) — CPU-throttle {4x, 6x} × network
+ * {Slow-3G, Fast-3G}, 5 repeats/scenario, wall-clock medians (ms), Chromium-only
+ * (D-11). The pick maximizes how cleanly the profile SEPARATES the heavy
+ * optimization targets (combobox, data-grid) from the light control (overlay,
+ * button) — a wider heavy/light gap means a more discriminating baseline for the
+ * Phase 8–9 cuts:
+ *
+ *   corner        combobox  data-grid  overlay  button   heavy/light
+ *   6x + Slow-3G     80.6      70.7      31.8    15.7      ≈2.53x  ← PINNED
+ *   4x + Slow-3G     54.0      25.2      31.8    16.3      ≈1.70x  (data-grid < overlay)
+ *   6x + Fast-3G     45.8      46.6      30.9    15.9      ≈1.51x
+ *   4x + Fast-3G     29.6      18.5      32.1    16.5      ≈0.92x  (collapsed: overlay > heavy)
+ *
+ * RATIONALE for the pick: 6x + Slow-3G is the only corner where BOTH heavy
+ * scenarios sit clearly above BOTH light ones (widest, most stable heavy/light
+ * separation, ≈2.53x). Dropping to 4x CPU sinks data-grid below the overlay
+ * control (separation muddied); easing to Fast-3G narrows the heavy medians and
+ * shrinks the gap. The 6x CPU multiplier is what discriminates heavy from light;
+ * the Slow-3G tier widened the gap further in these runs and encodes the
+ * worst-case-cellular intent. Reversible (D-01): re-pin from a re-run of the grid.
+ *
+ * NOTE: counts (the GATED numbers) are throttle-independent and identical across
+ * all four corners; the grid only moves the report-only wall-clock, which is what
+ * the separation rationale is read against.
  */
 export const THROTTLE_PROFILE: ThrottleProfile = {
   name: 'low-end-cellular',
