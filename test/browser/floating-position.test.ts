@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import '../../src/components/popover/popover';
-import { fixture, shadowQuery, waitForUpdate } from '../helpers';
+import { deepActiveElement, fixture, shadowQuery, waitForUpdate } from '../helpers';
 
 /**
  * TEST-06 — floating-ui positioning in a real browser.
@@ -65,5 +65,34 @@ describe('floating-ui positioning (real Chromium layout)', () => {
     expect(panelRect.top).toBeGreaterThanOrEqual(triggerRect.bottom - 1);
     expect(panelRect.top - triggerRect.bottom).toBeLessThanOrEqual(24);
     expect(Math.abs(panelRect.left - triggerRect.left)).toBeLessThanOrEqual(24);
+  });
+
+  it('preserves focus on the trigger after the async open (ordering contract intact)', async () => {
+    // After start() became async (await loadFloating()), the open→position→
+    // focus→autoUpdate ordering contract must still hold: the deferred-import
+    // seam must not let focus/autoUpdate run ahead and steal focus. am-popover is
+    // non-modal and never relocates focus, so the correct post-open target is the
+    // trigger it was on — this asserts the async seam introduced no focus race.
+    const host = await fixture<PopoverHost>(`
+      <am-popover trigger="manual" placement="bottom-start">
+        <button class="pop-trigger">Trigger</button>
+        <div slot="content"><button class="pop-inner">Inner</button></div>
+      </am-popover>
+    `);
+
+    const trigger = host.querySelector<HTMLElement>('.pop-trigger')!;
+    const panel = shadowQuery<HTMLElement>(host, '.popover');
+
+    trigger.focus();
+    expect(deepActiveElement()).toBe(trigger);
+
+    host.open = true;
+    await waitForUpdate(host);
+    await waitForPosition(panel);
+
+    // Focus stayed on the trigger across the async open (no focus theft / reorder).
+    expect(deepActiveElement()).toBe(trigger);
+
+    host.remove();
   });
 });
