@@ -71,7 +71,23 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. Shared-chunk dedupe and per-component deep-import purity are verified — no cross-entry duplication regressions introduced by the deferral. (SIZE-04)
   5. Non-critical component init is deferred off the first-load critical path (idle/deferred init), behavior-preserving, for faster slow-network first paint. (SIZE-05)
 
-**Plans**: TBD
+**Plans**: 7 plans (waves 1-3)
+
+**Wave 1** *(tracer — floating-ui deferral proven end-to-end before expansion)*
+
+- [ ] 08-01-PLAN.md — TRACER: memoized loader + deferred FloatingPositionController + popover, no-0,0-frame + registration canary + size win legible (SIZE-01, SIZE-03)
+
+**Wave 2** *(expansion — depends on 08-01; all component files owned independently, run in parallel)*
+
+- [ ] 08-02-PLAN.md — tooltip (arrow getter) + color-picker (loader-direct one-shot, NOT controller — Pitfall CP1) (SIZE-01)
+- [ ] 08-03-PLAN.md — rich-select (full controller migration) + dropdown type-only verify (SIZE-01)
+- [ ] 08-04-PLAN.md — combobox full deferral: size getter + virtualize swap + SIZE-05 idle sweep (SIZE-01, SIZE-02, SIZE-05)
+- [ ] 08-05-PLAN.md — select full deferral + virtualize-support.ts virtualizer-import deferral (SIZE-01, SIZE-02)
+- [ ] 08-06-PLAN.md — data-grid virtualize swap + SIZE-05 idle sweep (SIZE-02, SIZE-05)
+
+**Wave 3** *(verification capstone — depends on all Wave-2 migrations)*
+
+- [ ] 08-07-PLAN.md — deep-import purity + shared-chunk dedupe + registration/no-bundled-Lit canary + final size/perf re-baseline (SIZE-03, SIZE-04)
 
 ### Phase 9: Runtime-Performance Tuning
 
@@ -125,7 +141,7 @@ Phase 10 (graceful degradation) depends only on the Phase 7 harness/browser lane
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 7. Measurement, Baselines & Budgets | 7/7 | Complete    | 2026-08-22 |
-| 8. Bundle-Size Deferral | 0/TBD | Not started | - |
+| 8. Bundle-Size Deferral | 0/7 | Planned | - |
 | 9. Runtime-Performance Tuning | 0/TBD | Not started | - |
 | 10. Graceful Degradation & Compatibility Matrix | 0/TBD | Not started | - |
 | 11. Gate Enforcement & Cost Publication | 0/TBD | Not started | - |
