@@ -80,6 +80,38 @@ jobs:
       - name: Surface diff (release gate)
         run: npm run diff:surface
 
+  # Report-only runtime-perf lane (MEAS-02/03). Kept a SIBLING job — not folded
+  # into `browser` — to isolate the CDP write+exec privilege and the Chromium-only
+  # throttling constraint from the correctness lane (Open Question 3).
+  #
+  # Node 20 (NOT 22): the perf lane needs only Playwright/Chromium and must stay on
+  # a pinned Node so throttled baselines don't drift when the runner Node moves
+  # (Pitfall 5). Only the `size` job below runs Node 22 (size-limit@13 needs >=22.18).
+  #
+  # Report-only (D-08): perf-diff.mjs exits 0 by design this phase — numbers post on
+  # every PR, nothing red-builds. The enforcing flip is Phase 11. Report-only is
+  # achieved purely by the script's exit 0 — no error-suppressing step flag and no
+  # `|| true` are used (those would fake report-only and mask a real failure later).
+  perf:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Install Chromium
+        run: npx playwright install chromium
+
+      - name: Perf harness (Chromium, throttled) — report-only
+        run: |
+          npm run test:perf
+          node scripts/perf-diff.mjs api/perf.baseline.json api/perf.json
+
   size:
     runs-on: ubuntu-latest
     steps:
@@ -98,6 +130,26 @@ jobs:
 
       - name: Bundle-size budget
         run: npm run size
+
+      # Report-only measurement guards (D-08). Each script exits 0 by design this
+      # phase — numbers/violations post on every PR, nothing red-builds. No
+      # error-suppressing flag and no `|| true`; the exit 0 is what makes them
+      # report-only. The enforcing flip (size first) is Phase 11.
+
+      # MEAS-01/04a: re-scoped per-entry brotli baseline (counts @floating-ui/dom,
+      # keeps lit ignored) diffed against the committed api/size.baseline.json.
+      - name: Brotli size baseline (report-only)
+        run: node scripts/size-baseline.mjs --check
+
+      # MEAS-04b: no-bundled-Lit guard, independent of size-limit (size-limit
+      # ignores `lit`, so an inlined copy would be invisible to the budget above).
+      - name: No-bundled-Lit assertion (report-only)
+        run: node scripts/assert-no-bundled-lit.mjs
+
+      # MEAS-05: @size-limit/esbuild-why --why cost breakdown — confirms what pulls
+      # into each shipped chunk (e.g. highlight.js ships nowhere). Node-22 size lane.
+      - name: Bundle attribution --why (report-only)
+        run: npm run size:why
 
   # Packed-artifact smoke (SHIP-03): pack -> install into a throwaway project ->
   # resolve the full/per-component/tokens.css matrix (raw ESM + a real esbuild

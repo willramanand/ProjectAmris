@@ -80,7 +80,7 @@
     "perf:diff": "node scripts/perf-diff.mjs api/perf.baseline.json api/perf.json",
     "assert:no-lit": "node scripts/assert-no-bundled-lit.mjs",
     "attribution:check": "node scripts/attribution-check.mjs",
-    "visualize": "VISUALIZE=1 npm run build",
+    "visualize": "node scripts/visualize.mjs",
     "storybook": "storybook dev -p 6006",
     "build:storybook": "storybook build"
   },

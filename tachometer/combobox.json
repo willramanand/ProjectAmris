@@ -1,0 +1,20 @@
+{
+  "$schema": "https://raw.githubusercontent.com/google/tachometer/master/config.schema.json",
+  "root": ".",
+  "sampleSize": 30,
+  "timeout": 3,
+  "benchmarks": [
+    {
+      "name": "combobox: filter-per-keystroke (500 options)",
+      "url": "tachometer/benches/combobox.html",
+      "measurement": { "mode": "expression", "expression": "window.tachometerResult" },
+      "browser": { "name": "chrome", "headless": true }
+    },
+    {
+      "name": "button (light control / noise floor)",
+      "url": "tachometer/benches/button.html",
+      "measurement": { "mode": "expression", "expression": "window.tachometerResult" },
+      "browser": { "name": "chrome", "headless": true }
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+  <!--
+    Local-only tachometer A/B benchmark fixture (D-10). Never referenced by CI.
+    Renders am-data-grid with 1000 rows and applies a sort, then publishes the
+    wall-clock render+sort duration on window.tachometerResult for tachometer's
+    `expression` measurement. Run from the repo ROOT: `npx tachometer tachometer/data-grid.json`.
+    Requires a prior `npm run build` (imports the built /dist bundle).
+  -->
+  <head>
+    <meta charset="utf-8" />
+    <title>data-grid A/B benchmark</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module">
+      import '/dist/amris.js';
+
+      await customElements.whenDefined('am-data-grid');
+
+      const N = 1000;
+      const columns = [
+        { key: 'id', label: 'ID', sortable: true, type: 'number' },
+        { key: 'name', label: 'Name', sortable: true },
+        { key: 'value', label: 'Value', sortable: true, type: 'number' },
+      ];
+      const rows = Array.from({ length: N }, (_, i) => ({
+        id: i,
+        name: 'row-' + i,
+        value: (i * 7919) % 1000,
+      }));
+
+      const t0 = performance.now();
+      const grid = document.createElement('am-data-grid');
+      grid.columns = columns;
+      grid.rows = rows;
+      document.getElementById('root').appendChild(grid);
+      await grid.updateComplete;
+
+      // Sort pass (the Phase 8-9 optimization target).
+      grid.rows = [...rows].sort((a, b) => a.value - b.value);
+      await grid.updateComplete;
+      const t1 = performance.now();
+
+      window.tachometerResult = t1 - t0;
+    </script>
+  </body>
+</html>
