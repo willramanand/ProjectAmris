@@ -1,21 +1,25 @@
 ---
 phase: 07-measurement-baselines-budgets
 verified: 2026-08-22T15:00:00Z
-status: human_needed
+status: passed
 score: 5/5 must-haves verified
 behavior_unverified: 0
 overrides_applied: 0
 human_verification:
+
   - test: "In a Chromium-capable environment run `npm run test:perf` (Vitest Browser Mode + Playwright/Chromium), then `node scripts/perf-diff.mjs api/perf.baseline.json api/perf.json`."
     expected: "The perf lane launches Chromium, applies the 6x-CPU + Slow-3G throttle, and regenerates api/perf.json whose per-scenario `counts` (button/combobox/data-grid/overlay: update/updated/render/computePosition/repositions/nodes) match the committed api/perf.baseline.json byte-for-byte, with throttled wall-clock > unthrottled in each scenario's throttle-liveness evidence. perf-diff reports 'No count drift' and exits 0."
     why_human: "The perf harness only runs on a live Playwright/Chromium browser lane (CDP CPU+network throttling is Chromium-only). The verifier sandbox cannot launch Playwright, so live reproducibility of MEAS-02 emission cannot be self-executed. The committed baseline, the passing-by-design CDP spike, and the Node-side wiring are all present; only the live re-run is deferred."
 warnings:
+
   - id: WR-01
     file: scripts/perf-diff.mjs:205-223
     issue: "Diff mode calls load(currentPath) without an existsSync guard; when api/perf.json is absent it throws ENOENT and exits non-zero. Confirmed by direct run (EXIT=1). In the missing-current edge this contradicts the report-only (D-08) contract for the CI perf job. Normal CI path generates api/perf.json via `npm run test:perf` before the diff, so the harness+baseline deliverable is unaffected. Already logged as WR-01 in 07-REVIEW.md."
+
   - id: WR-02
     file: scripts/size-baseline.mjs:73-79 (api/size.baseline.json:11-14)
     issue: "The `marginal` metric is computed as (component deep-import − whole core bundle), yielding meaningless negative values (button -19197, data-grid -10228). The primary per-entry brotli baseline (the MEAS-01 deliverable) is correct and reproduced; only the auxiliary marginal-cost field is inverted. Downstream Phase 8/11 reasoning that reads `marginal` would be reading an inverted number. Logged as WR-02 in 07-REVIEW.md."
+
   - id: WR-03
     file: test/perf/overlay.perf.test.ts:110-147
     issue: "assertStableCounts requires byte-stable computePosition/repositions across 5 repeats, but those counts derive from floating-ui autoUpdate/ResizeObserver timing that the spec's own comment admits can vary. A genuine measurement wobble would throw and red-build the report-only perf lane. Flaky-test risk, not a goal blocker. Logged as WR-03 in 07-REVIEW.md."
