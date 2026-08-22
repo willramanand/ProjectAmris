@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import '../../src/components/combobox/combobox';
 import '../../src/components/select/select';
+import { loadVirtualizer } from '../../src/internal/helpers/lazy-load';
 import { fixture, shadowQuery, waitForUpdate } from '../helpers';
 
 /**
@@ -34,6 +35,25 @@ async function waitForNodes(host: HTMLElement, selector: string): Promise<HTMLEl
   return Array.from(host.shadowRoot?.querySelectorAll<HTMLElement>(selector) ?? []);
 }
 
+/**
+ * Wait until the option list is windowed (virtualizer resolved and laid out).
+ * The deferred `@lit-labs/virtualizer` chunk (D-05) means the first frames after
+ * open render the unwindowed `repeat()` fallback (all N options); once the chunk
+ * loads the list swaps to a windowed subset. Navigating (End) before the
+ * virtualizer's first layout would hit its internal scroll-into-view before it is
+ * ready, so tests that navigate must wait for the windowed steady state first.
+ */
+async function waitForWindowed(host: HTMLElement, selector: string): Promise<void> {
+  for (let i = 0; i < 120; i++) {
+    const count = host.shadowRoot?.querySelectorAll(selector).length ?? 0;
+    if (count > 0 && count < 200) {
+      await raf();
+      return;
+    }
+    await raf();
+  }
+}
+
 // ============================================================================
 // am-combobox (string-array options, text mode)
 // ============================================================================
@@ -59,6 +79,9 @@ async function openCombobox(el: ComboboxEl): Promise<HTMLInputElement> {
   input.dispatchEvent(new FocusEvent('focus', { bubbles: true, composed: true }));
   await waitForUpdate(el);
   await waitForNodes(el, '.option');
+  // Deferred virtualizer (D-05): let the list reach its windowed steady state
+  // before returning so navigation-based tests do not race the first layout.
+  await waitForWindowed(el, '.option');
   return input;
 }
 
@@ -108,6 +131,51 @@ describe('am-combobox virtualization (real Chromium)', () => {
     // It is the last option (absolute posinset 1000).
     expect(live?.getAttribute('aria-posinset')).toBe('1000');
     expect(live?.textContent?.trim()).toBe('Option 999');
+
+    el.remove();
+  });
+
+  it('renders a functional unwindowed repeat() fallback during the cold chunk, then swaps to virtualize()', async () => {
+    // SIZE-02 precision/adjacency edge (repeat↔virtualize swap): above the
+    // threshold, before the deferred virtualizer chunk resolves, the list must be
+    // fully functional (unwindowed repeat, correct absolute ARIA), then swap to
+    // the windowed virtualize() render once loaded — with no ARIA drift.
+    const el = await makeCombobox();
+    await openCombobox(el);
+
+    // First let the real deferred load settle so its pending .then has fired and
+    // the list is windowed — no in-flight assignment can race the forced cold state.
+    const windowedFirst = await waitForNodes(el, '.option');
+    expect(windowedFirst.length).toBeLessThan(200);
+
+    // Force the cold-chunk state: virtualizer not yet resolved. Guard the request
+    // flag so the (memoized) render path does not re-kick the load.
+    (el as unknown as { _virtualize?: unknown })._virtualize = undefined;
+    (el as unknown as { _virtualizerRequested: boolean })._virtualizerRequested = true;
+    (el as unknown as { requestUpdate(): void }).requestUpdate();
+    await waitForUpdate(el);
+
+    // Cold: the full 1000-option list is rendered unwindowed via repeat(), each
+    // option fully functional with correct absolute posinset/setsize.
+    const cold = Array.from(el.shadowRoot!.querySelectorAll<HTMLElement>('.option'));
+    expect(cold.length).toBe(1000);
+    expect(cold[0].getAttribute('role')).toBe('option');
+    expect(cold[0].getAttribute('aria-setsize')).toBe('1000');
+    expect(cold[0].getAttribute('aria-posinset')).toBe('1');
+    expect(cold[999].getAttribute('aria-posinset')).toBe('1000');
+    expect(cold[999].textContent?.trim()).toBe('Option 999');
+
+    // Resolve the virtualizer and swap: the list becomes windowed, ARIA unchanged.
+    const mod = await loadVirtualizer();
+    (el as unknown as { _virtualize: unknown })._virtualize = mod.virtualize;
+    (el as unknown as { requestUpdate(): void }).requestUpdate();
+    await waitForUpdate(el);
+
+    await waitForWindowed(el, '.option');
+    const windowed = Array.from(el.shadowRoot!.querySelectorAll<HTMLElement>('.option'));
+    expect(windowed.length).toBeLessThan(200);
+    expect(windowed[0].getAttribute('aria-setsize')).toBe('1000');
+    expect(windowed[0].getAttribute('aria-posinset')).toBe('1');
 
     el.remove();
   });

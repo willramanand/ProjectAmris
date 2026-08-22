@@ -2,10 +2,13 @@ import { LitElement, css, html, nothing, type PropertyValues, type TemplateResul
 import { customElement, property, query, state } from 'lit/decorators.js';
 import { live } from 'lit/directives/live.js';
 import { repeat } from 'lit/directives/repeat.js';
-import { virtualize } from '@lit-labs/virtualizer/virtualize.js';
-import { size as sizeMiddleware } from '@floating-ui/dom';
 import { resetStyles } from '../../styles/reset.css.js';
 import { requestAssociatedFormSubmit } from '../../utilities/form-actions.js';
+import {
+  loadVirtualizer,
+  prefetchFloating,
+  prefetchVirtualizer,
+} from '../../internal/helpers/lazy-load.js';
 import { FloatingPositionController } from '../../internal/controllers/floating-position.js';
 import { ListboxNavController } from '../../internal/controllers/listbox-nav.js';
 import { filterOptions } from '../../internal/controllers/option-filter.js';
@@ -104,6 +107,17 @@ export class AmCombobox extends LitElement {
   @state() private _dropdownQuery = '';
   @state() private _slottedOptions: string[] = [];
 
+  /**
+   * The lazily-loaded `virtualize()` directive, `undefined` until the deferred
+   * `@lit-labs/virtualizer` chunk resolves (D-05). While `undefined`, the
+   * above-threshold render path falls back to a fully-functional unwindowed
+   * `repeat()` (cold-chunk / fetch-failure fallback), then swaps to `virtualize()`
+   * on resolve via {@link requestUpdate}. Kept off the CEM surface (plain field).
+   */
+  private _virtualize?: typeof import('@lit-labs/virtualizer/virtualize.js')['virtualize'];
+  /** True once the virtualizer load has been kicked — dedupes the request. */
+  private _virtualizerRequested = false;
+
   @query('input') private inputEl!: HTMLInputElement;
   @query('.listbox') private listboxEl!: HTMLElement;
   @query('.select-listbox') private _selectListboxEl!: HTMLElement;
@@ -150,6 +164,10 @@ export class AmCombobox extends LitElement {
    * component's previous inline setup exactly: anchored to `.wrapper`, fixed
    * strategy, 4px offset, plus a `size` middleware that matches the listbox
    * width to the reference. autoUpdate stays ungated (behavior-preserving).
+   *
+   * The `size` middleware is built from the deferred-loaded `@floating-ui/dom`
+   * module inside the module-receiving getter (D-06) — NOT from a static import
+   * in a construction-time array, which would evaluate before the chunk loads.
    */
   private _floatingController = new FloatingPositionController(this, {
     reference: () => this.shadowRoot?.querySelector('.wrapper') as HTMLElement | null,
@@ -157,8 +175,8 @@ export class AmCombobox extends LitElement {
     placement: 'bottom-start',
     strategy: 'fixed',
     offset: 4,
-    middleware: [
-      sizeMiddleware({
+    middleware: (mod) => [
+      mod.size({
         apply({ rects, elements }) {
           Object.assign(elements.floating.style, {
             width: `${rects.reference.width}px`,
@@ -194,12 +212,47 @@ export class AmCombobox extends LitElement {
     },
   });
 
+  /**
+   * rAF handle for the deferred non-critical init (SIZE-05). Non-zero while a
+   * schedule is pending; cleared to 0 on fire, cancel, or teardown so a
+   * disconnect-before-fire neither runs late nor double-schedules on reconnect.
+   */
+  private _deferredInitRaf = 0;
+  /** True once the deferred `invalid` listener has attached (dedupes re-runs). */
+  private _nonCriticalInitDone = false;
+
   constructor() {
     super();
     this.internals = this.attachInternals();
-    // A failed constraint check on form submit fires `invalid` on this host;
-    // suppress the browser's default bubble and surface our own message (D-04).
-    this.addEventListener('invalid', this._onInvalid);
+    // The `invalid`-listener attach is NON-critical for first paint (it only
+    // matters once a form submit runs a constraint check), so it is deferred off
+    // the constructor onto a post-paint rAF in connectedCallback (SIZE-05 / D-08).
+  }
+
+  connectedCallback(): void {
+    super.connectedCallback();
+    this._scheduleNonCriticalInit();
+  }
+
+  /**
+   * SIZE-05: schedule combobox's non-critical init (the `invalid` listener that
+   * suppresses the browser's default bubble and surfaces our own message on a
+   * failed submit — D-04) off the constructor/first-paint path via a double-`rAF`
+   * (D-09 — "after first paint" work only; no idle-callback scheduling, which is
+   * unsupported at the Safari 16.4 floor). Teardown-guarded: {@link disconnectedCallback} cancels a
+   * still-pending schedule, and the done/handle guards prevent a double attach on
+   * a disconnect→reconnect cycle.
+   */
+  private _scheduleNonCriticalInit(): void {
+    if (this._nonCriticalInitDone || this._deferredInitRaf) return;
+    this._deferredInitRaf = requestAnimationFrame(() => {
+      this._deferredInitRaf = requestAnimationFrame(() => {
+        this._deferredInitRaf = 0;
+        if (!this.isConnected || this._nonCriticalInitDone) return;
+        this.addEventListener('invalid', this._onInvalid);
+        this._nonCriticalInitDone = true;
+      });
+    });
   }
 
   /**
@@ -494,6 +547,12 @@ export class AmCombobox extends LitElement {
 
   disconnectedCallback() {
     super.disconnectedCallback();
+    // Cancel a still-pending deferred non-critical init so it neither fires after
+    // teardown nor double-attaches on a later reconnect (SIZE-05 teardown guard).
+    if (this._deferredInitRaf) {
+      cancelAnimationFrame(this._deferredInitRaf);
+      this._deferredInitRaf = 0;
+    }
     // The floating autoUpdate teardown is mirrored in the controller's
     // hostDisconnected (invoked during super.disconnectedCallback above).
     document.removeEventListener('click', this._handleDocumentClick);
@@ -512,6 +571,10 @@ export class AmCombobox extends LitElement {
       if (this._open) {
         document.addEventListener('click', this._handleDocumentClick);
         this._floatingController.start();
+        // Warm the virtualizer chunk when opening near/above the threshold so the
+        // repeat()→virtualize() swap resolves promptly (D-04). Below it, never
+        // fetched — the repeat() path needs no virtualizer.
+        if (this._openOptionCount() > VIRTUALIZE_ROW_THRESHOLD) prefetchVirtualizer();
       } else {
         document.removeEventListener('click', this._handleDocumentClick);
         this._floatingController.stop();
@@ -584,6 +647,15 @@ export class AmCombobox extends LitElement {
     if (!path.includes(this)) {
       this._open = false;
     }
+  };
+
+  /**
+   * Warm the deferred floating-ui chunk on trigger intent (hover/focus, D-01/D-03)
+   * so the module is usually resolved by the time the controller `await`s it on
+   * open — keeping the open→position ordering tight. A wasted warm is accepted cost.
+   */
+  private _handlePrefetch = () => {
+    prefetchFloating();
   };
 
   private _handleInput(e: Event) {
@@ -710,20 +782,55 @@ export class AmCombobox extends LitElement {
   }
 
   /**
+   * Kick the deferred `@lit-labs/virtualizer` load once, assigning the resolved
+   * directive and requesting a re-render so the above-threshold path swaps from
+   * the `repeat()` fallback to `virtualize()` (D-04/D-05). A failed fetch leaves
+   * `_virtualize` undefined and clears the guard so the fully-functional
+   * `repeat()` fallback stands and a later render can retry.
+   */
+  /** Currently-filtered option count for the active mode (select vs text). */
+  private _openOptionCount(): number {
+    return this.searchInTrigger
+      ? this._selectFilteredOptions.length
+      : filterOptions(this._allOptions, this.value, this.remote).length;
+  }
+
+  private _ensureVirtualizer(): void {
+    if (this._virtualize || this._virtualizerRequested) return;
+    this._virtualizerRequested = true;
+    loadVirtualizer()
+      .then((m) => {
+        this._virtualize = m.virtualize;
+        this.requestUpdate();
+      })
+      .catch(() => {
+        // Cold/failed chunk — stay on the repeat() fallback (D-05); allow retry.
+        this._virtualizerRequested = false;
+      });
+  }
+
+  /**
    * Render the option list body. Above {@link VIRTUALIZE_ROW_THRESHOLD} (D-06)
-   * the `virtualize()` directive windows the list; at/below it the existing
-   * `repeat()` path stands. Both share {@link _renderOption} so ARIA is uniform.
+   * the `virtualize()` directive windows the list once its deferred chunk has
+   * resolved; until then (cold chunk / fetch failure) the fully-functional
+   * unwindowed `repeat()` fallback stands (D-05). At/below the threshold the
+   * `repeat()` path always stands. Both share {@link _renderOption} so the ARIA
+   * shape (posinset/setsize from the absolute index) is identical across the swap.
    */
   private _renderOptionList(filtered: string[]): unknown {
     if (filtered.length === 0) {
       return html`<div class="empty" role="option" aria-disabled="true">No results</div>`;
     }
     if (filtered.length > VIRTUALIZE_ROW_THRESHOLD) {
-      return virtualize({
-        items: filtered,
-        keyFunction: (opt: string) => opt,
-        renderItem: (opt: string, i: number) => this._renderOption(opt, i, filtered.length),
-      });
+      this._ensureVirtualizer();
+      if (this._virtualize) {
+        return this._virtualize({
+          items: filtered,
+          keyFunction: (opt: string) => opt,
+          renderItem: (opt: string, i: number) => this._renderOption(opt, i, filtered.length),
+        });
+      }
+      // Cold-chunk / fetch-failure fallback: unwindowed but fully functional.
     }
     return repeat(
       filtered,
@@ -840,7 +947,8 @@ export class AmCombobox extends LitElement {
     ].filter(Boolean).join(' ');
 
     return html`
-      <div class=${wrapperClasses} @click=${this._handleWrapperClick}>
+      <div class=${wrapperClasses} @click=${this._handleWrapperClick}
+        @pointerenter=${this._handlePrefetch} @focusin=${this._handlePrefetch}>
         <div class="input-group">
           ${hasLabel
             ? html`<span class="floating-label" part="label">${this.label}</span>`
@@ -898,6 +1006,7 @@ export class AmCombobox extends LitElement {
 
     return html`
       <div class="${wrapperClasses} select-mode" @click=${this._handleWrapperClick}
+        @pointerenter=${this._handlePrefetch}
         role="combobox"
         aria-expanded=${this._open ? 'true' : 'false'}
         aria-haspopup="listbox"
