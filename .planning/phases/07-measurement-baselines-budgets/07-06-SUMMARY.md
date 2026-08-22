@@ -181,6 +181,10 @@ None - no external service configuration required. (To run tachometer locally: `
 - Phase 11 owns the enforcing flip (size first → runtime counts → wall-clock stays report-only). The committed baselines and report-only jobs are the seed for those gates.
 - tachometer A/B harness is ready for Phases 8-9 before/after deltas.
 
+## Self-Check: PASSED
+
+All created/modified files present (ci.yml, 3 tachometer configs, 4 benchmark fixtures, scripts/visualize.mjs, SUMMARY.md); all task commits present in git log (3090c71, cecccec, 2abfed5, a74093d).
+
 ---
 *Phase: 07-measurement-baselines-budgets*
 *Completed: 2026-08-22*
