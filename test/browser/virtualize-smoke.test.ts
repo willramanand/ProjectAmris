@@ -4,7 +4,8 @@ import { virtualize } from '@lit-labs/virtualizer/virtualize.js';
 import { describe, expect, it } from 'vitest';
 
 import { scrollVirtualizerToIndex } from '../../src/internal/helpers/virtualize-support';
-import { fixture, waitForUpdate } from '../helpers';
+import '../../src/components/select/select';
+import { fixture, shadowQuery, waitForUpdate } from '../helpers';
 
 /**
  * virtualize-smoke — de-risks the labs/pre-1.0 `@lit-labs/virtualizer` v2.1.1
@@ -102,5 +103,65 @@ describe('@lit-labs/virtualizer virtualize() directive (real Chromium)', () => {
     expect(node?.dataset.index).toBe(String(target));
 
     host.remove();
+  });
+});
+
+/**
+ * SIZE-02 cold-chunk fallback (select) — with the virtualizer now behind a
+ * dynamic `import()` (08-05), an above-threshold `am-select` must render a
+ * functional UNWINDOWED `repeat()` on the first open frame (before the chunk
+ * resolves) and then SWAP to the windowed `virtualize()` directive once loaded,
+ * with selection working on both paths (D-05). Proven only in the browser lane:
+ * jsdom mocks ResizeObserver so the virtualizer never windows.
+ */
+type BigSelect = HTMLElement & { value: string };
+
+function bigSelectMarkup(count: number): string {
+  const options = Array.from(
+    { length: count },
+    (_v, i) => `<am-option value="opt-${i}">Option ${i}</am-option>`,
+  ).join('');
+  return `<am-select label="Big">${options}</am-select>`;
+}
+
+function optionRows(host: HTMLElement): NodeListOf<HTMLElement> {
+  return host.shadowRoot!.querySelectorAll<HTMLElement>('.v-option');
+}
+
+describe('am-select deferred virtualizer cold-chunk fallback (real Chromium)', () => {
+  it('renders a functional unwindowed repeat() before load, then swaps to windowed virtualize()', async () => {
+    const count = 150; // > VIRTUALIZE_ROW_THRESHOLD (100) → virtualized path
+    const el = await fixture<BigSelect>(bigSelectMarkup(count));
+
+    const trigger = shadowQuery<HTMLButtonElement>(el, '.trigger');
+    trigger.click();
+    // First render commits with the virtualizer directive still unresolved, so
+    // the cold path renders every option via repeat() — fully functional.
+    await (el as unknown as { updateComplete: Promise<unknown> }).updateComplete;
+    const coldRows = optionRows(el);
+    expect(coldRows.length).toBe(count);
+
+    // Every cold row carries the same state-driven ARIA the windowed path uses.
+    expect(coldRows[0].getAttribute('role')).toBe('option');
+    expect(coldRows[0].getAttribute('aria-setsize')).toBe(String(count));
+    expect(coldRows[0].getAttribute('aria-posinset')).toBe('1');
+
+    // Once the virtualizer chunk resolves it swaps to the windowed directive —
+    // only a small subset of rows stays mounted.
+    let rows = optionRows(el);
+    for (let i = 0; i < 60 && rows.length >= count; i++) {
+      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+      rows = optionRows(el);
+    }
+    expect(rows.length).toBeGreaterThan(0);
+    expect(rows.length).toBeLessThan(count);
+
+    // Selection is behavior-preserving on the windowed path: clicking the first
+    // mounted row commits its value via state (Pitfall 2).
+    optionRows(el)[0].click();
+    await waitForUpdate(el);
+    expect(el.value).toBe('opt-0');
+
+    el.remove();
   });
 });
