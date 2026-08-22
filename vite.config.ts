@@ -2,6 +2,27 @@ import { defineConfig, type Plugin } from 'vite';
 import { resolve } from 'path';
 import { readdirSync, statSync } from 'fs';
 import minifyHTML from '@lit-labs/rollup-plugin-minify-html-literals';
+import { visualizer } from 'rollup-plugin-visualizer';
+
+// Dev-only bundle-attribution report (MEAS-05, CONTEXT D-09). Gated behind the
+// `VISUALIZE` env flag so a normal `npm run build` emits no report and the
+// shipped artifact is byte-unchanged. When set (`VISUALIZE=1 npm run build`),
+// rollup-plugin-visualizer writes a machine-readable `bundle-stats.json`
+// (`raw-data` template) to the repo root — OUTSIDE `dist/` so it can never enter
+// the published tarball (`files: ["dist","README.md"]`). `scripts/attribution-check.mjs`
+// reads this JSON to confirm highlight.js ships in no chunk.
+function visualizerPlugins(): Plugin[] {
+  if (!process.env.VISUALIZE) return [];
+  return [
+    visualizer({
+      filename: 'bundle-stats.json',
+      template: 'raw-data',
+      gzipSize: true,
+      brotliSize: true,
+      emitFile: false,
+    }) as unknown as Plugin,
+  ];
+}
 
 function stripBlockComments(value: string): string {
   return value.replace(/\/\*[\s\S]*?\*\//g, '');
@@ -197,7 +218,7 @@ function discoverFlatEntries(subdir: string): Record<string, string> {
 }
 
 export default defineConfig(() => ({
-  plugins: [stripLitCssComments()],
+  plugins: [stripLitCssComments(), ...visualizerPlugins()],
   build: {
     outDir: 'dist',
     emptyOutDir: true,

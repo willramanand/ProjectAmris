@@ -16,6 +16,10 @@ coverage
 test/browser/__screenshots__
 *.local
 
+# Dev-only bundle-attribution report (VISUALIZE=1 build, MEAS-05) — never shipped
+bundle-stats.json
+stats.html
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
