@@ -11,11 +11,11 @@ Requirements for the v1.1 hardening milestone. Each maps to a roadmap phase. Gro
 
 ### Measurement, Baselines & Budgets
 
-- [ ] **MEAS-01**: A reproducible per-entry **brotli** (on-the-wire) bundle-size baseline is captured and committed via a `size-baseline.mjs` script.
-- [ ] **MEAS-02**: A reproducible throttled runtime-perf harness (`perf-harness.mjs`) runs on the existing Vitest Browser Mode + Playwright/Chromium lane, using CDP CPU + network throttling, and emits both **count** metrics (render/update/`computePosition` calls, node counts) and wall-clock timings to a committed JSON baseline.
-- [ ] **MEAS-03**: A named low-end target profile (CPU-throttle multiplier + network tier) is chosen from the measured baseline data and pinned in harness config.
-- [ ] **MEAS-04**: `.size-limit.json` is re-scoped so the delivered-payload metric **counts** `@floating-ui/dom` (the deferral win becomes visible), plus a dedicated no-bundled-Lit assertion that runs independent of size-limit.
-- [ ] **MEAS-05**: A bundle-attribution report (`rollup-plugin-visualizer` + `@size-limit/esbuild-why`, dev-only) is available and confirms `highlight.js` is absent from every shipped chunk.
+- [x] **MEAS-01**: A reproducible per-entry **brotli** (on-the-wire) bundle-size baseline is captured and committed via a `size-baseline.mjs` script.
+- [x] **MEAS-02**: A reproducible throttled runtime-perf harness (`perf-harness.mjs`) runs on the existing Vitest Browser Mode + Playwright/Chromium lane, using CDP CPU + network throttling, and emits both **count** metrics (render/update/`computePosition` calls, node counts) and wall-clock timings to a committed JSON baseline.
+- [x] **MEAS-03**: A named low-end target profile (CPU-throttle multiplier + network tier) is chosen from the measured baseline data and pinned in harness config.
+- [x] **MEAS-04**: `.size-limit.json` is re-scoped so the delivered-payload metric **counts** `@floating-ui/dom` (the deferral win becomes visible), plus a dedicated no-bundled-Lit assertion that runs independent of size-limit.
+- [x] **MEAS-05**: A bundle-attribution report (`rollup-plugin-visualizer` + `@size-limit/esbuild-why`, dev-only) is available and confirms `highlight.js` is absent from every shipped chunk.
 
 ### Bundle-Size Reduction
 
@@ -94,11 +94,11 @@ Which phases cover which requirements. Populated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| MEAS-01 | Phase 7 | Pending |
-| MEAS-02 | Phase 7 | Pending |
-| MEAS-03 | Phase 7 | Pending |
-| MEAS-04 | Phase 7 | Pending |
-| MEAS-05 | Phase 7 | Pending |
+| MEAS-01 | Phase 7 | Complete |
+| MEAS-02 | Phase 7 | Complete |
+| MEAS-03 | Phase 7 | Complete |
+| MEAS-04 | Phase 7 | Complete |
+| MEAS-05 | Phase 7 | Complete |
 | SIZE-01 | Phase 8 | Pending |
 | SIZE-02 | Phase 8 | Pending |
 | SIZE-03 | Phase 8 | Pending |

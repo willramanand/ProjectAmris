@@ -63,11 +63,14 @@ Consumers can drop `@willramanand/amris` into any app and trust the components t
 - ✓ Frozen contract documented: README (Lit peer-dep + Safari 16.4 floor), theming/validation/usage docs, and a `contract.md` generated from the CEM with a CI drift check — Phase 5
 - ✓ CEM surface-diff gate flipped to enforcing; `package.json` `exports`/`sideEffects` hardened; tarball pack/install smoke test; **v1.0.0** published to GitHub Packages and tagged `v1.0` — Phase 6
 
+<!-- Validated in Phase 7: Measurement, Baselines & Budgets (2026-08-22) -->
+
+- ✓ Reproducible throttled measurement harness + committed baselines: brotli per-entry size baseline (`size-baseline.mjs` + `api/size.baseline.json`), Chromium runtime-perf harness under CDP 6×-CPU + Slow-3G throttle emitting count + wall-clock metrics (`api/perf.baseline.json`), low-end target profile (`low-end-cellular`) pinned from measured data (not guessed), `.size-limit.json` re-scoped to count `@floating-ui/dom` with an independent no-bundled-Lit assertion, and a dev-only bundle-attribution report confirming `highlight.js` ships in no chunk — report-only CI wiring for both size + perf (MEAS-01..05) — Phase 7
+
 ### Active
 
 <!-- v1.1 scope: perf, size, and browser reach for low-end enterprise. Hypotheses until shipped and validated. -->
 
-- [ ] Measurement: reproducible bundle-size + runtime-perf harness; profile heavy components on a throttled device/network; establish baselines and derive budgets (low-end target profile chosen from the data)
 - [ ] Bundle size: reduce core/full/per-component payloads — tree-shaking wins, internal deferral/lazy-load of the real shipped heavy deps (`@floating-ui/dom`, `@lit-labs/virtualizer`; `highlight.js` is Storybook-only, not shipped), leaner CSS/token delivery
 - [ ] Runtime perf: cut main-thread work, re-renders, and memory on throttled CPUs — heaviest components first (data-grid, overlays)
 - [ ] Compatibility: graceful degradation below Safari 16.4 via feature detection (no hard ElementInternals polyfill); reach as far back as cheap allows; document the true limit; widen the tested-engine matrix (WebKit/Firefox/Chromium)
@@ -115,7 +118,7 @@ Consumers can drop `@willramanand/amris` into any app and trust the components t
 | Carve out a minimal real-browser test lane (Vitest Browser Mode + Playwright/Chromium) for 4 load-bearing areas | jsdom mocks ElementInternals/focus/dialog/positioning; a form-heavy 1.0 cannot be credibly frozen on mocks. Narrows the earlier "no non-jsdom infra" boundary | ✓ Good |
 | Adopt a new non-exported `src/internal/` boundary for feature machinery | Keeps virtualization/validation/shortcut controllers off the frozen CEM/public surface so 1.0 stays small and diffable | ✓ Good |
 | v1.1 is optimization/compat only — no new public API | v1.0 surface is frozen; hardening must stay behavior- and surface-preserving | — Pending |
-| Measure before optimizing — build a perf + size baseline harness first | Avoids blind cuts; the low-end target profile is chosen from real data | — Pending |
+| Measure before optimizing — build a perf + size baseline harness first | Avoids blind cuts; the low-end target profile is chosen from real data | ✓ Good — Phase 7: harness + committed baselines shipped, `low-end-cellular` profile pinned from data |
 | Degrade gracefully below Safari 16.4, no hard ElementInternals polyfill | Reach older browsers as cheaply as feature-detection allows, without heavy shims | — Pending |
 | Enforce CI perf + bundle-size budgets (report-only → enforcing) | Lock in gains and block regressions, mirroring the v1.0 coverage gates | — Pending |
 | Stay client-only ESM — no SSR in v1.1 | Optimize within the current model; SSR is a larger lift, deferred | — Pending |
@@ -138,4 +141,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-08-20 after starting milestone v1.1 (Performance & Compatibility Hardening)*
+*Last updated: 2026-08-22 after Phase 7 (Measurement, Baselines & Budgets)*

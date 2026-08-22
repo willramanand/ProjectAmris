@@ -1,20 +1,20 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.1
-current_phase: 07
-current_phase_name: Measurement, Baselines & Budgets
-status: executing
-stopped_at: Phase 7 context gathered
-last_updated: "2026-08-22T17:14:36.812Z"
+current_phase: 8
+current_phase_name: Bundle-Size Deferral
+status: planning
+stopped_at: Phase 07 complete, ready to plan Phase 8
+last_updated: "2026-08-22T19:45:37.376Z"
 last_activity: 2026-08-22
-last_activity_desc: Phase 07 execution started
-state_head: 2f83ae71b7799743c28bde4bf84085783bce05fd
+last_activity_desc: Phase 07 complete, transitioned to Phase 8
+state_head: 6364e9bd291e938cdcaed4918c8849c1da300266
 progress:
   total_phases: 5
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 7
-  completed_plans: 0
-  percent: 0
+  completed_plans: 7
+  percent: 20
 milestone_name: Performance & Compatibility Hardening
 ---
 
@@ -22,19 +22,19 @@ milestone_name: Performance & Compatibility Hardening
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-08-21)
+See: .planning/PROJECT.md (updated 2026-08-22)
 
 **Core value:** Amris loads and runs well on low-end enterprise devices and slow networks and reaches as far down the browser stack as cheaply possible — without changing the frozen v1.0 public surface, locked in by CI perf/size gates.
-**Current focus:** Phase 07 — Measurement, Baselines & Budgets
+**Current focus:** Phase 8 — Bundle-Size Deferral
 
 ## Current Position
 
-Phase: 07 (Measurement, Baselines & Budgets) — EXECUTING
-Plan: 1 of 7
-Status: Executing Phase 07
-Last activity: 2026-08-22 — Phase 07 execution started
+Phase: 8 — Bundle-Size Deferral
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-08-22 — Phase 07 complete, transitioned to Phase 8
 
-Progress: [█████░░░░░] 55% (6 of 11 phases complete; v1.0 shipped)
+Progress: [██████░░░░] 64% (7 of 11 phases complete; v1.0 shipped, v1.1 Phase 7 done)
 
 ## Performance Metrics
 
@@ -79,9 +79,9 @@ None yet.
 
 [Issues that affect future work]
 
-- **Phase 7** flagged for `--research-phase`: perf-gate noise characterization — whether shared CI run-to-run variance lets the count gate enforce, or needs a dedicated/manual-dispatch low-noise runner.
+- **Phase 11** (was Phase 7 concern): perf-gate noise characterization — whether shared CI run-to-run variance lets the count gate enforce, or needs a dedicated/manual-dispatch low-noise runner. Phase 7 kept counts gated but wall-clock report-only; the enforcing flip is staged off the release critical path (GATE-03).
 - **Phase 10** flagged for `--research-phase`: true per-capability browser floor (FACE vs ARIA reflection vs `:has()`/`adoptedStyleSheets`) resolved empirically on the widened matrix; Tier-2 hidden-input (COMPAT-03) Changeset decision pending enterprise-demand call.
-- Open baseline unknowns (resolve in Phase 7): exact CPU/network throttle profile, per-entry brotli budget KB numbers.
+- ✓ Resolved (Phase 7): throttle profile pinned to `low-end-cellular` (6×-CPU + Slow-3G); per-entry brotli baseline committed in `api/size.baseline.json`.
 
 ## Deferred Items
 
@@ -96,6 +96,6 @@ Items acknowledged and carried forward, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-08-22T04:04:43.531Z
-Stopped at: Phase 7 context gathered
-Resume file: .planning/phases/07-measurement-baselines-budgets/07-CONTEXT.md
+Last session: 2026-08-22T19:45:37Z
+Stopped at: Phase 07 complete, ready to plan Phase 8
+Resume file: None
