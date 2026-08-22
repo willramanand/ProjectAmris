@@ -39,12 +39,23 @@ Decimal phases appear between their surrounding integers in numeric order.
   5. A dev-only bundle-attribution report (`rollup-plugin-visualizer` + `@size-limit/esbuild-why`) is available and confirms `highlight.js` is absent from every shipped chunk. (MEAS-05)
 
 **Plans**: 7 plans (waves 1-4)
+**Wave 1**
+
 - [ ] 07-00-PLAN.md — Setup & de-risk spikes: cdp() privilege (A2), Lit markers (A3), install 3 dev tools (wave 1)
 - [ ] 07-01-PLAN.md — Size baseline TRACER: brotli re-scope + size-baseline.mjs + committed baseline (MEAS-01/04, wave 1)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 07-02-PLAN.md — No-bundled-Lit assertion + vite external snapshot (MEAS-04, wave 2)
 - [ ] 07-03-PLAN.md — Throttled perf harness: 4 scenarios, CDP throttle, count instrumentation, writeMetrics (MEAS-02, wave 2)
-- [ ] 07-04-PLAN.md — perf-diff + data-pinned low-end profile + committed perf baseline (MEAS-03, wave 3)
 - [ ] 07-05-PLAN.md — Bundle-attribution report + highlight.js-absent confirm (MEAS-05, wave 2)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 07-04-PLAN.md — perf-diff + data-pinned low-end profile + committed perf baseline (MEAS-03, wave 3)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
 - [ ] 07-06-PLAN.md — Report-only CI wiring (perf + size jobs) + local-only tachometer config (all MEAS, wave 4)
 
 ### Phase 8: Bundle-Size Deferral
