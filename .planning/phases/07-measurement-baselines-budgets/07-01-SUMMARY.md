@@ -151,6 +151,14 @@ None - no external service configuration required.
 - `@floating-ui/dom` is now counted in the delivered payload, so Plan 02's no-bundled-Lit guard and Phase 8's floating-ui deferral both have a truthful before-number to move.
 - The measured brotli figures above seed Phase 11's enforcing limits (floors just under measured, ratchet discipline).
 
+## Self-Check: PASSED
+
+- `scripts/size-baseline.mjs` — FOUND
+- `api/size.baseline.json` — FOUND
+- `.planning/phases/07-measurement-baselines-budgets/07-01-SUMMARY.md` — FOUND
+- Commit `5325847` (Task 1) — FOUND
+- Commit `fd85338` (Task 2) — FOUND
+
 ---
 *Phase: 07-measurement-baselines-budgets*
 *Completed: 2026-08-22*
