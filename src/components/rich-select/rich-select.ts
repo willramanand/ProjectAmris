@@ -1,9 +1,10 @@
 import { LitElement, css, html, nothing, type PropertyValues } from 'lit';
 import { customElement, property, query, state } from 'lit/decorators.js';
-import { computePosition, autoUpdate, flip, shift, offset, size as sizeMiddleware } from '@floating-ui/dom';
 import { repeat } from 'lit/directives/repeat.js';
 import { resetStyles } from '../../styles/reset.css.js';
+import { FloatingPositionController } from '../../internal/controllers/floating-position.js';
 import { ValidationController } from '../../internal/controllers/validation.js';
+import { prefetchFloating } from '../../internal/helpers/lazy-load.js';
 import { uniqueId } from '../../utilities/unique-id.js';
 
 export type RichSelectSize = 'sm' | 'md' | 'lg';
@@ -66,12 +67,51 @@ export class AmRichSelect extends LitElement {
   @state() private _highlightedIndex = -1;
   @state() private _searchQuery = '';
 
+  /**
+   * Hidden-until-positioned gate (D-02). The listbox stays `visibility:hidden`
+   * until the controller's first `computePosition` writes `left/top` (set true
+   * in `onPositioned`), so the deferred-loader `await` seam can never paint the
+   * listbox at `0,0` before it is anchored. Reset on close so a re-open re-hides
+   * until the next reposition resolves. Internal `@state` — not reflected, off
+   * the frozen CEM surface.
+   */
+  @state() private _positioned = false;
+
   @query('.trigger') private _trigger!: HTMLElement;
   @query('.listbox') private _listbox!: HTMLElement;
   @query('.search-input') private _searchInput!: HTMLInputElement;
 
   private _internals: ElementInternals;
-  private _cleanupAutoUpdate: (() => void) | null = null;
+
+  /**
+   * Floating positioning delegated to the shared controller (D-06). Options
+   * mirror the previous inline setup exactly: anchored to `.trigger`, fixed
+   * strategy, 4px offset, plus a `size` middleware — built from the deferred-
+   * loaded `@floating-ui/dom` module — that sets the listbox `min-width` to the
+   * trigger width. The controller's base stack (`offset(4) → flip() →
+   * shift({padding:8})`) is byte-identical to the former inline stack, so
+   * positioning is behavior-neutral. autoUpdate is gated to the open transition
+   * — {@link FloatingPositionController.start} on open,
+   * {@link FloatingPositionController.stop} on close/disconnect.
+   */
+  private _floatingController = new FloatingPositionController(this, {
+    reference: () => this._trigger,
+    floating: () => this._listbox,
+    placement: 'bottom-start',
+    strategy: 'fixed',
+    offset: 4,
+    middleware: (mod) => [
+      mod.size({
+        apply({ rects, elements }) {
+          elements.floating.style.minWidth = `${rects.reference.width}px`;
+        },
+      }),
+    ],
+    onPositioned: () => {
+      // First position resolved — reveal the listbox (hidden-until-positioned, D-02).
+      this._positioned = true;
+    },
+  });
 
   /** Stable id shared by the error message node and the trigger's aria-describedby. */
   private readonly _errorId = uniqueId('am-rich-select-error');
@@ -185,11 +225,15 @@ export class AmRichSelect extends LitElement {
         max-height: 20rem;
         overflow-y: auto;
         opacity: 0;
+        /* Hidden-until-positioned (D-02): stay unpainted until the controller's
+           first computePosition writes left/top, so the deferred-loader await
+           seam never flashes the listbox at 0,0. */
+        visibility: hidden;
         pointer-events: none;
         transition: opacity var(--am-duration-fast) var(--am-ease-default);
       }
 
-      .listbox.open { opacity: 1; pointer-events: auto; }
+      .listbox.open.positioned { opacity: 1; visibility: visible; pointer-events: auto; }
 
       .search-wrapper {
         padding: var(--am-space-1) var(--am-space-2) var(--am-space-2);
@@ -290,8 +334,8 @@ export class AmRichSelect extends LitElement {
   disconnectedCallback() {
     super.disconnectedCallback();
     document.removeEventListener('click', this._handleOutsideClick);
-    this._cleanupAutoUpdate?.();
-    this._cleanupAutoUpdate = null;
+    // The floating autoUpdate teardown is mirrored in the controller's
+    // hostDisconnected (invoked during super.disconnectedCallback above).
   }
 
   protected updated(changed: PropertyValues) {
@@ -300,10 +344,11 @@ export class AmRichSelect extends LitElement {
     }
     if (changed.has('_open')) {
       if (this._open) {
-        this._startAutoUpdate();
+        this._floatingController.start();
       } else {
-        this._cleanupAutoUpdate?.();
-        this._cleanupAutoUpdate = null;
+        this._floatingController.stop();
+        // Re-hide until the next open repositions (hidden-until-positioned, D-02).
+        this._positioned = false;
       }
     }
     // Native constraint validity is computed from the required/empty state (no
@@ -367,16 +412,20 @@ export class AmRichSelect extends LitElement {
     this._validation.setCustomError(message);
   }
 
-  private _startAutoUpdate() {
-    this._cleanupAutoUpdate?.();
-    if (!this._trigger || !this._listbox) return;
-    this._cleanupAutoUpdate = autoUpdate(this._trigger, this._listbox, () => this._updatePosition());
-  }
-
   private _handleOutsideClick = (e: MouseEvent) => {
     if (this._open && !e.composedPath().includes(this)) {
       this._close();
     }
+  };
+
+  /**
+   * Warm the deferred floating-ui chunk on trigger intent (D-03) so the module
+   * is usually resolved by the time {@link FloatingPositionController.start}
+   * awaits it on open — keeping the open→position→reveal ordering tight. A
+   * wasted hover/focus fetch is accepted cost.
+   */
+  private _handlePrefetch = () => {
+    prefetchFloating();
   };
 
   private get _filteredOptions(): RichOption[] {
@@ -449,19 +498,6 @@ export class AmRichSelect extends LitElement {
     }
   }
 
-  private async _updatePosition() {
-    if (!this._trigger || !this._listbox) return;
-    const { x, y } = await computePosition(this._trigger, this._listbox, {
-      placement: 'bottom-start',
-      strategy: 'fixed',
-      middleware: [
-        offset(4), flip(), shift({ padding: 8 }),
-        sizeMiddleware({ apply({ rects, elements }) { elements.floating.style.minWidth = `${rects.reference.width}px`; } }),
-      ],
-    });
-    Object.assign(this._listbox.style, { left: `${x}px`, top: `${y}px` });
-  }
-
   private _renderOptions() {
     const filtered = this._filteredOptions;
     if (filtered.length === 0) return html`<div class="empty">No options</div>`;
@@ -523,7 +559,8 @@ export class AmRichSelect extends LitElement {
         aria-label=${this.label || nothing}
         ?disabled=${this.disabled}
         @click=${this._toggleOpen}
-        @focus=${() => { this._focused = true; }}
+        @pointerenter=${this._handlePrefetch}
+        @focus=${() => { this._focused = true; this._handlePrefetch(); }}
         @blur=${() => { this._focused = false; this._validation.markTouched(); }}
         @keydown=${this._handleKeydown}>
         <div class="selected-display">
@@ -539,7 +576,7 @@ export class AmRichSelect extends LitElement {
         </svg>
       </button>
 
-      <div class="listbox ${this._open ? 'open' : ''}" part="listbox">
+      <div class="listbox ${this._open ? 'open' : ''} ${this._positioned ? 'positioned' : ''}" part="listbox">
         ${this.searchable ? html`
           <div class="search-wrapper">
             <input class="search-input" type="text" placeholder="Search…"
