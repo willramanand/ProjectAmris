@@ -1,5 +1,26 @@
+import { mkdirSync, writeFileSync } from 'node:fs';
+import { dirname } from 'node:path';
+
 import { playwright } from '@vitest/browser-playwright';
 import { defineConfig } from 'vitest/config';
+import type { BrowserCommand } from 'vitest/node';
+
+/**
+ * writeMetrics — Node-side persistence channel for the Chromium-only `perf`
+ * project (MEAS-02). Browser-mode specs run IN the page and cannot touch the
+ * filesystem, so the perf harness collects its metrics object in-page then calls
+ * this server-side command to write the committed JSON baseline/report.
+ *
+ * Stable name for Plan 03: specs call `commands.writeMetrics(path, data)` after
+ * importing `{ commands } from 'vitest/browser'`. Kept a thin stub here (write
+ * JSON, ensure parent dir) — the perf harness/scenarios that consume it land in
+ * Plan 03. Source shape: vitest.dev/api/browser/commands (BrowserCommand from
+ * 'vitest/node', server-side ctx).
+ */
+const writeMetrics: BrowserCommand<[string, unknown]> = async (_ctx, path, data) => {
+  mkdirSync(dirname(path), { recursive: true });
+  writeFileSync(path, `${JSON.stringify(data, null, 2)}\n`);
+};
 
 export default defineConfig({
   test: {
@@ -10,7 +31,12 @@ export default defineConfig({
           name: 'jsdom',
           environment: 'jsdom',
           include: ['test/**/*.test.ts'],
-          exclude: ['test/browser/**'],
+          // Exclude the fidelity lane AND the Chromium-only perf specs — the CDP
+          // throttle/perf tests (`*.cdp.test.ts` / `*.perf.test.ts`) require the
+          // real browser lane (Pitfall 2). Non-browser perf spikes such as the
+          // Lit-marker string check (`*.lit-markers.test.ts`) still match here
+          // and run under jsdom by design (Plan 00 Task 2).
+          exclude: ['test/browser/**', 'test/perf/**/*.cdp.test.ts', 'test/perf/**/*.perf.test.ts'],
           setupFiles: ['./test/setup.ts'],
           restoreMocks: true,
         },
@@ -27,6 +53,35 @@ export default defineConfig({
             provider: playwright(),
             headless: true,
             instances: [{ browser: 'chromium' }],
+          },
+        },
+      },
+      {
+        // perf lane — Chromium-only throttled runtime-perf harness (MEAS-02/03,
+        // D-11). Mirrors the `browser` project (playwright/chromium/headless) and,
+        // like it, INTENTIONALLY OMITS setupFiles: perf numbers must come from real
+        // native Chromium APIs, never jsdom mocks (Pitfall 2). Isolated from
+        // `browser` so the elevated CDP write+exec privilege is scoped to perf only.
+        test: {
+          name: 'perf',
+          // `*.cdp.test.ts` = the A2 throttle spike; `*.perf.test.ts` = the Plan 03
+          // scenarios. Deliberately NOT matching `*.lit-markers.test.ts` (jsdom).
+          include: ['test/perf/**/*.cdp.test.ts', 'test/perf/**/*.perf.test.ts'],
+          browser: {
+            enabled: true,
+            provider: playwright(),
+            headless: true,
+            instances: [{ browser: 'chromium' }],
+            // A2 (RESEARCH assumption) PINNED: `cdp()` from 'vitest/browser' is a
+            // privileged debugging API gated on the browser server API granting
+            // write+exec. Verified empirically against @vitest/browser 4.1.x — the
+            // exact key path is `test.browser.api.{allowWrite,allowExec}` (config
+            // schema at vitest `browser.api.allowExec`; see node_modules/vitest
+            // coverage chunk `api.allowExec`). Without these, cdp() no-ops/throws.
+            // Scoped to the perf project ONLY — never enabled on the shipped build.
+            api: { allowWrite: true, allowExec: true },
+            // Node-side persistence for browser specs (they can't write files).
+            commands: { writeMetrics },
           },
         },
       },
