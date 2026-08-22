@@ -71,11 +71,11 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. Shared-chunk dedupe and per-component deep-import purity are verified — no cross-entry duplication regressions introduced by the deferral. (SIZE-04)
   5. Non-critical component init is deferred off the first-load critical path (idle/deferred init), behavior-preserving, for faster slow-network first paint. (SIZE-05)
 
-**Plans**: 7 plans (waves 1-3)
+**Plans**: 1/7 plans executed (waves 1-3)
 
 **Wave 1** *(tracer — floating-ui deferral proven end-to-end before expansion)*
 
-- [ ] 08-01-PLAN.md — TRACER: memoized loader + deferred FloatingPositionController + popover, no-0,0-frame + registration canary + size win legible (SIZE-01, SIZE-03)
+- [x] 08-01-PLAN.md — TRACER: memoized loader + deferred FloatingPositionController + popover, no-0,0-frame + registration canary + size win legible (SIZE-01, SIZE-03)
 
 **Wave 2** *(expansion — depends on 08-01; all component files owned independently, run in parallel)*
 
@@ -141,7 +141,7 @@ Phase 10 (graceful degradation) depends only on the Phase 7 harness/browser lane
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 7. Measurement, Baselines & Budgets | 7/7 | Complete    | 2026-08-22 |
-| 8. Bundle-Size Deferral | 0/7 | Planned | - |
+| 8. Bundle-Size Deferral | 1/7 | In Progress|  |
 | 9. Runtime-Performance Tuning | 0/TBD | Not started | - |
 | 10. Graceful Degradation & Compatibility Matrix | 0/TBD | Not started | - |
 | 11. Gate Enforcement & Cost Publication | 0/TBD | Not started | - |
