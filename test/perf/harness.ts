@@ -169,10 +169,11 @@ interface LifecycleProbe {
   restore: () => void;
 }
 
-// A minimal structural view of a Lit component constructor whose prototype
-// carries the overridable ReactiveElement lifecycle hooks. Wrapping the
-// COMPONENT'S OWN prototype is first-party — it is NOT a Lit internal patch.
-type LifecycleCtor = { prototype: Record<'update' | 'updated' | 'render', unknown> };
+// A minimal structural view of a Lit component constructor. Any component class
+// is assignable. Wrapping the COMPONENT'S OWN prototype (its overridable
+// ReactiveElement update/updated/render hooks) is first-party — it is NOT a Lit
+// internal patch.
+type LifecycleCtor = { prototype: object };
 
 /**
  * Count update/updated/render on a component's own prototype (public,
