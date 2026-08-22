@@ -212,12 +212,47 @@ export class AmCombobox extends LitElement {
     },
   });
 
+  /**
+   * rAF handle for the deferred non-critical init (SIZE-05). Non-zero while a
+   * schedule is pending; cleared to 0 on fire, cancel, or teardown so a
+   * disconnect-before-fire neither runs late nor double-schedules on reconnect.
+   */
+  private _deferredInitRaf = 0;
+  /** True once the deferred `invalid` listener has attached (dedupes re-runs). */
+  private _nonCriticalInitDone = false;
+
   constructor() {
     super();
     this.internals = this.attachInternals();
-    // A failed constraint check on form submit fires `invalid` on this host;
-    // suppress the browser's default bubble and surface our own message (D-04).
-    this.addEventListener('invalid', this._onInvalid);
+    // The `invalid`-listener attach is NON-critical for first paint (it only
+    // matters once a form submit runs a constraint check), so it is deferred off
+    // the constructor onto a post-paint rAF in connectedCallback (SIZE-05 / D-08).
+  }
+
+  connectedCallback(): void {
+    super.connectedCallback();
+    this._scheduleNonCriticalInit();
+  }
+
+  /**
+   * SIZE-05: schedule combobox's non-critical init (the `invalid` listener that
+   * suppresses the browser's default bubble and surfaces our own message on a
+   * failed submit — D-04) off the constructor/first-paint path via a double-`rAF`
+   * (D-09 — "after first paint" work only; no idle-callback scheduling, which is
+   * unsupported at the Safari 16.4 floor). Teardown-guarded: {@link disconnectedCallback} cancels a
+   * still-pending schedule, and the done/handle guards prevent a double attach on
+   * a disconnect→reconnect cycle.
+   */
+  private _scheduleNonCriticalInit(): void {
+    if (this._nonCriticalInitDone || this._deferredInitRaf) return;
+    this._deferredInitRaf = requestAnimationFrame(() => {
+      this._deferredInitRaf = requestAnimationFrame(() => {
+        this._deferredInitRaf = 0;
+        if (!this.isConnected || this._nonCriticalInitDone) return;
+        this.addEventListener('invalid', this._onInvalid);
+        this._nonCriticalInitDone = true;
+      });
+    });
   }
 
   /**
@@ -512,6 +547,12 @@ export class AmCombobox extends LitElement {
 
   disconnectedCallback() {
     super.disconnectedCallback();
+    // Cancel a still-pending deferred non-critical init so it neither fires after
+    // teardown nor double-attaches on a later reconnect (SIZE-05 teardown guard).
+    if (this._deferredInitRaf) {
+      cancelAnimationFrame(this._deferredInitRaf);
+      this._deferredInitRaf = 0;
+    }
     // The floating autoUpdate teardown is mirrored in the controller's
     // hostDisconnected (invoked during super.disconnectedCallback above).
     document.removeEventListener('click', this._handleDocumentClick);
