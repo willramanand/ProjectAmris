@@ -22,5 +22,16 @@
     "path": "dist/components/data-grid/index.js",
     "ignore": ["lit"],
     "limit": "13 kB"
+  },
+  {
+    "name": "first-load composite (core+button+input+dialog)",
+    "path": [
+      "dist/amris-core.js",
+      "dist/components/button/index.js",
+      "dist/components/input/index.js",
+      "dist/components/dialog/index.js"
+    ],
+    "ignore": ["lit"],
+    "limit": "40 kB"
   }
 ]

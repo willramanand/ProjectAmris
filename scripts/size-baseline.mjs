@@ -21,6 +21,7 @@
 // modes write it and report "new baseline" rather than erroring (MEAS-05 empty edge).
 
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { brotliCompressSync } from 'node:zlib';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
@@ -29,6 +30,8 @@ import { dirname, join } from 'node:path';
 const require = createRequire(import.meta.url);
 
 const BASELINE_PATH = 'api/size.baseline.json';
+const TOKENS_CSS_PATH = 'dist/styles/tokens.css';
+const CORE_ENTRY = 'core bundle';
 const UNIT = 'brotli-bytes';
 
 const load = (p) => JSON.parse(readFileSync(p, 'utf8'));
@@ -54,24 +57,53 @@ const measureSizeLimit = () => {
 
 // Build the current metric set. Deterministic: brotli byte counts over an unchanged
 // dist/ are exact integers, so re-runs are byte-identical.
+//
+// Metric set (D-02 / D-05):
+//   entries  — the size-limit JS entries (core, full, button, data-grid, the first-load
+//              composite) plus a standalone tokens.css brotli measurement.
+//   marginal — per-component cost over the shared core (component entry brotli minus
+//              core-bundle brotli), so shared-chunk moves are not double-counted (Pitfall 2).
 export const measure = () => {
   const entries = measureSizeLimit();
-  return { unit: UNIT, entries };
+  // (a) tokens.css standalone brotli. size-limit measures JS entries only, not the CSS
+  //     asset, so compress dist/styles/tokens.css directly with node:zlib for an
+  //     on-the-wire brotli integer.
+  entries['tokens.css'] = brotliCompressSync(readFileSync(TOKENS_CSS_PATH)).length;
+  // (b) marginal-cost-over-core per component (Open Question 2 — arithmetic diff, brotli-
+  //     consistent, over size-limit `import` syntax): component deep-import entry brotli
+  //     minus the shared core-bundle brotli.
+  const core = entries[CORE_ENTRY];
+  const marginal = {};
+  for (const name of Object.keys(entries))
+    if (/deep import/.test(name)) marginal[name] = entries[name] - core;
+  return { unit: UNIT, entries, marginal };
 };
 
-// Diff two metric sets keyed by entry name. Rows are key-sorted so re-runs never
-// spuriously differ (MEAS-05 ordering edge). Returns { rows, hasDrift }.
-export const diff = (baseline, current) => {
-  const baseEntries = baseline.entries ?? {};
-  const curEntries = current.entries ?? {};
-  const names = [...new Set([...Object.keys(baseEntries), ...Object.keys(curEntries)])].sort();
-  const rows = names.map((name) => {
-    const base = baseEntries[name];
-    const cur = curEntries[name];
+// Diff one named map (entries or marginal) keyed by name, key-sorted so re-runs never
+// spuriously differ (MEAS-05 ordering edge).
+const diffMap = (baseMap = {}, curMap = {}, prefix = '') => {
+  const names = [...new Set([...Object.keys(baseMap), ...Object.keys(curMap)])].sort();
+  return names.map((name) => {
+    const base = baseMap[name];
+    const cur = curMap[name];
     const status =
       base === undefined ? 'added' : cur === undefined ? 'removed' : base === cur ? 'same' : 'changed';
-    return { name, base: base ?? null, current: cur ?? null, delta: base != null && cur != null ? cur - base : null, status };
+    return {
+      name: prefix + name,
+      base: base ?? null,
+      current: cur ?? null,
+      delta: base != null && cur != null ? cur - base : null,
+      status,
+    };
   });
+};
+
+// Diff two metric sets (entries + marginal). Returns { rows, hasDrift }.
+export const diff = (baseline, current) => {
+  const rows = [
+    ...diffMap(baseline.entries, current.entries),
+    ...diffMap(baseline.marginal, current.marginal, 'marginal: '),
+  ];
   const hasDrift = rows.some((r) => r.status !== 'same');
   return { rows, hasDrift };
 };
