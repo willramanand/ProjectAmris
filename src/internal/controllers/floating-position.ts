@@ -1,15 +1,11 @@
 import type { ReactiveController, ReactiveControllerHost } from 'lit';
-import {
-  computePosition,
-  autoUpdate,
-  flip,
-  shift,
-  offset,
-  type Middleware,
-  type MiddlewareData,
-  type Placement,
-  type Strategy,
+import type {
+  Middleware,
+  MiddlewareData,
+  Placement,
+  Strategy,
 } from '@floating-ui/dom';
+import { loadFloating } from '../helpers/lazy-load.js';
 
 /**
  * An option that is either a fixed value or a getter resolved lazily at
@@ -50,8 +46,19 @@ export interface FloatingPositionOptions {
   strategy?: Resolvable<Strategy>;
   /** Main-axis offset in pixels. Defaults to `4`. */
   offset?: Resolvable<number>;
-  /** Extra middleware appended after the base `offset → flip → shift` stack. */
-  middleware?: Resolvable<Middleware[]>;
+  /**
+   * Extra middleware appended after the base `offset → flip → shift` stack. The
+   * getter receives the deferred-loaded `@floating-ui/dom` module so hosts build
+   * their host-specific middleware (`arrow`, `size`) from the SAME dynamically
+   * imported module rather than a static import (D-06) — e.g. popover:
+   * `(mod) => this.arrowEl ? [mod.arrow({ element: this.arrowEl })] : []`.
+   *
+   * A plain `Middleware[]` value or a zero-arg getter is still accepted for
+   * hosts not yet migrated off their static floating-ui import (the module
+   * argument is simply ignored in those forms); this keeps the controller
+   * surface-preserving while the migration lands overlay-by-overlay.
+   */
+  middleware?: Middleware[] | ((mod: typeof import('@floating-ui/dom')) => Middleware[]);
   /**
    * Invoked after every successful reposition with the resolved coordinates,
    * final placement, and middleware data. Hosts that render an arrow (popover,
@@ -85,26 +92,49 @@ export interface FloatingPositionOptions {
 export class FloatingPositionController implements ReactiveController {
   private _cleanup: (() => void) | null = null;
   private opts: FloatingPositionOptions;
+  // Monotonic generation token. Incremented on every start()/stop() so an
+  // in-flight start() that is still awaiting the deferred floating-ui module can
+  // detect it was superseded (a close-during-load) and abandon its run instead
+  // of arming a dangling autoUpdate loop after the overlay already closed.
+  private _startToken = 0;
 
   constructor(host: ReactiveControllerHost & HTMLElement, opts: FloatingPositionOptions) {
     this.opts = opts;
     host.addController(this);
   }
 
-  /** Begin tracking the reference element and positioning the floating element. */
-  start(): void {
+  /**
+   * Begin tracking the reference element and positioning the floating element.
+   *
+   * Now async (D-01/D-06): floating-ui is loaded via the shared memoized
+   * {@link loadFloating} loader — usually already resolved by the host's
+   * prefetch-on-intent — before the first `computePosition`. Hosts call this
+   * fire-and-forget on their open transition; the returned promise resolves once
+   * autoUpdate is armed (or the run is abandoned). The open→position→focus→
+   * autoUpdate ordering contract is preserved: autoUpdate only starts AFTER the
+   * module resolves, and the reveal stays gated on the first `computePosition`
+   * writing `left/top` (hidden-until-positioned, D-02).
+   */
+  async start(): Promise<void> {
     // Mirror the host's inline `this._cleanupAutoUpdate?.()` before re-starting.
     this.stop();
+    const token = this._startToken;
+    const mod = await loadFloating();
+    // A stop()/start() during the await bumped the token — abandon this run so a
+    // close-during-load never leaves an autoUpdate loop running while closed.
+    if (token !== this._startToken) return;
     const reference = this.opts.reference();
     const floating = this.opts.floating();
     if (!reference || !floating) return;
-    this._cleanup = autoUpdate(reference, floating, () =>
-      this._updatePosition(reference, floating),
+    this._cleanup = mod.autoUpdate(reference, floating, () =>
+      this._updatePosition(mod, reference, floating),
     );
   }
 
   /** Stop tracking and release the autoUpdate cleanup. */
   stop(): void {
+    // Invalidate any in-flight start() still awaiting loadFloating().
+    this._startToken++;
     this._cleanup?.();
     this._cleanup = null;
   }
@@ -113,16 +143,22 @@ export class FloatingPositionController implements ReactiveController {
     this.stop();
   }
 
-  private async _updatePosition(reference: HTMLElement, floating: HTMLElement): Promise<void> {
+  private async _updatePosition(
+    mod: typeof import('@floating-ui/dom'),
+    reference: HTMLElement,
+    floating: HTMLElement,
+  ): Promise<void> {
     const strategy = resolve(this.opts.strategy);
-    const { x, y, placement, middlewareData } = await computePosition(reference, floating, {
+    const mw = this.opts.middleware;
+    const hostMiddleware = typeof mw === 'function' ? mw(mod) : (mw ?? []);
+    const { x, y, placement, middlewareData } = await mod.computePosition(reference, floating, {
       placement: resolve(this.opts.placement) ?? 'bottom-start',
       ...(strategy ? { strategy } : {}),
       middleware: [
-        offset(resolve(this.opts.offset) ?? 4),
-        flip(),
-        shift({ padding: 8 }),
-        ...(resolve(this.opts.middleware) ?? []),
+        mod.offset(resolve(this.opts.offset) ?? 4),
+        mod.flip(),
+        mod.shift({ padding: 8 }),
+        ...hostMiddleware,
       ],
     });
     Object.assign(floating.style, { left: `${x}px`, top: `${y}px` });
