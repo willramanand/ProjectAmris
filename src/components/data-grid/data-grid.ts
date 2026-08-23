@@ -389,11 +389,37 @@ export class AmDataGrid extends LitElement {
     }
   }
 
+  /**
+   * Identity-keyed memo for the sorted-rows compute (RPERF-01, D-02). Keyed on
+   * the SOURCE identities `(this.rows, this._sortKey, this._sortDir)` — the same
+   * reference dirty-check Lit's own `@property`/`@state` uses, so it mirrors the
+   * component's existing change semantics and cannot introduce a stale-render
+   * class Lit wouldn't already have. Revert = drop this field + inline
+   * `_computeSortedRows` back into the getter.
+   */
+  private _sortCache: {
+    rows: Record<string, unknown>[];
+    key: string;
+    dir: SortDirection;
+    result: Record<string, unknown>[];
+  } | null = null;
+
   private get _sortedRows(): Record<string, unknown>[] {
     // Unsorted fast-path: return this.rows by the SAME reference so downstream
     // identity checks are unaffected (RPERF-01 must_have).
     if (!this._sortKey || this._sortDir === 'none') return this.rows;
-    return this._computeSortedRows();
+    const cache = this._sortCache;
+    if (
+      cache &&
+      cache.rows === this.rows &&
+      cache.key === this._sortKey &&
+      cache.dir === this._sortDir
+    ) {
+      return cache.result;
+    }
+    const result = this._computeSortedRows();
+    this._sortCache = { rows: this.rows, key: this._sortKey, dir: this._sortDir, result };
+    return result;
   }
 
   /**
