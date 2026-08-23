@@ -385,7 +385,13 @@ describe('am-select', () => {
 // that are state-driven and therefore observable in jsdom: the threshold branch
 // flips, the slotted projection is hidden, and aria-activedescendant tracks the
 // highlighted index (computed from state, not from which rows are mounted).
-describe('am-select — virtualization branch + activedescendant (PERF-03)', () => {
+// Virtualization activates above a 100-option threshold; these fixtures build
+// 150 `am-option` custom elements and (08-05) trigger a lazy `import('@lit-labs/
+// virtualizer')` on first render. Under the full parallel jsdom run the first
+// such test can exceed the 5s default budget, so this block gets a wider timeout.
+// Note: the virtualizer is left to load lazily — forcing it to attach in jsdom
+// throws in its scroll path (no layout engine), so tests must not prewarm it.
+describe('am-select — virtualization branch + activedescendant (PERF-03)', { timeout: 20000 }, () => {
   function makeOptions(n: number): string {
     return Array.from({ length: n }, (_, i) => `<am-option value="v${i}">Opt ${i}</am-option>`).join('');
   }
