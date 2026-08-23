@@ -101,7 +101,20 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Overlay reposition churn is reduced behavior-preservingly and re-measured as improved. (RPERF-03)
   4. Accessible-name/role snapshots guard each tuned component, proving the tuning provably does not strip a11y DOM (`aria-*`, roles, focusability). (RPERF-04)
 
-**Plans**: TBD
+**Plans**: 4 plans (waves 1-3)
+
+**Wave 1** *(tracer — measurement spine proven end-to-end before expansion)*
+
+- [ ] 09-01-PLAN.md — TRACER: countMethod harness probe + data-grid identity-keyed sort memo + sortComputes drop + data-grid a11y snapshot (RPERF-01, RPERF-04, wave 1)
+
+**Wave 2** *(expansion — depends on 09-01's harness spine; combobox.ts vs floating-position.ts owned independently, run in parallel)*
+
+- [ ] 09-02-PLAN.md — combobox two-level filter memo (no debounce) + filterCalls drop + combobox a11y snapshot (RPERF-02, RPERF-04, wave 2)
+- [ ] 09-03-PLAN.md — shared-controller reposition-churn cache (costly, browser-lane gate) + CR-01 lazy-load retry fold-in + middlewareBuilds + popover a11y snapshot (RPERF-03, RPERF-04, D-05, wave 2)
+
+**Wave 3** *(verification capstone — depends on all Wave-2 tunings)*
+
+- [ ] 09-04-PLAN.md — regenerate committed perf baseline to tuned state + full-suite/size regression gate (RPERF-01/02/03/04, wave 3)
 
 ### Phase 10: Graceful Degradation & Compatibility Matrix
 
@@ -142,6 +155,6 @@ Phase 10 (graceful degradation) depends only on the Phase 7 harness/browser lane
 |-------|----------------|--------|-----------|
 | 7. Measurement, Baselines & Budgets | 7/7 | Complete    | 2026-08-22 |
 | 8. Bundle-Size Deferral | 7/7 | Complete    | 2026-08-22 |
-| 9. Runtime-Performance Tuning | 0/TBD | Not started | - |
+| 9. Runtime-Performance Tuning | 0/4 | Planned | - |
 | 10. Graceful Degradation & Compatibility Matrix | 0/TBD | Not started | - |
 | 11. Gate Enforcement & Cost Publication | 0/TBD | Not started | - |
