@@ -8,6 +8,7 @@ import {
   THROTTLE_PROFILE,
   assertStableCounts,
   countLifecycle,
+  countMethod,
   domNodeCount,
   proveThrottleLive,
   raf,
@@ -43,6 +44,7 @@ type GridHost = HTMLElement & {
   columns: unknown[];
   rows: Row[];
   getRowId: GetRowId;
+  requestUpdate(): void;
 };
 
 const ROW_ID: GetRowId = (row) => (row as Row).id;
@@ -72,23 +74,40 @@ describe('perf: data-grid (render + sort)', () => {
     expect(throttled).toBeGreaterThan(unthrottled);
 
     const life = countLifecycle(AmDataGrid);
+    // sortComputes probe (RESEARCH F-1): counts how many times the sort actually
+    // recomputes. update/updated/render/nodes cannot see a memo INSIDE a render,
+    // so this dedicated count is the RPERF-01 improvement evidence.
+    const sort = countMethod(AmDataGrid, '_computeSortedRows');
     const perRepeat: Record<string, number>[] = [];
     const wall: number[] = [];
 
-    // One measured iteration: mount grid, then sort one column.
+    // One measured iteration: mount grid, sort one column, then force >=2 extra
+    // re-renders that leave (rows, _sortKey, _sortDir) UNCHANGED.
     async function runOnce(): Promise<{ counts: Record<string, number>; wall: number }> {
       life.reset();
+      sort.reset();
       const t0 = performance.now();
 
       const host = await makeGrid();
-      // Sort by clicking the first sortable column header (table path).
+      // Sort by clicking the first sortable column header (table path). This is
+      // the first sorted render -> compute #1.
       const sortHeader = shadowQuery<HTMLElement>(host, 'th.sortable');
       sortHeader.click();
+      await waitForUpdate(host);
+
+      // Memo-effectiveness: force two additional re-renders whose (rows, key,
+      // dir) are identical to the sorted state above. A correct identity memo
+      // computes the sorted order exactly ONCE across ALL of these sorted
+      // renders (cache hit on every subsequent access); the un-memoized getter
+      // recomputes on each, so `sortComputes` would be >1 (RED).
+      host.requestUpdate();
+      await waitForUpdate(host);
+      host.requestUpdate();
       await waitForUpdate(host);
       await raf();
 
       const elapsed = performance.now() - t0;
-      const counts = { ...life.counts, nodes: domNodeCount(host) };
+      const counts = { ...life.counts, nodes: domNodeCount(host), sortComputes: sort.count };
       host.remove();
       return { counts, wall: elapsed };
     }
@@ -103,12 +122,18 @@ describe('perf: data-grid (render + sort)', () => {
       }
     } finally {
       life.restore();
+      sort.restore();
     }
 
     const counts = assertStableCounts(perRepeat);
     expect(counts.render).toBeGreaterThan(0);
     // The grid mounts a meaningful DOM (rows + header cells), unlike the button control.
     expect(counts.nodes).toBeGreaterThan(50);
+    // Memo-effectiveness (RPERF-01): three sorted renders (sort click + two
+    // forced unchanged-state re-renders) must recompute the sorted order EXACTLY
+    // ONCE. Un-memoized this is >1; the identity cache drops it to the tuned
+    // constant. Deterministic across all 5 repeats (asserted above).
+    expect(counts.sortComputes).toBe(1);
 
     const metrics: ScenarioMetrics = {
       counts,

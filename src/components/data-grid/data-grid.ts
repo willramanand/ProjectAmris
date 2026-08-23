@@ -390,7 +390,20 @@ export class AmDataGrid extends LitElement {
   }
 
   private get _sortedRows(): Record<string, unknown>[] {
+    // Unsorted fast-path: return this.rows by the SAME reference so downstream
+    // identity checks are unaffected (RPERF-01 must_have).
     if (!this._sortKey || this._sortDir === 'none') return this.rows;
+    return this._computeSortedRows();
+  }
+
+  /**
+   * The sort compute, moved out of the `_sortedRows` getter into a nameable
+   * method so the perf harness can prototype-wrap it for a deterministic
+   * `sortComputes` count (RESEARCH F-1). Body is the former getter body
+   * verbatim — same column lookup + stable `[...].sort(cmp * dir)`, so the sort
+   * semantics stay byte-identical to the un-memoized getter.
+   */
+  private _computeSortedRows(): Record<string, unknown>[] {
     const col = this.columns.find(c => c.key === this._sortKey);
     if (!col) return this.rows;
     const dir = this._sortDir === 'asc' ? 1 : -1;

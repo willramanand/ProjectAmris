@@ -273,6 +273,45 @@ export function countComputePosition(): ComputePositionProbe {
   };
 }
 
+interface MethodProbe {
+  /** Number of wrapped-method invocations so far. */
+  readonly count: number;
+  reset: () => void;
+  restore: () => void;
+}
+
+/**
+ * Generic count probe: prototype-wrap `Ctor.prototype[name]`, incrementing a
+ * counter on every call, and expose `{ count, reset(), restore() }`. This is
+ * `countComputePosition` (255-274) generalized to ANY first-party
+ * component/harness method whose in-render work you want to count — e.g. a
+ * memoized compute like data-grid `_computeSortedRows`, where the existing
+ * update/updated/render/nodes counts stay flat because the work moved INSIDE a
+ * render (RESEARCH F-1, the measurable-count gap). Same wrap + restore
+ * discipline; @floating-ui/dom and Lit exports are NEVER patched (only
+ * prototypes the harness's caller owns).
+ */
+export function countMethod(Ctor: { prototype: object }, name: string): MethodProbe {
+  let n = 0;
+  const proto = Ctor.prototype as Record<string, unknown>;
+  const orig = proto[name] as (...args: unknown[]) => unknown;
+  proto[name] = function (this: unknown, ...args: unknown[]): unknown {
+    n++;
+    return orig.apply(this, args);
+  };
+  return {
+    get count() {
+      return n;
+    },
+    reset: () => {
+      n = 0;
+    },
+    restore: () => {
+      proto[name] = orig;
+    },
+  };
+}
+
 interface RepositionProbe {
   /** Number of observed `style`-attribute mutations on the panel. */
   readonly count: number;
