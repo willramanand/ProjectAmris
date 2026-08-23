@@ -71,7 +71,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. Shared-chunk dedupe and per-component deep-import purity are verified — no cross-entry duplication regressions introduced by the deferral. (SIZE-04)
   5. Non-critical component init is deferred off the first-load critical path (idle/deferred init), behavior-preserving, for faster slow-network first paint. (SIZE-05)
 
-**Plans**: 6/7 plans executed (waves 1-3)
+**Plans**: 7/7 plans executed (waves 1-3)
 
 **Wave 1** *(tracer — floating-ui deferral proven end-to-end before expansion)*
 
@@ -87,7 +87,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 **Wave 3** *(verification capstone — depends on all Wave-2 migrations)*
 
-- [ ] 08-07-PLAN.md — deep-import purity + shared-chunk dedupe + registration/no-bundled-Lit canary + final size/perf re-baseline (SIZE-03, SIZE-04)
+- [x] 08-07-PLAN.md — deep-import purity + shared-chunk dedupe + registration/no-bundled-Lit canary + final size/perf re-baseline (SIZE-03, SIZE-04)
 
 ### Phase 9: Runtime-Performance Tuning
 
@@ -141,7 +141,7 @@ Phase 10 (graceful degradation) depends only on the Phase 7 harness/browser lane
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 7. Measurement, Baselines & Budgets | 7/7 | Complete    | 2026-08-22 |
-| 8. Bundle-Size Deferral | 6/7 | In Progress|  |
+| 8. Bundle-Size Deferral | 7/7 | In Progress|  |
 | 9. Runtime-Performance Tuning | 0/TBD | Not started | - |
 | 10. Graceful Degradation & Compatibility Matrix | 0/TBD | Not started | - |
 | 11. Gate Enforcement & Cost Publication | 0/TBD | Not started | - |
