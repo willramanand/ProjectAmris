@@ -1,3 +1,7 @@
+---
+last_mapped_commit: 18f16d20ded8ec01a7526d27623691bc0e7f61c6
+last_mapped_at: 2026-08-23T13:39:41-04:00
+---
 # Testing Patterns
 
 **Analysis Date:** 2026-08-23
@@ -7,19 +11,24 @@ Amris tests run under Vitest 4.x with three isolated projects ("lanes"): a fast 
 ## Test Framework
 
 **Runner:**
+
 - Vitest 4.1.0 (`vitest`) — config at `vitest.config.ts` (single file defines all three projects via `test.projects`)
 - Browser provider: `@vitest/browser-playwright` 4.1.9 with Playwright 1.62.x, Chromium, headless
 
 **Assertion Library:**
+
 - Vitest built-in `expect`
 
 **Coverage:**
+
 - `@vitest/coverage-v8` 4.1.0 (v8 provider)
 
 **Accessibility:**
+
 - `axe-core` 4.11.1 via helpers in `test/a11y-helper.ts`
 
 **Run Commands:**
+
 ```bash
 npm test               # jsdom project only (watch) — contributor default
 npm run test:run       # vitest run (all matched projects, no watch)
@@ -42,6 +51,7 @@ npm run test:a11y      # axe-core smoke suite (test/a11y.test.ts)
 ## Test File Organization
 
 **Location:** separate `test/` tree (not co-located with source).
+
 ```
 test/
 ├── setup.ts                  # jsdom-lane mocks (ElementInternals, ResizeObserver, dialog, DataTransfer)
@@ -63,6 +73,7 @@ test/
 ## Test Structure
 
 Standard `describe` / `it` with async tests awaiting Lit's update cycle:
+
 ```typescript
 import { describe, expect, it } from 'vitest';
 import '../../src/components/button/button';
@@ -78,9 +89,11 @@ describe('am-button', () => {
   });
 });
 ```
+
 (`test/components/button.test.ts`)
 
 **Patterns:**
+
 - Import the component module for its registration side effect: `import '../../src/components/button/button'`
 - Mount via `fixture(markup)` (parses HTML string) or `mount(element)` (appends a constructed element) — both `await` `waitForUpdate`
 - Set a property then `await waitForUpdate(element)` before asserting reflected DOM
@@ -101,10 +114,12 @@ Helpers use **type-only** imports of `setup.ts` symbols so the shared module car
 ## Mocking
 
 **jsdom lane (`test/setup.ts`):**
+
 - `MockElementInternals` unconditionally replaces `attachInternals()`; stores `formValue`/`validity` privately (jsdom's native support is incomplete — notably no `setFormValue`). Read component form state via `getMockInternals()`.
 - Stubs: `window.matchMedia`, `window.ResizeObserver` (no-op), `HTMLDialogElement.showModal/close`, `globalThis.DataTransfer`.
 
 **What NOT to mock:**
+
 - Nothing in the browser/perf lanes — they run native Chromium and omit `setupFiles` entirely. Real form participation, positioning, and virtualization must be asserted there against native APIs.
 
 **Perf lane instrumentation (`test/perf/harness.ts`):** wraps **only first-party prototypes** — the component's own Lit lifecycle hooks (`update`/`updated`/`render`) and the shared `FloatingPositionController.prototype._updatePosition` chokepoint, plus a `MutationObserver` on the panel `style` attribute as a cross-check. `@floating-ui/dom` and Lit exports are NEVER patched.
@@ -130,6 +145,7 @@ The perf lane (`test/perf/`) separates two kinds of numbers with different trust
 ## Coverage
 
 Root-level `coverage` config folds over the **jsdom project only** (`vitest.config.ts:110`).
+
 - Provider: `v8`; reporters: `text`, `json-summary`, `html`
 - Include: `src/components/**`, `src/utilities/**`; exclude `*.stories.ts`, `test/**`, `dist/**`, `**/index.ts`
 - **Ratchet-to-final-floor discipline:** global thresholds sit just under measured coverage so any regression trips, never above measured. Current global floors: branches 70, functions 81, lines 84, statements 83.
@@ -149,6 +165,7 @@ npm run test:coverage   # writes coverage/ (html + json-summary), enforces thres
 ## Common Patterns
 
 **Async / update-cycle:**
+
 ```typescript
 element.loading = true;
 await waitForUpdate(element);
@@ -156,17 +173,20 @@ expect(shadowQuery(element, '.loading-spinner')).toBeTruthy();
 ```
 
 **Event assertion:**
+
 ```typescript
 const event = await oneEvent(element, 'am-change');
 expect(event.detail).toEqual(...);
 ```
 
 **Browser-lane form participation (native, no mock):**
+
 ```typescript
 // browser project omits setup.ts — new FormData(form) reads native setFormValue
 const data = new FormData(form);
 expect(data.get('field')).toBe('value');
 ```
+
 (`test/browser/form-association.test.ts`)
 
 ---

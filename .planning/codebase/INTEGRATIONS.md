@@ -1,3 +1,7 @@
+---
+last_mapped_commit: 18f16d20ded8ec01a7526d27623691bc0e7f61c6
+last_mapped_at: 2026-08-23T13:39:41-04:00
+---
 # External Integrations
 
 **Analysis Date:** 2026-08-23
@@ -11,15 +15,19 @@ CI/CD toolchain — not network services.
 **Runtime network calls:** None. The library makes no HTTP/fetch/WebSocket calls of its own.
 
 **Third-party libraries (in-process, not network services):**
+
 - `@floating-ui/dom` `^1.7.6` — Overlay positioning (dialog, tooltip, popover, dropdown, menu, combobox)
   - Integration point: `src/internal/controllers/floating-position.ts` and lazy loader
     `src/internal/helpers/lazy-load.ts` (`loadFloating()` → `import('@floating-ui/dom')`)
+
   - **Dynamically imported** (bundle-size deferral, Phase 8) and externalized in `vite.config.ts` — never in the
     initial chunk; resolved on first overlay open
+
 - `@lit-labs/virtualizer` `2.1.1` (pinned) — Row/option virtualization
   - Integration point: `src/internal/helpers/lazy-load.ts` (`loadVirtualizer()` →
     `import('@lit-labs/virtualizer/virtualize.js')`), consumed by
     `src/components/combobox/combobox.ts`, `src/components/select/select.ts`, `src/components/data-grid/data-grid.ts`
+
   - **Dynamically imported** and externalized — deferred cost, loaded only when a virtualized list renders
 - `@lit/context` `^1.1.6` — Lit context protocol (theming / provider wiring)
 - `lit` `^3.3.2` — Peer dependency, consumer-provided, never bundled
@@ -27,8 +35,10 @@ CI/CD toolchain — not network services.
 ## Browser Platform APIs (integration surface)
 
 The library integrates directly with native browser APIs instead of external services:
+
 - **ElementInternals** (`attachInternals()`) — Form association for `<am-input>`, `<am-checkbox>`, etc.
   Not polyfillable; sets the Safari 16.4 browser floor.
+
 - **Shadow DOM** — Style encapsulation on every component.
 - **`<dialog>` / top-layer** — Overlay/dialog rendering (`test/browser/dialog-top-layer.test.ts`).
 - **ResizeObserver / matchMedia** — Layout + theming; mocked in the jsdom lane, real in the browser lane.
@@ -46,8 +56,10 @@ dev-only `bundle-stats.json`).
 **Runtime auth:** None — the library ships no auth.
 
 **CI/publish auth:**
+
 - GitHub Packages publish uses `NODE_AUTH_TOKEN` / `GITHUB_TOKEN` (GitHub Actions secret), passed only as step
   `env`, never echoed (`.github/workflows/release.yml`, `publish.yml`)
+
 - Registry scope configured in `.npmrc` (`@willramanand:registry=https://npm.pkg.github.com`)
 
 ## Monitoring & Observability
@@ -60,10 +72,12 @@ dev-only `bundle-stats.json`).
 ## CI/CD & Deployment
 
 **Package registry (deployment target):**
+
 - GitHub Packages — `https://npm.pkg.github.com`, package `@willramanand/amris`, access `restricted`
   (`package.json` `publishConfig`)
 
 **CI Pipeline (`.github/workflows/ci.yml`, PR + push to main, read-only permissions):**
+
 - `verify` — typecheck, jsdom coverage gate, build (Node 20)
 - `browser` — Playwright/Chromium install + `test:browser` (real ElementInternals + in-browser axe)
 - `surface-diff` — build CEM, contract-doc drift check (`git diff --exit-code docs/contract.md`), enforcing `diff:surface`
@@ -72,11 +86,13 @@ dev-only `bundle-stats.json`).
 - `smoke` — pack → install → resolve entry matrix
 
 **Release (`.github/workflows/release.yml`):**
+
 - Triggered by `workflow_run` on successful CI on `main`; gated on `conclusion == 'success'`
 - Uses SHA-pinned `changesets/action` → `npm run version` then `npm run release` (build + `changeset publish`)
 - Least-privilege: only this job gets `contents: write` + `packages: write`
 
 **Manual fallback (`.github/workflows/publish.yml`):**
+
 - `workflow_dispatch` only (break-glass); re-runs the full gate set (typecheck+coverage, browser a11y,
   surface-diff, size) before the publish job, which alone holds `packages: write`
 

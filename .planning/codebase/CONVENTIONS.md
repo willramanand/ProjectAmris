@@ -1,3 +1,7 @@
+---
+last_mapped_commit: 18f16d20ded8ec01a7526d27623691bc0e7f61c6
+last_mapped_at: 2026-08-23T13:39:41-04:00
+---
 # Coding Conventions
 
 **Analysis Date:** 2026-08-23
@@ -7,6 +11,7 @@ Amris is a Lit 3 + Web Components UI library. All source lives under `src/` with
 ## Naming Patterns
 
 **Files:**
+
 - kebab-case for all source files: `button.ts`, `date-picker.ts`, `form-actions.ts`
 - Component directory per component: `src/components/{component-name}/{component-name}.ts` with barrel `index.ts`
 - Style files use `.css.js` suffix: `src/styles/reset.css.js`, `src/tokens/dark.css.ts`
@@ -14,21 +19,25 @@ Amris is a Lit 3 + Web Components UI library. All source lives under `src/` with
 - Browser lane tests: `test/browser/*.test.ts`; perf: `test/perf/*.cdp.test.ts`, `*.perf.test.ts`
 
 **Component classes:**
+
 - PascalCase with `Am` prefix: `AmButton`, `AmDatePicker`, `AmComboBox` (`src/components/button/button.ts:20`)
 - Always extend `LitElement`
 - Registered via `@customElement('am-kebab-case')` — tag name is always `am-` prefixed (`src/components/button/button.ts:19`)
 
 **Functions / methods:**
+
 - camelCase, verb-noun: `handleClick`, `getAssociatedForm`, `requestAssociatedFormSubmit` (`src/utilities/form-actions.ts`)
 - Private methods and instance fields are underscore-prefixed: `_internals`, `_updatePosition`, `_imgFailed`
 - Event handlers named `handle*` (`handleClick` at `src/components/button/button.ts:260`)
 
 **Properties / variables:**
+
 - camelCase for public reactive props: `variant`, `size`, `disabled`, `loading`
 - Boolean props read as adjectives: `disabled`, `loading`, `readonly`, `invalid`, `required`, `clearable`
 - `@state()` for internal-only reactive state, underscore-prefixed: `private _imgFailed = false`
 
 **Types:**
+
 - Exported `type` (never `interface`) for public variant/size unions at top of component file:
   - `export type ButtonVariant = 'primary' | 'outlined' | 'ghost' | 'subtle' | 'danger'` (`src/components/button/button.ts:7`)
   - `export type ButtonSize = 'sm' | 'md' | 'lg'`
@@ -37,6 +46,7 @@ Amris is a Lit 3 + Web Components UI library. All source lives under `src/` with
 ## Code Style
 
 **Compiler enforcement (`tsconfig.json`):**
+
 - Target `ES2023`, module `ESNext`, `moduleResolution: bundler`
 - `strict: true`
 - `noUnusedLocals: true`, `noUnusedParameters: true`
@@ -47,6 +57,7 @@ Amris is a Lit 3 + Web Components UI library. All source lives under `src/` with
 - `allowImportingTsExtensions: true`, `noEmit: true` (Vite/tsc split build)
 
 **Formatting (inferred, no formatter configured):**
+
 - 2-space indentation
 - Single quotes for strings
 - Trailing commas in multiline literals
@@ -57,10 +68,12 @@ Amris is a Lit 3 + Web Components UI library. All source lives under `src/` with
 ## Import Organization
 
 **Order observed across source and tests:**
+
 1. External packages (`lit`, `lit/decorators.js`, `axe-core`, `vitest`)
 2. Internal relative imports (styles, utilities, controllers)
 
 **Rules:**
+
 - Relative imports MUST carry explicit `.js` extension even from `.ts` sources: `'../../utilities/form-actions.js'`, `'../../styles/reset.css.js'` (`src/components/button/button.ts:4-5`)
 - Lit directive imports from their own subpaths: `import { classMap } from 'lit/directives/class-map.js'`
 - Decorators from `lit/decorators.js`: `import { customElement, property } from 'lit/decorators.js'`
@@ -107,6 +120,7 @@ Amris is a Lit 3 + Web Components UI library. All source lives under `src/` with
     }
   }
   ```
+
 - Entry points: `src/index.ts` (core bundle), `src/index.all.ts` (full), per-component `src/components/*/index.ts` barrels
 - `sideEffects` array in `package.json` scopes tree-shaking to the shipped registration entry points
 

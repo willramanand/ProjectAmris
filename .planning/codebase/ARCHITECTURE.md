@@ -1,4 +1,9 @@
+---
+last_mapped_commit: 18f16d20ded8ec01a7526d27623691bc0e7f61c6
+last_mapped_at: 2026-08-23T13:39:41-04:00
+---
 <!-- refreshed: 2026-08-23 -->
+
 # Architecture
 
 **Analysis Date:** 2026-08-23
@@ -65,6 +70,7 @@
 **Overall:** Framework-agnostic Web Components library — Shadow-DOM-encapsulated Lit 3 custom elements over a shared internal chokepoint layer, with lazy-loaded heavy dependencies.
 
 **Key Characteristics:**
+
 - One component class per file, registered via `@customElement('am-*')`, extending `LitElement`
 - Shadow DOM style encapsulation per component; theming only through `--am-*` tokens (no global CSS cascade in)
 - Property→event data flow, no global/module-level mutable state (loader caches in `lazy-load.ts` are the deliberate, memoization-only exception)
@@ -75,6 +81,7 @@
 ## Layers
 
 **Public Entry Layer:**
+
 - Purpose: Define the frozen public surface and bundle boundaries
 - Location: `src/index.ts` (core), `src/index.all.ts` (all), `src/components/<name>/index.ts` (deep imports)
 - Contains: Named re-exports of component classes + exported types, tokens, styles, utilities
@@ -82,6 +89,7 @@
 - Used by: Consumer applications and bundlers
 
 **Component Layer:**
+
 - Purpose: Implement each UI component as a Shadow-DOM custom element
 - Location: `src/components/<name>/<name>.ts`
 - Contains: 67 Lit-based web components (one directory per component)
@@ -89,6 +97,7 @@
 - Used by: Entry points, host applications
 
 **Internal Chokepoint Layer:**
+
 - Purpose: Concentrate cross-cutting logic (positioning, validation, listbox nav, filtering, lazy-loading, virtualization) so components stay thin and deps stay isolated
 - Location: `src/internal/controllers/`, `src/internal/helpers/`
 - Contains: Lit `ReactiveController`s and stateless helpers; registers NO custom element and is never re-exported from a public barrel
@@ -96,6 +105,7 @@
 - Used by: Component layer only
 
 **Tokens / Styles / Utilities:**
+
 - Purpose: Shared design tokens, base resets, and form/id helpers
 - Location: `src/tokens/`, `src/styles/`, `src/utilities/`
 - Contains: `primitives.css.ts`, `semantic.css.ts`, `dark.css.ts`; `reset.css.ts`, `corners.css.ts`; `form-actions.ts`, `unique-id.ts`
@@ -123,6 +133,7 @@
 2. Until `loadVirtualizer()` resolves, the component renders with `repeat()` (cold frame), then swaps to the windowed `virtualize()` directive (`src/internal/helpers/virtualize-support.ts`)
 
 **State Management:**
+
 - `@property` — public API, one-way binding, may reflect to attribute
 - `@state` — private, re-triggers render, never reflected
 - `@query` — memoized Shadow-DOM element refs
@@ -132,16 +143,19 @@
 ## Key Abstractions
 
 **Reactive Controllers:**
+
 - Purpose: Encapsulate reusable cross-component behavior with host lifecycle hooks
 - Examples: `src/internal/controllers/floating-position.ts`, `validation.ts`, `listbox-nav.ts`, `shortcut-registry.ts`
 - Pattern: Implement Lit `ReactiveController`; take accessor-callback options so hosts resolve their own Shadow-DOM nodes lazily
 
 **Memoized Lazy Loaders:**
+
 - Purpose: Load heavy interaction-gated deps exactly once, keeping them `external`
 - Examples: `loadFloating`/`prefetchFloating`, `loadVirtualizer`/`prefetchVirtualizer` (`src/internal/helpers/lazy-load.ts`)
 - Pattern: Module-level promise cache assigned with `??=`; static bare specifiers only (never computed paths)
 
 **Design Tokens:**
+
 - Purpose: Themeable, dark-mode-safe styling surface
 - Examples: `src/tokens/primitives.css.ts`, `semantic.css.ts`, `dark.css.ts`
 - Pattern: `--am-*` CSS custom properties consumed in `css` template blocks
@@ -149,16 +163,19 @@
 ## Entry Points
 
 **Core bundle:**
+
 - Location: `src/index.ts` → `dist/amris-core.js` (package export `./core`)
 - Triggers: Consumer imports foundational/common components
 - Responsibilities: Export foundation, layout, basic form, common feedback components + tokens/styles/utilities
 
 **All bundle:**
+
 - Location: `src/index.all.ts` → `dist/amris.js` (package export `.`, the default)
 - Triggers: Consumer imports the full library
 - Responsibilities: Export every component and type
 
 **Per-component barrels:**
+
 - Location: `src/components/<name>/index.ts` (`export * from './<name>.js'`) → `dist/components/*/index.js` (package export `./components/*`)
 - Triggers: Deep imports for maximum tree-shaking
 
@@ -203,6 +220,7 @@
 **Strategy:** State-driven, not exception-driven. Errors surface as boolean `@state` flags and emitted events.
 
 **Patterns:**
+
 - Missing/invalid props fall back to safe defaults rather than throwing
 - Form validation flows through `ElementInternals.setValidity()` + `ValidationController`
 - Floating-UI/virtualizer load failures degrade gracefully (repeat() fallback, viewport-anchored render)
