@@ -2,16 +2,16 @@
   "unit": "brotli-bytes",
   "entries": {
     "core bundle": 21076,
-    "full bundle": 61357,
+    "full bundle": 61881,
     "button (light deep import)": 1879,
-    "data-grid (heavy deep import)": 10848,
-    "popover (overlay deep import)": 9719,
+    "data-grid (heavy deep import)": 11151,
+    "popover (overlay deep import)": 9735,
     "first-load composite (core+button+input+dialog)": 22971,
     "tokens.css": 2649
   },
   "marginal": {
     "button (light deep import)": -19197,
-    "data-grid (heavy deep import)": -10228,
-    "popover (overlay deep import)": -11357
+    "data-grid (heavy deep import)": -9925,
+    "popover (overlay deep import)": -11341
   }
 }

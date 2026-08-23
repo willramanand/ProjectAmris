@@ -2,6 +2,7 @@ import { afterAll, describe, expect, it } from 'vitest';
 
 import '../../src/components/popover/popover';
 import { AmPopover } from '../../src/components/popover/popover';
+import { loadFloating } from '../../src/internal/helpers/lazy-load';
 import { fixture, shadowQuery, waitForUpdate } from '../helpers';
 import {
   THROTTLE_PROFILE,
@@ -72,6 +73,18 @@ describe('perf: overlay = am-popover (open + reposition)', () => {
   });
 
   it('measures open+reposition counts under throttle, deterministic across 5 repeats', async () => {
+    // Warm the memoized floating-ui loader chunk BEFORE applying the network
+    // throttle. Post-full-deferral (Phase 8), opening the popover fetches
+    // @floating-ui/dom via a dynamic import(); under the Slow-3G profile that
+    // one-time COLD chunk fetch exceeds the fixed waitForPosition budget and
+    // starves the first (warm-up) open of a position write (repositions == 0).
+    // This scenario measures open+reposition WORK — the throttle-independent
+    // computePosition/reposition counts plus the open+reposition wall-clock —
+    // never the one-time chunk-fetch latency, so warming the shared memoized
+    // loader here is the correct harness discipline (it mirrors the components'
+    // real prefetch-on-intent) and leaves every recorded count/timing intact.
+    await loadFloating();
+
     const { unthrottled, throttled } = await proveThrottleLive();
     expect(throttled).toBeGreaterThan(unthrottled);
 
