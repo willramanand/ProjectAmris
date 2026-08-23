@@ -1,6 +1,6 @@
 import { LitElement, css, html, nothing } from 'lit';
 import { customElement, property, query } from 'lit/decorators.js';
-import { type Placement } from '@floating-ui/dom';
+import type { Placement } from '@floating-ui/dom';
 import { resetStyles } from '../../styles/reset.css.js';
 import { FloatingPositionController } from '../../internal/controllers/floating-position.js';
 import { prefetchFloating } from '../../internal/helpers/lazy-load.js';
