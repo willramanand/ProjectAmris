@@ -71,7 +71,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. Shared-chunk dedupe and per-component deep-import purity are verified — no cross-entry duplication regressions introduced by the deferral. (SIZE-04)
   5. Non-critical component init is deferred off the first-load critical path (idle/deferred init), behavior-preserving, for faster slow-network first paint. (SIZE-05)
 
-**Plans**: 1/7 plans executed (waves 1-3)
+**Plans**: 6/7 plans executed (waves 1-3)
 
 **Wave 1** *(tracer — floating-ui deferral proven end-to-end before expansion)*
 
@@ -79,11 +79,11 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 **Wave 2** *(expansion — depends on 08-01; all component files owned independently, run in parallel)*
 
-- [ ] 08-02-PLAN.md — tooltip (arrow getter) + color-picker (loader-direct one-shot, NOT controller — Pitfall CP1) (SIZE-01)
-- [ ] 08-03-PLAN.md — rich-select (full controller migration) + dropdown type-only verify (SIZE-01)
-- [ ] 08-04-PLAN.md — combobox full deferral: size getter + virtualize swap + SIZE-05 idle sweep (SIZE-01, SIZE-02, SIZE-05)
-- [ ] 08-05-PLAN.md — select full deferral + virtualize-support.ts virtualizer-import deferral (SIZE-01, SIZE-02)
-- [ ] 08-06-PLAN.md — data-grid virtualize swap + SIZE-05 idle sweep (SIZE-02, SIZE-05)
+- [x] 08-02-PLAN.md — tooltip (arrow getter) + color-picker (loader-direct one-shot, NOT controller — Pitfall CP1) (SIZE-01)
+- [x] 08-03-PLAN.md — rich-select (full controller migration) + dropdown type-only verify (SIZE-01)
+- [x] 08-04-PLAN.md — combobox full deferral: size getter + virtualize swap + SIZE-05 idle sweep (SIZE-01, SIZE-02, SIZE-05)
+- [x] 08-05-PLAN.md — select full deferral + virtualize-support.ts virtualizer-import deferral (SIZE-01, SIZE-02)
+- [x] 08-06-PLAN.md — data-grid virtualize swap + SIZE-05 idle sweep (SIZE-02, SIZE-05)
 
 **Wave 3** *(verification capstone — depends on all Wave-2 migrations)*
 
@@ -141,7 +141,7 @@ Phase 10 (graceful degradation) depends only on the Phase 7 harness/browser lane
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 7. Measurement, Baselines & Budgets | 7/7 | Complete    | 2026-08-22 |
-| 8. Bundle-Size Deferral | 1/7 | In Progress|  |
+| 8. Bundle-Size Deferral | 6/7 | In Progress|  |
 | 9. Runtime-Performance Tuning | 0/TBD | Not started | - |
 | 10. Graceful Degradation & Compatibility Matrix | 0/TBD | Not started | - |
 | 11. Gate Enforcement & Cost Publication | 0/TBD | Not started | - |
