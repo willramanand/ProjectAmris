@@ -1,9 +1,10 @@
 import { LitElement, html } from 'lit';
 import { customElement, property, query } from 'lit/decorators.js';
 import { virtualize } from '@lit-labs/virtualizer/virtualize.js';
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 
 import { scrollVirtualizerToIndex } from '../../src/internal/helpers/virtualize-support';
+import { __resetLazyLoadCachesForTest } from '../../src/internal/helpers/lazy-load';
 import '../../src/components/select/select';
 import { fixture, shadowQuery, waitForUpdate } from '../helpers';
 
@@ -129,6 +130,13 @@ function optionRows(host: HTMLElement): NodeListOf<HTMLElement> {
 }
 
 describe('am-select deferred virtualizer cold-chunk fallback (real Chromium)', () => {
+  // The cold repeat() frame is only observable when loadVirtualizer() is pending
+  // at first render. In the full browser lane a prior spec resolves the memoized
+  // loader, so reset it here to restore a deterministic cold load (D-05).
+  beforeEach(() => {
+    __resetLazyLoadCachesForTest();
+  });
+
   it('renders a functional unwindowed repeat() before load, then swaps to windowed virtualize()', async () => {
     const count = 150; // > VIRTUALIZE_ROW_THRESHOLD (100) → virtualized path
     const el = await fixture<BigSelect>(bigSelectMarkup(count));
@@ -147,9 +155,13 @@ describe('am-select deferred virtualizer cold-chunk fallback (real Chromium)', (
     expect(coldRows[0].getAttribute('aria-posinset')).toBe('1');
 
     // Once the virtualizer chunk resolves it swaps to the windowed directive —
-    // only a small subset of rows stays mounted.
+    // only a small subset of rows stays mounted. Wait for the STABLE windowed
+    // state (0 < rows < count): under parallel-lane contention the virtualizer's
+    // ResizeObserver measurement can briefly render a transient 0-row frame
+    // mid-swap, so exiting the moment rows drops below count can catch that empty
+    // frame. Keep waiting until a positive windowed subset is mounted.
     let rows = optionRows(el);
-    for (let i = 0; i < 60 && rows.length >= count; i++) {
+    for (let i = 0; i < 120 && !(rows.length > 0 && rows.length < count); i++) {
       await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
       rows = optionRows(el);
     }

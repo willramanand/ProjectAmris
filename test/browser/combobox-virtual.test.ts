@@ -220,6 +220,12 @@ async function openSelect(el: SelectEl): Promise<HTMLButtonElement> {
   trigger.click();
   await waitForUpdate(el);
   await waitForNodes(el, '.v-option');
+  // Deferred virtualizer (08-05, D-05): am-select loads its virtualizer via a
+  // dynamic import and renders a cold repeat() fallback (all rows) until it
+  // resolves. Wait for the windowed steady state before returning so the
+  // subset-count assertion and navigation-based tests do not race the swap /
+  // the virtualizer's first layout — mirrors openCombobox above.
+  await waitForWindowed(el, '.v-option');
   return trigger;
 }
 

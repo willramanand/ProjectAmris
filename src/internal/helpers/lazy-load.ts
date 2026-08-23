@@ -68,3 +68,18 @@ export function loadVirtualizer(): Promise<typeof import('@lit-labs/virtualizer/
 export function prefetchVirtualizer(): void {
   void loadVirtualizer();
 }
+
+/**
+ * Test-only: clear the memoized loader caches so the next `loadFloating` /
+ * `loadVirtualizer` call returns a fresh *pending* promise. Browser specs that
+ * assert the cold `repeat()` → windowed swap (D-05) require the loader pending
+ * at the first render; without a reset a prior spec sharing the page leaves the
+ * promise already resolved, so the cold frame is never observable (an
+ * order-dependent flake, not a product defect). References no package specifier,
+ * is not re-exported from any barrel, and is tree-shaken from consumer bundles.
+ * @internal
+ */
+export function __resetLazyLoadCachesForTest(): void {
+  floatingPromise = null;
+  virtualizerPromise = null;
+}
