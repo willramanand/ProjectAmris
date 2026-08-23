@@ -19,11 +19,11 @@ Requirements for the v1.1 hardening milestone. Each maps to a roadmap phase. Gro
 
 ### Bundle-Size Reduction
 
-- [ ] **SIZE-01**: `@floating-ui/dom` loads via a memoized dynamic `import()` gated on first overlay open (in `src/internal/controllers/floating-position.ts`); all 6 overlays stay behavior-preserving and positioning code is absent from non-overlay entries.
-- [ ] **SIZE-02**: `@lit-labs/virtualizer` loads via a memoized dynamic `import()` at/above the row threshold (in `src/internal/helpers/virtualize-support.ts`); data-grid and combobox/select popups stay behavior-preserving.
-- [ ] **SIZE-03**: The tree-shaking canary asserts an imported component still calls `customElements.define` at runtime (registration is never shaken away) and that Lit is never bundled.
-- [ ] **SIZE-04**: Shared-chunk dedupe and per-component deep-import purity are verified — no cross-entry duplication regressions from the deferral work.
-- [ ] **SIZE-05**: Non-critical component init is deferred off the first-load critical path (idle/deferred init) for faster slow-network first paint, behavior-preserving. *(differentiator)*
+- [x] **SIZE-01**: `@floating-ui/dom` loads via a memoized dynamic `import()` gated on first overlay open (in `src/internal/controllers/floating-position.ts`); all 6 overlays stay behavior-preserving and positioning code is absent from non-overlay entries.
+- [x] **SIZE-02**: `@lit-labs/virtualizer` loads via a memoized dynamic `import()` at/above the row threshold (in `src/internal/helpers/virtualize-support.ts`); data-grid and combobox/select popups stay behavior-preserving.
+- [x] **SIZE-03**: The tree-shaking canary asserts an imported component still calls `customElements.define` at runtime (registration is never shaken away) and that Lit is never bundled.
+- [x] **SIZE-04**: Shared-chunk dedupe and per-component deep-import purity are verified — no cross-entry duplication regressions from the deferral work.
+- [x] **SIZE-05**: Non-critical component init is deferred off the first-load critical path (idle/deferred init) for faster slow-network first paint, behavior-preserving. *(differentiator)*
 
 ### Runtime Performance
 
@@ -99,11 +99,11 @@ Which phases cover which requirements. Populated during roadmap creation.
 | MEAS-03 | Phase 7 | Complete |
 | MEAS-04 | Phase 7 | Complete |
 | MEAS-05 | Phase 7 | Complete |
-| SIZE-01 | Phase 8 | Pending |
-| SIZE-02 | Phase 8 | Pending |
-| SIZE-03 | Phase 8 | Pending |
-| SIZE-04 | Phase 8 | Pending |
-| SIZE-05 | Phase 8 | Pending |
+| SIZE-01 | Phase 8 | Complete |
+| SIZE-02 | Phase 8 | Complete |
+| SIZE-03 | Phase 8 | Complete |
+| SIZE-04 | Phase 8 | Complete |
+| SIZE-05 | Phase 8 | Complete |
 | RPERF-01 | Phase 9 | Pending |
 | RPERF-02 | Phase 9 | Pending |
 | RPERF-03 | Phase 9 | Pending |
