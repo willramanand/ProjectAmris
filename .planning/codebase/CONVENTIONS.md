@@ -1,201 +1,105 @@
 # Coding Conventions
 
-**Analysis Date:** 2026-08-10
+**Analysis Date:** 2026-08-23
+
+Amris is a Lit 3 + Web Components UI library. All source lives under `src/` with TypeScript strict mode. These conventions are enforced by `tsconfig.json` and by consistent authoring patterns across the 60+ components in `src/components/`. There is no ESLint or Prettier config — the compiler's strict flags plus consistent hand-authored style are the enforcement mechanism.
 
 ## Naming Patterns
 
 **Files:**
-- Component files: kebab-case (e.g., `button.ts`, `accordion.ts`, `avatar.ts`)
-- Utility files: kebab-case (e.g., `form-actions.ts`, `unique-id.ts`)
-- Style files: kebab-case with `.css.js` suffix (e.g., `reset.css.js`)
-- Test files: component-name with `.test.ts` suffix (e.g., `button.test.ts`)
+- kebab-case for all source files: `button.ts`, `date-picker.ts`, `form-actions.ts`
+- Component directory per component: `src/components/{component-name}/{component-name}.ts` with barrel `index.ts`
+- Style files use `.css.js` suffix: `src/styles/reset.css.js`, `src/tokens/dark.css.ts`
+- Test files mirror component name with `.test.ts`: `test/components/button.test.ts`
+- Browser lane tests: `test/browser/*.test.ts`; perf: `test/perf/*.cdp.test.ts`, `*.perf.test.ts`
 
-**Classes (Components):**
-- PascalCase with `Am` prefix (e.g., `AmButton`, `AmInput`, `AmAccordion`, `AmAvatar`)
-- All components extend `LitElement`
-- Decorated with `@customElement('am-kebab-case')`
+**Component classes:**
+- PascalCase with `Am` prefix: `AmButton`, `AmDatePicker`, `AmComboBox` (`src/components/button/button.ts:20`)
+- Always extend `LitElement`
+- Registered via `@customElement('am-kebab-case')` — tag name is always `am-` prefixed (`src/components/button/button.ts:19`)
 
-**Properties:**
-- camelCase (e.g., `variant`, `size`, `disabled`, `loading`, `initials`)
-- Boolean properties often use `disabled`, `readonly`, `invalid`, `required`, `clearable`
-- Type properties: PascalCase exported types (e.g., `ButtonVariant`, `InputSize`, `AvatarShape`)
+**Functions / methods:**
+- camelCase, verb-noun: `handleClick`, `getAssociatedForm`, `requestAssociatedFormSubmit` (`src/utilities/form-actions.ts`)
+- Private methods and instance fields are underscore-prefixed: `_internals`, `_updatePosition`, `_imgFailed`
+- Event handlers named `handle*` (`handleClick` at `src/components/button/button.ts:260`)
 
-**Methods:**
-- camelCase (e.g., `handleClick`, `handleImgError`, `getAssociatedForm`)
-- Private methods prefixed with underscore (e.g., `_handleImgError`, `_internals`)
-- Descriptive verb-noun pattern (e.g., `handleClick`, `setFormValue`, `checkValidity`)
+**Properties / variables:**
+- camelCase for public reactive props: `variant`, `size`, `disabled`, `loading`
+- Boolean props read as adjectives: `disabled`, `loading`, `readonly`, `invalid`, `required`, `clearable`
+- `@state()` for internal-only reactive state, underscore-prefixed: `private _imgFailed = false`
 
-**Variables & Properties:**
-- camelCase for local variables and instance properties
-- Private instance properties prefixed with underscore (e.g., `_internals`, `_imgFailed`, `_headerId`)
-- State variables use `@state()` decorator (e.g., `private _imgFailed = false`)
-
-**Type Definitions:**
-- Exported as `export type` statements at the top of component files
-- Union types for variants: `type ButtonVariant = 'primary' | 'outlined' | 'ghost' | 'subtle' | 'danger'`
-- Union types for sizes: `type ButtonSize = 'sm' | 'md' | 'lg'`
+**Types:**
+- Exported `type` (never `interface`) for public variant/size unions at top of component file:
+  - `export type ButtonVariant = 'primary' | 'outlined' | 'ghost' | 'subtle' | 'danger'` (`src/components/button/button.ts:7`)
+  - `export type ButtonSize = 'sm' | 'md' | 'lg'`
+- `interface` is used for internal (non-exported) shapes in tooling/harness code (e.g. `ThrottleProfile`, `LifecycleCounts` in `test/perf/harness.ts`)
 
 ## Code Style
 
-**Formatting:**
-- Target: ES2023
-- Module format: ESNext with bundler module resolution
-- No explicit Prettier or ESLint configuration found; reliant on TypeScript strict mode and IDE formatting
-- Indentation: 2 spaces (inferred from code samples)
+**Compiler enforcement (`tsconfig.json`):**
+- Target `ES2023`, module `ESNext`, `moduleResolution: bundler`
+- `strict: true`
+- `noUnusedLocals: true`, `noUnusedParameters: true`
+- `noFallthroughCasesInSwitch: true`, `noUncheckedSideEffectImports: true`
+- `experimentalDecorators: true`, `useDefineForClassFields: false` (required for Lit decorators)
+- `verbatimModuleSyntax: true` — forces explicit `import type` for type-only imports
+- `erasableSyntaxOnly: true`
+- `allowImportingTsExtensions: true`, `noEmit: true` (Vite/tsc split build)
 
-**Linting:**
-- TypeScript strict mode enforced via `tsconfig.json`
-- `noUnusedLocals`: true
-- `noUnusedParameters`: true
-- `noFallthroughCasesInSwitch`: true
-- `noUncheckedSideEffectImports`: true
+**Formatting (inferred, no formatter configured):**
+- 2-space indentation
+- Single quotes for strings
+- Trailing commas in multiline literals
+- Semicolons required
 
-**Type Safety:**
-- Strict TypeScript enabled (`strict: true`)
-- Generic types used extensively for event handlers and component props
-- Type annotations required for function parameters and return types
-- Use `type` not `interface` for component prop types exported to consumers
+**Linting:** No ESLint/Prettier. Rely on TypeScript strict mode + IDE. Do not add hardcoded colors or CommonJS.
 
 ## Import Organization
 
-**Order:**
-1. Lit imports (e.g., `import { LitElement, css, html, nothing } from 'lit'`)
-2. Lit decorators (e.g., `import { customElement, property } from 'lit/decorators.js'`)
-3. Lit directives (e.g., `import { classMap } from 'lit/directives/class-map.js'`)
-4. Internal style imports (e.g., `import { resetStyles, focusRingStyles } from '../../styles/reset.css.js'`)
-5. Internal utility imports (e.g., `import { uniqueId } from '../../utilities/unique-id.js'`)
+**Order observed across source and tests:**
+1. External packages (`lit`, `lit/decorators.js`, `axe-core`, `vitest`)
+2. Internal relative imports (styles, utilities, controllers)
 
-**Import Style:**
-- Use relative paths with explicit `.js` extensions (e.g., `'../../utilities/form-actions.js'`)
-- Default imports for component classes
-- Named imports for utilities and types
-- Type imports using `import type` syntax when importing only types
-
-**Path Structure:**
-- Components in `src/components/{component-name}/`
-- Styles in `src/styles/`
-- Utilities in `src/utilities/`
-- Tokens in `src/tokens/`
+**Rules:**
+- Relative imports MUST carry explicit `.js` extension even from `.ts` sources: `'../../utilities/form-actions.js'`, `'../../styles/reset.css.js'` (`src/components/button/button.ts:4-5`)
+- Lit directive imports from their own subpaths: `import { classMap } from 'lit/directives/class-map.js'`
+- Decorators from `lit/decorators.js`: `import { customElement, property } from 'lit/decorators.js'`
+- Type-only imports use `import type` (enforced by `verbatimModuleSyntax`): `import { LitElement, css, html, nothing, type PropertyValues } from 'lit'`
+- Peer dependency `lit` is never bundled — always imported, never vendored
 
 ## Error Handling
 
-**Patterns:**
-- Errors are handled via state changes, not thrown exceptions
-- Error state tracked with boolean flags (e.g., `_imgFailed`)
-- Error events emitted from components rather than thrown
-- Use `@error` event handlers on elements (e.g., `@error=${this._handleImgError}` on `<img>` tags)
-- Form validation uses `internals.setValidity()` for native form validation integration
-- Private methods handle errors by setting internal state
-
-**Example:** Avatar component's image load error:
-```typescript
-private _handleImgError() {
-  this._imgFailed = true;
-}
-
-protected updated(changed: Map<string, unknown>) {
-  if (changed.has('src')) {
-    this._imgFailed = false;
-  }
-}
-```
+- Errors surface as state changes and events, never thrown exceptions in component runtime paths
+- Boolean state flags track error conditions (e.g. `_imgFailed`) toggled by `@error` handlers on `<img>`
+- Form validation flows through `ElementInternals.setValidity()` via the shared ValidationController (`src/internal/controllers/`), not thrown errors
+- Guard-and-return early pattern for invalid conditions (`src/utilities/form-actions.ts:14-34` returns `false` on disabled/readonly/defaultPrevented/isComposing/no-form)
+- Utility functions return `boolean`/`null` sentinels rather than throwing (`getAssociatedForm` returns `null`)
+- `try/catch` used only in best-effort teardown/reset paths (e.g. `resetThrottle` in `test/perf/harness.ts:123`)
 
 ## Logging
 
-**Framework:** Console logging (no logging framework detected)
-
-**Patterns:**
-- No explicit logging found in component code
-- Console logging would be used for debugging during development
-- Keep logging minimal in production builds
+- No runtime logging in component code. Keep production paths silent.
 
 ## Comments
 
-**When to Comment:**
-- JSDoc comments for all public components
-- JSDoc comments for exported types and public methods
-- Inline comments for complex logic (e.g., grid-template-rows transitions, animation timing)
-- Comments for accessibility patterns and why they're implemented a certain way
-- Comments explaining non-obvious conditionals or edge cases
-
-**JSDoc/TSDoc:**
-```typescript
-/**
- * Avatar — displays a user image, initials, or a fallback icon.
- *
- * Falls back gracefully: image → initials → default person icon.
- *
- * @slot - Custom fallback content
- * @csspart image - The img element
- * @csspart initials - The initials text
- * @csspart fallback - The default fallback icon
- *
- * @cssprop --am-avatar-size - Override size
- * @cssprop --am-avatar-radius - Override border radius
- *
- * @example
- * ```html
- * <am-avatar src="/photo.jpg" alt="Jane Doe"></am-avatar>
- * ```
- */
-```
-
-**Comment Structure:**
-- Brief description at top
-- @slot tags for named slots
-- @csspart tags for CSS parts
-- @cssprop tags for CSS custom properties
-- @fires tags for custom events
-- @example tags with HTML usage examples
-
-**Aria/Accessibility Comments:**
-- Used to mark hidden elements (`aria-hidden="true"`)
-- Document intent of aria attributes in JSDoc
+- JSDoc on all public components and exported types
+- Component-level JSDoc tags: `@slot`, `@csspart`, `@cssprop`, `@fires`, `@example` (see `@cssprop` block at `src/components/button/button.ts:15-18`)
+- Inline comments explain non-obvious accessibility choices, animation timing, and browser/jsdom fidelity tradeoffs (test files are heavily annotated with rationale — e.g. `test/setup.ts:113-126`)
+- `aria-hidden="true"` decorative elements documented in template (e.g. spinner overlay)
 
 ## Function Design
 
-**Size:** Keep methods focused on single responsibility. Render methods should build templates; event handlers should update state.
-
-**Parameters:**
-- Use typed parameters with TypeScript
-- Destructure option objects when multiple parameters
-- Avoid positional parameters beyond 2-3
-
-**Return Values:**
-- Explicit return type annotations required
-- Return `nothing` from Lit templates for conditional rendering
-- Return boolean for validation/check methods
-- Return `void` for event handlers
-
-**Example Pattern:**
-```typescript
-private handleClick(event: Event) {
-  if (this.disabled || this.loading || this.type === 'button') {
-    return;
-  }
-
-  if (this.type === 'submit') {
-    requestAssociatedFormSubmit(this, {
-      event,
-      internals: this._internals,
-      disabled: this.disabled || this.loading,
-    });
-    return;
-  }
-
-  if (this.type === 'reset') {
-    event.preventDefault();
-    resetAssociatedForm(this, this._internals);
-  }
-}
-```
+- Typed parameters and explicit return types
+- Options-object pattern when more than 2-3 parameters: `requestAssociatedFormSubmit(host, { event, internals, disabled, readonly })` (`src/utilities/form-actions.ts:5`)
+- Return `nothing` (from `lit`) for conditional rendering / absent attributes: `aria-busy=${this.loading ? 'true' : nothing}` (`src/components/button/button.ts:287`)
+- Return `void` for event handlers, `boolean` for validation/check helpers
 
 ## Module Design
 
-**Exports:**
-- Default export: component class (e.g., `export class AmButton`)
-- Named exports: type definitions (e.g., `export type ButtonVariant`)
-- Global type declaration at end of file:
+- One component class per file
+- Default-style export is the component class (`export class AmButton`); named exports for the variant/size types
+- Static styles as array combining shared style modules + component `css` literal: `static styles = [resetStyles, focusRingStyles, css\`...\`]` (`src/components/button/button.ts:56`)
+- Global type augmentation at end of every component file:
   ```typescript
   declare global {
     interface HTMLElementTagNameMap {
@@ -203,66 +107,23 @@ private handleClick(event: Event) {
     }
   }
   ```
-
-**Barrel Files:**
-- Main entry: `src/index.ts` exports all components and types organized by category
-- Core bundle: `src/index.ts` for foundational, layout, form, and feedback components
-- All bundle: `src/index.all.ts` for extended components
-
-**File Structure:**
-- One component class per file
-- Static styles defined in component file with `static styles = [...]`
-- Render method returns `TemplateResult`
+- Entry points: `src/index.ts` (core bundle), `src/index.all.ts` (full), per-component `src/components/*/index.ts` barrels
+- `sideEffects` array in `package.json` scopes tree-shaking to the shipped registration entry points
 
 ## Lit-Specific Patterns
 
-**Decorators:**
-- `@customElement('am-element-name')`: Register custom element
-- `@property({ reflect: true })`: Reflect property to attribute
-- `@property({ type: Boolean, reflect: true })`: Boolean property with reflection
-- `@state()`: Internal state, not reflected to attribute
-- `@query()`: Query for child element in shadow DOM
-- `@queryAssignedElements()`: Query assigned slot elements
+- `@customElement('am-*')` registration; `@property({ reflect: true })` for attribute-reflected public API; `@property({ type: Boolean, reflect: true })` for booleans; `@state()` for internal state
+- `attachInternals()` in constructor for form-associated components (`static formAssociated = true`)
+- Directives: `classMap()` for conditional classes, `live()` for two-way input binding, `repeat()` for keyed lists, `nothing` for conditional rendering
+- `protected updated(changed: PropertyValues)` for post-update side effects (`src/components/button/button.ts:251`)
 
-**Lifecycle:**
-- `constructor()`: Initialize form internals and attach ElementInternals
-- `protected updated(changed: PropertyValues)`: Called after property changes
-- `render()`: Return template, uses Lit's `html` template tag
+## Theming & Security Constraints
 
-**Reactive Rendering:**
-- Properties decorated with `@property()` trigger re-render on change
-- Use `live()` directive for two-way binding with form inputs
-- Use `classMap()` directive for conditional classes
-
-**Example:**
-```typescript
-@customElement('am-button')
-export class AmButton extends LitElement {
-  @property({ reflect: true })
-  variant: ButtonVariant = 'primary';
-
-  @property({ type: Boolean, reflect: true })
-  loading = false;
-
-  private _internals: ElementInternals;
-
-  constructor() {
-    super();
-    this._internals = this.attachInternals();
-  }
-
-  protected updated(changed: PropertyValues) {
-    if (changed.has('disabled') || changed.has('loading')) {
-      this.setAttribute('aria-disabled', String(this.disabled || this.loading));
-    }
-  }
-
-  render() {
-    return html`<button ...>${this.label}</button>`;
-  }
-}
-```
+- **Tokens only:** all styling references `--am-*` semantic custom properties (e.g. `var(--am-primary)`, `var(--am-space-4)`). No hardcoded hex/rgb colors — hardcoding breaks dark mode (`src/tokens/dark.css.ts` overrides).
+- **Shadow DOM encapsulation:** no global CSS; styles live in each component's `static styles`.
+- **Lit-safe templating only:** use the `html` tagged template. No `innerHTML`/`eval` in component code (the only `innerHTML` usage is in the test `fixture()` helper, not shipped code).
+- **ESM-only:** no CommonJS, no bundled Lit (peer dependency).
 
 ---
 
-*Convention analysis: 2026-08-10*
+*Convention analysis: 2026-08-23*

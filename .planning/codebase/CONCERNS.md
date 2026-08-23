@@ -1,192 +1,256 @@
 # Codebase Concerns
 
-**Analysis Date:** 2026-08-10
+**Analysis Date:** 2026-08-23
+
+Amris is a Lit 3 + Web Components library in the v1.0 → v1.1 hardening cycle. The
+public API is frozen against the v1.0 Custom Elements Manifest (CEM); most
+remaining concerns are **runtime robustness and performance**, not surface
+changes. The single open **pre-ship Critical (CR-01)** and the three named
+performance targets below are the active Phase-9 workload.
 
 ## Tech Debt
 
-**Large component files approaching maintainability limit:**
-- Issue: Components with 600+ lines are difficult to test, modify, and refactor
-- Files: `src/components/combobox/combobox.ts` (741 lines), `src/components/select/select.ts` (718 lines), `src/components/date-picker/date-picker.ts` (633 lines), `src/components/time-picker/time-picker.ts` (627 lines)
-- Impact: Increased cognitive load for contributors; difficult to isolate bugs; slow test feedback
-- Fix approach: Break into smaller sub-components or extract shared logic into utilities; consider composition patterns for complex state management
+**Report-only budget/guard scripts not yet enforcing:**
+- Issue: Multiple CI guards run in report-only mode (exit 0 by design, D-08) —
+  they surface drift but never red-build. Enforcement flip is deferred to Phase 11
+  (GATE-01/02/03).
+- Files: `scripts/assert-no-bundled-lit.mjs:130` (MEAS-04), `scripts/deep-import-purity.mjs:175` (SIZE-04),
+  `scripts/attribution-check.mjs:117,152`, `scripts/perf-diff.mjs` (report-only wall-clock band),
+  `scripts/cem-diff.mjs`
+- Impact: Bundle-size, deep-import purity, perf-count, and attribution regressions
+  can land silently until a human reads the report. Perf counts are gated;
+  wall-clock and size stay advisory this cycle.
+- Fix approach: Flip counts/size budgets to enforcing in Phase 11; keep wall-clock
+  report-only (noise band too wide to gate).
 
-**Untracked setTimeout callbacks in toast dismiss:**
-- Issue: `src/components/toast/toast.ts` line 260 has a `setTimeout(onEnd, 300)` that's not tracked or cleaned up
-- Files: `src/components/toast/toast.ts`
-- Impact: If toast is removed from DOM before 300ms, callback still executes and may manipulate detached node (though likely benign; no direct harm observed)
-- Fix approach: Track dismiss timer like the main auto-dismiss timer; add to `_clearTimer()` method
+**Virtualizer resolution via private-symbol description string (IN-02):**
+- Issue: `resolveHostVirtualizer` locates the attached `Virtualizer` by scanning
+  `Object.getOwnPropertySymbols(host)` for `sym.description === 'virtualizerRef'`.
+  A deliberate tactic to avoid a static import, but brittle against upstream change.
+- Files: `src/internal/helpers/virtualize-support.ts:143-152`
+- Impact: If `@lit-labs/virtualizer` renames that symbol, `scrollVirtualizerToIndex`
+  silently no-ops — breaking keyboard scroll-into-window in `data-grid`/`combobox`/`select`
+  with no error. Mitigated by the exact `2.1.1` pin (D-13).
+- Fix approach: Add a dev-time assertion/test that fails if the symbol lookup
+  returns `undefined` for a mounted virtualizer, so a future bump breaks loudly.
 
-**Dialog animation cleanup potential issue:**
-- Issue: `src/components/dialog/dialog.ts` `_nudge()` method (line 217-225) adds `animationend` listener with `{ once: true }` but also relies on implicit cleanup
-- Files: `src/components/dialog/dialog.ts`
-- Impact: Low risk (once listener handled correctly), but pattern is fragile if animation doesn't fire
-- Fix approach: Consider explicit cleanup or add to `disconnectedCallback`
+**Package metadata incomplete for publish:**
+- Issue: Several publish-readiness `package.json` fields still open.
+- Files: `package.json`, `TODO.md:16,18,52`
+- Impact: Missing real version pin, `license`/`repository`/`keywords` fields, and no
+  `LICENSE` file — blocks a clean GitHub Packages publish.
+- Fix approach: Complete the "Package Configuration" and "Project Hygiene" TODO items
+  before the v1.0 publish.
 
 ## Known Bugs
 
-**None explicitly documented.** Review closed 2026-04-25 fixed all P0/P1 issues noted in `fixes.md`.
+**CR-01 (OPEN, pre-ship Critical): memoized loaders cache a rejected `import()` promise:**
+- Symptoms: One transient dynamic-`import()` failure (chunk 404 after redeploy while
+  an old tab is open, offline blip, parse error) permanently bricks positioning and
+  virtualization page-wide for the whole session, with **no recovery short of full reload**.
+- Files: `src/internal/helpers/lazy-load.ts:38-40` (`loadFloating`), `:59-61` (`loadVirtualizer`)
+- Trigger: The `??=` memoization assigns only when the slot is `null`. A rejected
+  `import()` leaves the slot holding the *rejected* promise; every later
+  `loadFloating()`/`loadVirtualizer()` returns that same rejected promise forever.
+- Blast radius: All overlays (`tooltip`, `popover`, `dropdown`, `combobox`, `select`,
+  `rich-select`, `color-picker`) fail their first `computePosition`. Panels gated on
+  `onPositioned` (`popover`, `rich-select`) never reveal at all. **Prefetch-on-intent
+  widens it** — a `pointerenter` during a blip poisons the cache before the user clicks.
+- False retry claims: `combobox._ensureVirtualizer()` (`combobox.ts:806-809`) resets
+  `_virtualizerRequested` in its `.catch()` "so a later render can retry", and `select`
+  leaves `_virtualizerLoading` latched — **neither can recover**, both re-await the same
+  cached rejected promise. The comments describe behavior the code cannot deliver.
+- Fix approach: Null the cache slot on rejection so the next call re-attempts:
+  `return (floatingPromise ??= import('@floating-ui/dom').catch((err) => { floatingPromise = null; throw err; }));`.
+  Apply identically to `loadVirtualizer`. **Folded into Phase 9 (D-05)**, gated by the
+  browser regression lane. Tracked in `.planning/phases/08-bundle-size-deferral/08-REVIEW.md`.
+
+**WR-02 (advisory): inconsistent hidden-until-positioned (no-`0,0`) reveal gate:**
+- Symptoms: On a cold first open, overlays can paint an unpositioned frame at a
+  static/stale `position:fixed` location across the loader await, then jump to the
+  anchored placement. Clearest on `tooltip` (sets `visible` synchronously, then awaits
+  the dynamic import before any `computePosition`).
+- Files: `src/components/tooltip/tooltip.ts:108-110,141-145`; `src/components/dropdown/dropdown.ts:65-81,119-131`;
+  `src/components/combobox/combobox.ts:448-451,570-582`; `src/components/select/select.ts:514-518,609-620`;
+  `src/components/color-picker/color-picker.ts:161,553-562`
+- Cause: `popover` and `rich-select` gate their reveal on a `_positioned` flag set by the
+  first `computePosition`; the listed overlays reveal purely on open/visible state and do
+  not gate on positioning. Pre-deferral this was a single microtask; the dynamic import
+  stretches it to many frames on a cold chunk, making the flash user-visible.
+- Fix approach: Extend the `popover`/`rich-select` `_positioned` pattern (state flag set in
+  `onPositioned`, gate the reveal selector, reset on close). Opportunistic in Phase 9, not
+  required (D-05); at minimum apply to `tooltip`.
+
+**WR-03 (advisory): fire-and-forget `start()`/`_updatePosition()` unhandled rejections:**
+- Symptoms: On loader failure (CR-01), each becomes an unhandled promise rejection —
+  console noise in production and a likely `unhandledrejection` failure in the
+  jsdom/Vitest suite that gates v1.0.
+- Files: `src/components/popover/popover.ts:216`; `src/components/dropdown/dropdown.ts:123`;
+  `src/components/combobox/combobox.ts:573`; `src/components/select/select.ts:612`;
+  `src/components/rich-select/rich-select.ts:347`; `src/components/tooltip/tooltip.ts:144`;
+  `src/components/color-picker/color-picker.ts:322`
+- Cause: `FloatingPositionController.start()` (`floating-position.ts:118-122`) is async and
+  awaits `loadFloating()`; every host calls it fire-and-forget with no `.catch`.
+- Fix approach: Swallow-and-degrade at the call site (`void ctrl.start().catch(() => {})`)
+  or wrap the `await loadFloating()` in an internal `try/catch`. Opportunistic in Phase 9.
+
+**WR-04 (advisory): data-grid virtual focus after a single rAF may drop keyboard focus:**
+- Symptoms: Arrow/Home/End keyboard navigation to far-off rows can silently fall to
+  `<body>` when the target row hasn't mounted yet.
+- Files: `src/components/data-grid/data-grid.ts:441-455`
+- Cause: `scrollVirtualizerToIndex` then a single `requestAnimationFrame` before
+  `rowEl?.focus()`; the virtualizer mounts rows asynchronously via `ResizeObserver`, so the
+  `data-sorted-index` node isn't guaranteed to exist after one frame. Optional chaining
+  swallows the miss.
+- Fix approach: Retry until the node exists (bounded rAF poll) or use the virtualizer's
+  `visibilityChanged`/`rangeChanged` readiness before focusing.
 
 ## Security Considerations
 
-**No HTML/template injection vectors detected:**
-- Risk: Components use Lit's safe templating exclusively
-- Files: All components in `src/components/`
-- Current mitigation: No `innerHTML`, `dangerouslySetInnerHTML`, or `eval()` usage detected
-- Recommendations: Continue enforcing Lit-only patterns in code review; lint rule to block innerHTML
+**Lit-safe templating maintained — no `innerHTML`/`eval`:**
+- Risk: XSS via unsafe DOM injection.
+- Current mitigation: All rendering goes through Lit's `html` template tag; the CLAUDE.md
+  constraint forbids `innerHTML`/`eval`. No global state, property→event model.
+- Recommendations: Keep the constraint enforced in review; do not introduce
+  `unsafeHTML`/`unsafeSVG` directives without a documented, sanitized justification.
 
-**Form control value handling:**
-- Risk: Form-associated components (`input`, `select`, `combobox`, etc.) accept arbitrary string values
-- Files: `src/components/input/input.ts`, `src/components/select/select.ts`, `src/components/combobox/combobox.ts`, `src/components/date-picker/date-picker.ts`
-- Current mitigation: Values stored as strings; no XSS risk via form submission (native form encodes)
-- Recommendations: None required (standard browser behavior)
-
-**ElementInternals API dependency:**
-- Risk: Form-associated components depend on `ElementInternals`, which is NOT polyfillable
-- Files: Button, Input, Select, Combobox, DatePicker, TimePicker, ColorPicker, Slider, Switch, Checkbox, Radio, Textarea, RichSelect all use `attachInternals()`
-- Current mitigation: Browser floor enforced at Safari 16.4 (first release with ElementInternals)
-- Recommendations: Document clearly in BROWSER_SUPPORT.md (already done) that form controls silently fail to submit below floor
+**Dynamic-import specifiers must stay static bare specifiers:**
+- Risk: A computed or origin-qualified `import()` path would defeat externalization and open
+  a dynamic-code / supply-chain seam.
+- Files: `src/internal/helpers/lazy-load.ts:26-28` (documented invariant)
+- Current mitigation: Specifiers are static bare package names; the frozen vite `external`
+  snapshot + the no-bundled-Lit assertion guard it (`scripts/assert-no-bundled-lit.mjs`).
+- Recommendations: Never build a computed module path in the lazy loaders.
 
 ## Performance Bottlenecks
 
-**DataGrid render with large datasets:**
-- Problem: Renders all rows into DOM even if only subset visible
-- Files: `src/components/data-grid/data-grid.ts`
-- Cause: No virtualization; uses `repeat()` directive which is efficient but still renders all nodes
-- Improvement path: Consider implementing virtual scrolling for 1000+ row datasets; add lazy-loading example to Storybook
+These are the three named Phase-9 (RPERF-01…03) targets — already characterized, fixes
+in flight, all behavior- and surface-preserving.
 
-**Combobox filtering with large option lists:**
-- Problem: Client-side filtering on every keystroke; no debouncing for async mode
-- Files: `src/components/combobox/combobox.ts`
-- Cause: Property change triggers full re-filter; async mode fires `am-search` event on every character
-- Improvement path: Add `minChars` prop to limit search event firing (already exists but worth documenting); for client-side, no issue for <1000 options
+**Data-grid re-sort-on-every-render (RPERF-01):**
+- Problem: `_sortedRows` getter does `[...this.rows].sort(cmp * dir)` — a full clone + sort
+  of the entire dataset on **every** `render()`. Focus moves (`_focusedRowIndex`), selection
+  changes (`_internalSelected`), and any unrelated state change re-clone and re-sort even
+  when sort key/direction are unchanged.
+- Files: `src/components/data-grid/data-grid.ts:392-399` (getter); read sites at `:446` (keydown),
+  `:538` (virtual), `:618` (non-virtual)
+- Cause: Sort performed inside a getter with no memoization.
+- Improvement path (D-02): Memoize the sorted array keyed on `(rows-identity, _sortKey,
+  _sortDir)`; only an actual sort/data change recomputes. Do NOT additionally narrow the
+  non-sort render path this phase (smallest regression surface on the frozen render path).
 
-**Floating-UI updates:**
-- Problem: Each component using floating-ui (combobox, dropdown, popover, tooltip, date-picker, context-menu) sets up autoUpdate; could restart on unrelated property changes
-- Files: `src/components/combobox/combobox.ts`, `src/components/dropdown/dropdown.ts`, `src/components/popover/popover.ts`, `src/components/tooltip/tooltip.ts`, `src/components/date-picker/date-picker.ts`, `src/components/context-menu/context-menu.ts`
-- Cause: Positions computed every update if not gated
-- Improvement path: Audited and fixed 2026-04-25; continue enforcing in PR reviews that autoUpdate only starts on `open` transitions
+**Combobox filter-per-keystroke run 3×+ per keystroke (RPERF-02):**
+- Problem: `filterOptions(this._allOptions, this.value, this.remote)` runs at 5 call sites per
+  render/keystroke, and `_allOptions` re-spreads `[...this.options, ...this._slottedOptions]`
+  on every call.
+- Files: `src/components/combobox/combobox.ts:196` (ListboxNav `getOptions`), `:704` (keydown),
+  `:795` (count getter), `:893` (select-mode `_dropdownQuery`), `:938` (render);
+  `_allOptions` getter at `:532`. Pure filter in `src/internal/controllers/option-filter.ts`.
+- Cause: The filtered list is recomputed independently at each site instead of once per render.
+- Improvement path (D-01): **Memoize only — no debounce.** Compute the filtered list once,
+  memoized by `(options-identity, slotted-identity, value, remote)`, and thread the single
+  result through render + nav paths. Debouncing is rejected — it would shift the observable
+  `am-search` cadence and when the list visibly updates (behavior the frozen surface preserves).
+
+**Floating-UI `autoUpdate` reposition churn (RPERF-03):**
+- Problem: `_updatePosition` rebuilds the `[offset, flip, shift, ...hostMiddleware]` array and
+  re-runs the `resolve()` getters (`placement`, `strategy`, `offset`, `middleware`) on **every**
+  `autoUpdate` tick (scroll, resize, layout).
+- Files: `src/internal/controllers/floating-position.ts:146-166`
+- Cause: The churn is structural in the one shared controller — so it affects **all 6 overlays**
+  (combobox, select, dropdown, popover, tooltip, date-picker) at once.
+- Improvement path (D-03): Cache the static middleware slice, hoist `resolve()` calls whose
+  sources are fixed values (combobox/select/date-picker pass fixed placement/offset), and/or
+  coalesce repositions — keeping `computePosition` output identical. **Blast radius = every
+  overlay**, so the browser regression lane is the gate; the `autoUpdate` open-gating and
+  `_startToken` close-during-load guard (PERF-04 / Phase-8 invariants) must not weaken.
 
 ## Fragile Areas
 
-**Global event listener lifecycle:**
-- Files: `src/components/combobox/combobox.ts`, `src/components/dropdown/dropdown.ts`, `src/components/context-menu/context-menu.ts`, `src/components/date-picker/date-picker.ts`, `src/components/popover/popover.ts`, `src/components/tooltip/tooltip.ts`
-- Why fragile: Multiple components attach document-level click/keydown listeners on open; must clean up on close or component disconnect
-- Safe modification: Always gate listener attach/detach on `_open` state or `connectedCallback`/`disconnectedCallback`; never attach on property change
-- Test coverage: Gaps exist; no tests specifically for listener lifecycle
+**The shared `FloatingPositionController` — single chokepoint for 6 overlays:**
+- Files: `src/internal/controllers/floating-position.ts`
+- Why fragile: Every overlay routes positioning through this one controller; a churn-reduction
+  or teardown bug regresses all six simultaneously. The `_startToken` monotonic guard
+  (`:99,121-125,137`) is the only thing abandoning a close-during-load / disconnect-during-load run.
+- Safe modification: Preserve the `start()`/`stop()` open-gating and `_startToken` guard exactly.
+  Validate on the browser lane, never jsdom.
+- Test coverage: `test/browser/floating-position.test.ts`, `overlay-focus.test.ts`, and the
+  Phase-8 no-`0,0`-frame specs.
 
-**Async/dynamic option loading:**
-- Files: `src/components/combobox/combobox.ts`, `src/components/select/select.ts`, `src/components/rich-select/rich-select.ts`
-- Why fragile: Component accepts new `options` while dropdown is open; filter state may become stale; highlighted index may exceed bounds
-- Safe modification: Test with async data fetches (e.g., fetch on search, rapid option updates); ensure highlighted index is clamped
-- Test coverage: `test/components/combobox.test.ts` has basic async test; no tests for rapid option updates
+**jsdom vs browser test-lane divergence (Phase-8 lesson):**
+- Files: `test/perf/**` and jsdom unit specs vs `test/browser/**`
+- Why fragile: jsdom mocks `ResizeObserver` and positioning and cannot exercise real overlay
+  positioning or the virtualizer. In Phase 8, jsdom + per-plan worktree self-checks passed while
+  the browser lane had real cross-plan failures (recorded in MEMORY: run browser lane as a
+  regression gate for overlay/virtualizer work).
+- Safe modification: For **anything touching overlay positioning or the virtualizer**, run
+  `npm run test:browser` before merge — the jsdom suite is not a sufficient gate.
+- Test coverage: `test/browser/data-grid-virtual.test.ts`, `combobox-virtual.test.ts`,
+  `a11y.browser.test.ts`. New a11y-name/role snapshots (RPERF-04, report-only) slot in here.
 
-**Focus management in overlays:**
-- Files: `src/components/dialog/dialog.ts`, `src/components/drawer/drawer.ts`, `src/components/command-palette/command-palette.ts`, `src/components/popover/popover.ts`
-- Why fragile: `_previouslyFocused` may point to removed element; focus restoration can fail silently
-- Safe modification: Always check if previously focused element still exists in DOM before calling `.focus()`
-- Test coverage: No tests for focus restoration; only basic open/close tested
+**Cold-load specs depend on a test-only cache reset:**
+- Files: `src/internal/helpers/lazy-load.ts:82-85` (`__resetLazyLoadCachesForTest`)
+- Why fragile: Browser specs asserting the cold `repeat()` → windowed swap (D-05) require the
+  loader pending at first render. Without the reset, a prior spec sharing the page leaves the
+  promise resolved and the cold frame is never observable — an order-dependent flake, not a
+  product defect.
+- Safe modification: Call the reset in `beforeEach` for any cold-load spec.
 
-**CSS variable token availability:**
-- Files: All components
-- Why fragile: Components assume CSS tokens are defined (e.g., `var(--am-text)`, `var(--am-primary)`)
-- Safe modification: Ensure `<am-theme-provider>` or `dist/styles/tokens.css` is imported in consuming app; no fallback if missing
-- Test coverage: Storybook wrapped in theme provider; unit tests may lack this (check `test/setup.ts`)
+## Compatibility / Scaling Limits
 
-## Scaling Limits
-
-**Component count:**
-- Current capacity: 67 components
-- Limit: No hard limit; maintainability risk rises with component count
-- Scaling path: Establish component governance (tiers: core vs. addon); document feature freeze to prevent sprawl
-
-**Test file organization:**
-- Current capacity: 46 test files covering ~66 components
-- Limit: Some test grouping (e.g., `display-trivial.test.ts`, `layout-primitives.test.ts`) works; but 20 components lack dedicated test files
-- Scaling path: Require 1:1 test file per component; consolidate grouped tests with clear naming
-
-**Package bundle size:**
-- Current: Not analyzed; Lit + FloatingUI dependencies add overhead
-- Limit: ESM tree-shaking should mitigate; but `dist/amris.js` bundles all components
-- Scaling path: Monitor bundle size in CI; consider shipping smaller entry points (core, essentials, full)
+**Hard Safari 16.4 browser floor (ElementInternals not polyfillable):**
+- Current capacity: Form-associated components use the `ElementInternals` API
+  (`attachInternals()`, `setFormValue()`, `setValidity()`) for native form integration.
+- Limit: `ElementInternals` is not polyfillable, so the browser floor is fixed at Safari 16.4.
+  This is a **documented constraint, not worked around** (per CLAUDE.md; `BROWSER_SUPPORT.md`).
+- Scaling path: None intended below the floor. Graceful degradation / feature detection below
+  Safari 16.4 is scoped to Phase 10 (COMPAT-*), not this cycle. Document, do not work around.
 
 ## Dependencies at Risk
 
-**TypeScript 6.0.3:**
-- Risk: Version 6.0.3 is very recent (released ~Aug 2026); early-adoption risk of undiscovered bugs
-- Impact: Type checking failures; stricter type narrowing could break existing code
-- Migration plan: Pin to latest stable 5.x if instability observed; test upgrade in PR before landing
+**TypeScript 6.0.3 (very recent):**
+- Risk: TypeScript 6.0.3 is a bleeding-edge release; instability may surface in strict-mode builds.
+- Impact: Build breakage under `strict` / `verbatimModuleSyntax`.
+- Migration plan: Per CLAUDE.md constraint, pin to latest stable 5.x if instability appears.
 
-**Vite 8.0.0:**
-- Risk: Major version bump; build system changes could introduce subtle issues
-- Impact: SSR capabilities missing; potential changes to dev server behavior
-- Migration plan: Well-established; no known issues; continue monitoring
-
-**Lit 3.3.2 (peer dependency):**
-- Risk: Lit maintains stable API; low risk
-- Impact: Consumers must provide Lit; incompatible versions will break at runtime
-- Migration plan: Document Lit version requirement prominently in README
-
-**@floating-ui/dom 1.7.6:**
-- Risk: Floating UI API stable; minor updates safe
-- Impact: Breaking changes to positioning middleware would require component refactor
-- Migration plan: Test minor version upgrades; lock to current major version until stable
+**`@lit-labs/virtualizer` pinned to exact `2.1.1`:**
+- Risk: The virtualizer symbol-description lookup (IN-02) relies on an internal symbol that a
+  version bump could rename.
+- Impact: Silent no-op of keyboard scroll-into-window across data-grid/combobox/select.
+- Migration plan: Keep the exact pin; add a dev-time assertion before any bump (see IN-02).
 
 ## Missing Critical Features
 
-**Virtualization for data-heavy components:**
-- Problem: DataGrid, Combobox, and other list-based components don't virtualize
-- Blocks: Rendering 1000+ items efficiently
-- Workaround: Filter / paginate on server before sending to component
-
-**Form validation messages:**
-- Problem: Components don't display validation messages from `ElementInternals.validationMessage`
-- Blocks: Showing server-side validation errors (e.g., "Email already registered")
-- Workaround: External `<am-error-text>` component must be placed by consumer
-
-**Keyboard shortcut registry:**
-- Problem: `am-command-palette` hardcodes Cmd+K; no global shortcut registry
-- Blocks: Customizing shortcuts per app; managing conflicts
-- Workaround: Override via CSS (visibility: hidden) + duplicate hidden combobox
+**CI, LICENSE, CHANGELOG, and systematic a11y audit not yet in place:**
+- Problem: No CI pipeline (lint/type-check/test on PR), no LICENSE file, no CHANGELOG, no
+  CONTRIBUTING guide, and no systematic WCAG 2.1 AA / screen-reader audit.
+- Files/refs: `TODO.md:44-56` (Accessibility, Project Hygiene sections)
+- Blocks: A clean, trustworthy v1.0 publish and reproducible external contribution.
 
 ## Test Coverage Gaps
 
-**Components without dedicated test files (20):**
-- What's not tested: `app-shell`, `button-group`, `card`, `empty-state`, `error-text`, `field`, `grid`, `hint-text`, `icon`, `label`, `link-button`, `nav-bar`, `panel`, `progress-ring`, `side-nav`, `split-view`, `stack`, `stat`, `status-dot`, `surface`, `table`, `timeline`, `visually-hidden`
-- Files: No test files for listed components
-- Risk: Breaking changes in simple components (e.g., icon, divider) may go unnoticed; layout components (grid, stack, surface) lack regression tests
-- Priority: HIGH for display-only components; MEDIUM for simple layout; LOW for visual-only
+**No accessible-name/role snapshot harness yet (RPERF-04):**
+- What's not tested: Accessible name + computed role + focusability of the tuned components'
+  key nodes are not snapshot-guarded, so behavior-preservation of the tuning cannot be proven
+  against the real a11y tree.
+- Files: to land under `test/browser/**` next to `a11y.browser.test.ts` (new, report-only)
+- Risk: Perf tuning could strip a11y DOM (`aria-*`, roles, focusability) undetected.
+- Priority: High (Phase-9 requirement RPERF-04).
 
-**Form integration testing:**
-- What's not tested: Form submission with form-associated controls; validation API interaction; disabled/readonly state interaction with forms
-- Files: No comprehensive form integration tests; only unit tests for individual components
-- Risk: Form-associated components may fail to submit or participate in validation; edge cases with multiple controls
-- Priority: HIGH — form integration is load-bearing feature
+**Systematic WCAG audit and screen-reader testing outstanding:**
+- What's not tested: axe-core smoke tests exist (35 tests) but no systematic WCAG 2.1 AA audit,
+  no NVDA/VoiceOver testing, no per-component keyboard-pattern documentation, and
+  `prefers-reduced-motion` not verified across all animated components.
+- Files: `TODO.md:45-49`
+- Risk: Accessibility regressions or gaps ship unnoticed despite the smoke coverage.
+- Priority: Medium (post-v1.0 hardening).
 
-**Async/dynamic content:**
-- What's not tested: Rapid option updates in combobox/select while dropdown open; async search with cancelled requests; streaming data into data-grid
-- Files: Minimal async tests in `test/components/combobox.test.ts`; no cancellation tests
-- Risk: Race conditions; memory leaks from pending requests
-- Priority: MEDIUM
-
-**Focus trapping in overlays:**
-- What's not tested: Focus restoration after modal close; focus trap in nested dialogs; Escape key behavior
-- Files: Basic open/close tests in dialog/drawer; no focus-specific tests
-- Risk: Focus escapes dialog; users stuck in nested dialog; Tab cycling broken
-- Priority: MEDIUM
-
-**Accessibility (a11y):**
-- What's not tested: Only `test/a11y.test.ts` runs axe-core scans; coverage limited to rendered components in isolation
-- Files: `test/a11y.test.ts`
-- Risk: Contextual a11y issues (e.g., dialog as toast alternative); aria-live updates; keyboard nav edge cases
-- Priority: MEDIUM — axe catches low-hanging fruit; but no manual a11y walkthroughs
-
-**Browser-specific rendering:**
-- What's not tested: Components tested only in jsdom (simulated DOM); no real browser tests
-- Files: `vitest.config.ts` uses `environment: 'jsdom'`
-- Risk: Platform APIs may differ (e.g., dialog behavior); CSS features fail silently
-- Workaround: Use Storybook + manual cross-browser testing; no automated CI validation
-- Priority: LOW — covered by manual testing documented in BROWSER_SUPPORT.md
+**No visual regression tests:**
+- What's not tested: No Playwright screenshot / Chromatic visual diffs.
+- Files: `TODO.md:56`
+- Risk: Theming/layout regressions (esp. dark-mode token changes) land unnoticed.
+- Priority: Low–Medium.
 
 ---
 
-*Concerns audit: 2026-08-10*
+*Concerns audit: 2026-08-23*
