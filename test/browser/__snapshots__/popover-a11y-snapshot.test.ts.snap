@@ -1,0 +1,5 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`am-popover a11y snapshot (real Chromium, report-only) > preserves the trigger/panel/arrow DOM + trigger focusability when opened 1`] = `
+- button "Trigger"
+`;

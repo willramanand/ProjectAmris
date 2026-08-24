@@ -2,6 +2,7 @@ import { afterAll, describe, expect, it } from 'vitest';
 
 import '../../src/components/popover/popover';
 import { AmPopover } from '../../src/components/popover/popover';
+import { FloatingPositionController } from '../../src/internal/controllers/floating-position';
 import { loadFloating } from '../../src/internal/helpers/lazy-load';
 import { fixture, shadowQuery, waitForUpdate } from '../helpers';
 import {
@@ -9,6 +10,7 @@ import {
   assertStableCounts,
   countComputePosition,
   countLifecycle,
+  countMethod,
   countRepositions,
   domNodeCount,
   proveThrottleLive,
@@ -96,6 +98,11 @@ describe('perf: overlay = am-popover (open + reposition)', () => {
     async function runOnce(): Promise<{ counts: Record<string, number>; wall: number }> {
       life.reset();
       const cpos = countComputePosition();
+      // middlewareBuilds (F-2): counts _buildMiddleware invocations — the
+      // static-base-slice assembly that now runs once per config-change (the
+      // resolved offset is constant across an open cycle) instead of once per
+      // autoUpdate tick. computePosition/repositions are unchanged by design.
+      const mwb = countMethod(FloatingPositionController, '_buildMiddleware');
       const t0 = performance.now();
 
       const host = await fixture<PopoverHost>(MARKUP);
@@ -132,11 +139,13 @@ describe('perf: overlay = am-popover (open + reposition)', () => {
         ...life.counts,
         computePosition: computePositionCount,
         repositions: repositionCount,
+        middlewareBuilds: mwb.count,
         nodes: domNodeCount(host),
       };
 
       repos.stop();
       cpos.restore();
+      mwb.restore();
       host.remove();
       return { counts, wall: elapsed };
     }
@@ -158,6 +167,20 @@ describe('perf: overlay = am-popover (open + reposition)', () => {
     expect(counts.computePosition).toBeGreaterThan(0);
     expect(counts.repositions).toBeGreaterThanOrEqual(1);
     expect(counts.computePosition).toBeGreaterThanOrEqual(counts.repositions);
+
+    // F-2 — computePosition/repositions are UNCHANGED by the churn edit (the
+    // autoUpdate tick count does not drop). These match the committed pre-edit
+    // baseline (api/perf.baseline.json: computePosition 4, repositions 2).
+    expect(counts.computePosition).toBe(4);
+    expect(counts.repositions).toBe(2);
+
+    // The middleware-build count is the count EVIDENCE for RPERF-03: the static
+    // base slice is assembled once per config-change (resolved offset constant
+    // across the cycle), NOT once per autoUpdate tick — so it drops strictly
+    // below the computePosition tick count. Deterministic across all 5 repeats
+    // (assertStableCounts above already proved it byte-identical).
+    expect(counts.middlewareBuilds).toBeGreaterThanOrEqual(1);
+    expect(counts.middlewareBuilds).toBeLessThan(counts.computePosition);
 
     const metrics: ScenarioMetrics = {
       counts,
