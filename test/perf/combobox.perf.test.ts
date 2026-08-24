@@ -7,6 +7,7 @@ import {
   THROTTLE_PROFILE,
   assertStableCounts,
   countLifecycle,
+  countMethod,
   domNodeCount,
   proveThrottleLive,
   raf,
@@ -69,12 +70,18 @@ describe('perf: combobox (filter-per-keystroke)', () => {
     expect(throttled).toBeGreaterThan(unthrottled);
 
     const life = countLifecycle(AmCombobox);
+    // RPERF-02: count the memoized filter compute. `_computeFilteredOptions` runs
+    // once per (options-identity, slotted-identity, value, remote) change — one
+    // cache miss per keystroke — instead of the 4–5× per keystroke the former
+    // independent `filterOptions` call sites recomputed.
+    const filt = countMethod(AmCombobox, '_computeFilteredOptions');
     const perRepeat: Record<string, number>[] = [];
     const wall: number[] = [];
 
     // One measured iteration: mount, focus-open, type QUERY char by char.
     async function runOnce(): Promise<{ counts: Record<string, number>; wall: number }> {
       life.reset();
+      filt.reset();
       const t0 = performance.now();
 
       const el = await makeCombobox();
@@ -82,7 +89,7 @@ describe('perf: combobox (filter-per-keystroke)', () => {
       await raf();
 
       const elapsed = performance.now() - t0;
-      const counts = { ...life.counts, nodes: domNodeCount(el) };
+      const counts = { ...life.counts, nodes: domNodeCount(el), filterCalls: filt.count };
       el.remove();
       return { counts, wall: elapsed };
     }
@@ -98,11 +105,24 @@ describe('perf: combobox (filter-per-keystroke)', () => {
       }
     } finally {
       life.restore();
+      filt.restore();
     }
 
     const counts = assertStableCounts(perRepeat);
     // Filter-per-keystroke: one host update cycle per typed character (at minimum).
     expect(counts.update).toBeGreaterThanOrEqual(QUERY.length);
+
+    // RPERF-02 — the two-level identity memo collapses the former 4–5×/keystroke
+    // recompute to exactly one `_computeFilteredOptions` per DISTINCT
+    // (options-identity, value) state (D-01, memoize-only). For this scenario that
+    // is QUERY.length keystroke computes (one cache miss per typed character) plus
+    // the two mount states that carry distinct `_allOptions` identities: the empty
+    // default (`options=[]`) render and the assigned `options=OPTIONS` render.
+    // Untuned this counter reads 12; the memo drops it to 10, deterministic across
+    // all 5 repeats (assertStableCounts above), while update/updated/render/nodes
+    // stay identical — proof the memo changed no observable render structure.
+    const TUNED_FILTER_CALLS = QUERY.length + 2;
+    expect(counts.filterCalls).toBe(TUNED_FILTER_CALLS);
 
     const metrics: ScenarioMetrics = {
       counts,
