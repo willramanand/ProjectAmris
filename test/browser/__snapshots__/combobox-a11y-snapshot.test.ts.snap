@@ -1,0 +1,5 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`combobox a11y name/role snapshot (real Chromium, report-only) > open combobox: role=combobox + accessible-name tree + in-range aria-activedescendant 1`] = `
+- combobox "Pick" [expanded]
+`;

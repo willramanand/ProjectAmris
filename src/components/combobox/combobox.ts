@@ -193,7 +193,7 @@ export class AmCombobox extends LitElement {
    * fallback (form submit) and option selection stay host-owned via callbacks.
    */
   private _listboxNav = new ListboxNavController(this, {
-    getOptions: () => filterOptions(this._allOptions, this.value, this.remote),
+    getOptions: () => this._filteredOptions,
     getIndex: () => this._highlightedIndex,
     // Route every highlight move through the host so the target option is
     // scrolled into the virtualization window BEFORE the re-render surfaces it
@@ -528,9 +528,61 @@ export class AmCombobox extends LitElement {
     `,
   ];
 
+  /**
+   * Level-1 identity cache for the merged option list (RPERF-02). Re-spreads
+   * `[...options, ...slotted]` only when either source array's identity changes;
+   * mirrors Lit's own reference-based `@property`/`@state` dirty-check, so it can
+   * introduce no stale class Lit itself would not already have.
+   */
+  private _allOptionsCache: { options: string[]; slotted: string[]; result: string[] } | null = null;
+
   /** Merged options from property + slotted am-option elements. */
   private get _allOptions(): string[] {
-    return [...this.options, ...this._slottedOptions];
+    const cache = this._allOptionsCache;
+    if (cache && cache.options === this.options && cache.slotted === this._slottedOptions) {
+      return cache.result;
+    }
+    const result = [...this.options, ...this._slottedOptions];
+    this._allOptionsCache = { options: this.options, slotted: this._slottedOptions, result };
+    return result;
+  }
+
+  /**
+   * Level-2 identity cache for the TEXT-mode filtered list, keyed on
+   * (cached `_allOptions` identity, `value`, `remote`). DISTINCT from the
+   * select-mode cache (keyed on `_dropdownQuery`) — the two modes never
+   * cross-contaminate (D-01).
+   */
+  private _filteredCache: { all: string[]; value: string; remote: boolean; result: string[] } | null = null;
+
+  /**
+   * Compute the TEXT-mode filtered option list. Nameable + prototype-wrappable so
+   * the perf harness can count filter invocations (`filterCalls`, RPERF-02) — the
+   * {@link _filteredOptions} memo collapses the former five recompute sites to one
+   * compute per (options-identity, slotted-identity, value, remote) change. Wraps
+   * the pure {@link filterOptions} with its semantics unchanged (D-01: memoize
+   * only — never debounce, never shift when the list visibly updates).
+   */
+  private _computeFilteredOptions(): string[] {
+    return filterOptions(this._allOptions, this.value, this.remote);
+  }
+
+  /**
+   * The TEXT-mode filtered list, memoized by (allOptions identity, value, remote).
+   * The single read path threaded through render + nav + count sites so they
+   * never recompute independently. The cache miss fires on the SAME keystroke that
+   * changed `value`, so WHEN the list visibly updates is byte-identical to the
+   * un-memoized path — pure dedupe, no debounce (D-01).
+   */
+  private get _filteredOptions(): string[] {
+    const all = this._allOptions;
+    const cache = this._filteredCache;
+    if (cache && cache.all === all && cache.value === this.value && cache.remote === this.remote) {
+      return cache.result;
+    }
+    const result = this._computeFilteredOptions();
+    this._filteredCache = { all, value: this.value, remote: this.remote, result };
+    return result;
   }
 
   private _handleOptionsSlotChange(e: Event) {
@@ -701,7 +753,7 @@ export class AmCombobox extends LitElement {
     // must stay untouched to preserve FIX-02's no-re-clamp-on-replace). Every
     // jump routes through _setHighlighted so the target scrolls into the window
     // before aria-activedescendant points at it.
-    const filtered = filterOptions(this._allOptions, this.value, this.remote);
+    const filtered = this._filteredOptions;
     if (this._handleExtendedNav(e, filtered)) return;
     this._listboxNav.handleKeydown(e);
   }
@@ -792,7 +844,7 @@ export class AmCombobox extends LitElement {
   private _openOptionCount(): number {
     return this.searchInTrigger
       ? this._selectFilteredOptions.length
-      : filterOptions(this._allOptions, this.value, this.remote).length;
+      : this._filteredOptions.length;
   }
 
   private _ensureVirtualizer(): void {
@@ -887,10 +939,24 @@ export class AmCombobox extends LitElement {
     }
   }
 
+  /**
+   * Level-2 identity cache for the SELECT-mode filtered list — a DISTINCT slot
+   * from the text-mode {@link _filteredCache}, keyed on `_dropdownQuery` (never
+   * `value`). The two mode keys must not collapse (D-01).
+   */
+  private _selectFilteredCache: { all: string[]; query: string; result: string[] } | null = null;
+
   private get _selectFilteredOptions(): string[] {
     // Select-mode search is always client-side (never remote); an empty query
     // matches everything, preserving the prior "return all when blank" behavior.
-    return filterOptions(this._allOptions, this._dropdownQuery, false);
+    const all = this._allOptions;
+    const cache = this._selectFilteredCache;
+    if (cache && cache.all === all && cache.query === this._dropdownQuery) {
+      return cache.result;
+    }
+    const result = filterOptions(all, this._dropdownQuery, false);
+    this._selectFilteredCache = { all, query: this._dropdownQuery, result };
+    return result;
   }
 
   private _toggleSelect() {
@@ -935,7 +1001,7 @@ export class AmCombobox extends LitElement {
     const hasLabel = !!this.label;
     const floated = hasLabel && this._floated;
     // In remote mode, show all options as-is (server already filtered them)
-    const filteredOptions = filterOptions(this._allOptions, this.value, this.remote);
+    const filteredOptions = this._filteredOptions;
 
     const wrapperClasses = [
       'wrapper',
