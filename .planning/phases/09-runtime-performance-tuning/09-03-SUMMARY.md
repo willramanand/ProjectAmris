@@ -165,6 +165,13 @@ None - no external service configuration required.
 - CR-01 is retired — the pre-ship Critical is closed with a browser-proven retry.
 - The popover a11y `.snap` is committed; future overlay edits must keep it byte-identical (report-only until the Phase-11 enforcing flip).
 
+## Self-Check: PASSED
+
+- All 6 created/modified files present on disk (floating-position.ts, lazy-load.ts, overlay.perf.test.ts, lazy-load-retry.test.ts, popover-a11y-snapshot.test.ts + .snap).
+- All task commits present: ff65150, 286bfcc, 98c5965, 1dd9b37, d07b26d (+ docs 92d6b7d).
+- Verifications green: `npm run test:browser` 19 files/97 tests; `overlay.perf.test.ts` (middlewareBuilds 1, cpos 4, repos 2); `lazy-load-retry.test.ts` 3/3; `popover-a11y-snapshot.test.ts` 2/2; `tsc --noEmit` clean.
+- No stubs introduced.
+
 ---
 *Phase: 09-runtime-performance-tuning*
 *Completed: 2026-08-23*
