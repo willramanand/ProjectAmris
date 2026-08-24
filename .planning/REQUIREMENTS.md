@@ -27,10 +27,10 @@ Requirements for the v1.1 hardening milestone. Each maps to a roadmap phase. Gro
 
 ### Runtime Performance
 
-- [ ] **RPERF-01**: Data-grid re-render-on-sort is narrowed behavior-preservingly and re-measured against the post-deferral baseline (count + wall-clock improvement).
-- [ ] **RPERF-02**: Combobox filter-per-keystroke work is reduced behavior-preservingly and re-measured.
-- [ ] **RPERF-03**: Overlay reposition churn is reduced behavior-preservingly and re-measured.
-- [ ] **RPERF-04**: Accessible-name/role snapshots guard each tuned component so runtime-perf work provably does not strip a11y DOM (`aria-*`, roles, focusability).
+- [x] **RPERF-01**: Data-grid re-render-on-sort is narrowed behavior-preservingly and re-measured against the post-deferral baseline (count + wall-clock improvement).
+- [x] **RPERF-02**: Combobox filter-per-keystroke work is reduced behavior-preservingly and re-measured.
+- [x] **RPERF-03**: Overlay reposition churn is reduced behavior-preservingly and re-measured.
+- [x] **RPERF-04**: Accessible-name/role snapshots guard each tuned component so runtime-perf work provably does not strip a11y DOM (`aria-*`, roles, focusability).
 
 ### Compatibility & Graceful Degradation
 
@@ -104,10 +104,10 @@ Which phases cover which requirements. Populated during roadmap creation.
 | SIZE-03 | Phase 8 | Complete |
 | SIZE-04 | Phase 8 | Complete |
 | SIZE-05 | Phase 8 | Complete |
-| RPERF-01 | Phase 9 | Pending |
-| RPERF-02 | Phase 9 | Pending |
-| RPERF-03 | Phase 9 | Pending |
-| RPERF-04 | Phase 9 | Pending |
+| RPERF-01 | Phase 9 | Complete |
+| RPERF-02 | Phase 9 | Complete |
+| RPERF-03 | Phase 9 | Complete |
+| RPERF-04 | Phase 9 | Complete |
 | COMPAT-01 | Phase 10 | Pending |
 | COMPAT-02 | Phase 10 | Pending |
 | COMPAT-03 | Phase 10 | Pending |

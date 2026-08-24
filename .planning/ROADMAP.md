@@ -19,7 +19,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 7: Measurement, Baselines & Budgets** - Reproducible throttled size + runtime-perf harness, committed baselines, and a data-chosen low-end target profile — the universal prerequisite for every later cut and budget (completed 2026-08-22)
 - [x] **Phase 8: Bundle-Size Deferral** - Defer the real shipped heavy deps (`@floating-ui/dom`, `@lit-labs/virtualizer`) behind memoized dynamic imports, behavior-preserving, with the byte win now visible (completed 2026-08-22)
-- [ ] **Phase 9: Runtime-Performance Tuning** - Cut re-render/reposition churn on the heaviest components against the post-deferral baseline, with a11y DOM provably intact
+- [x] **Phase 9: Runtime-Performance Tuning** - Cut re-render/reposition churn on the heaviest components against the post-deferral baseline, with a11y DOM provably intact (completed 2026-08-23)
 - [ ] **Phase 10: Graceful Degradation & Compatibility Matrix** - Below-floor browsers degrade instead of silently failing; widened WebKit/Firefox/Chromium lane validates it against a documented true floor
 - [ ] **Phase 11: Gate Enforcement & Cost Publication** - Flip size + runtime-count budgets to enforcing (wall-clock stays report-only) and publish per-component cost cards
 
@@ -155,6 +155,6 @@ Phase 10 (graceful degradation) depends only on the Phase 7 harness/browser lane
 |-------|----------------|--------|-----------|
 | 7. Measurement, Baselines & Budgets | 7/7 | Complete    | 2026-08-22 |
 | 8. Bundle-Size Deferral | 7/7 | Complete    | 2026-08-22 |
-| 9. Runtime-Performance Tuning | 4/4 | In Progress|  |
+| 9. Runtime-Performance Tuning | 4/4 | Complete    | 2026-08-23 |
 | 10. Graceful Degradation & Compatibility Matrix | 0/TBD | Not started | - |
 | 11. Gate Enforcement & Cost Publication | 0/TBD | Not started | - |
