@@ -21,7 +21,7 @@
       "updated": 11,
       "render": 11,
       "nodes": 20,
-      "filterCalls": 10
+      "filterCalls": 12
     },
     "wallClock": {
       "median": 88.20000004768372,
@@ -38,7 +38,7 @@
       "updated": 5,
       "render": 5,
       "nodes": 250,
-      "sortComputes": 1
+      "sortComputes": 3
     },
     "wallClock": {
       "median": 102.60000002384186,
@@ -56,7 +56,7 @@
       "render": 7,
       "computePosition": 4,
       "repositions": 2,
-      "middlewareBuilds": 1,
+      "middlewareBuilds": 4,
       "nodes": 5
     },
     "wallClock": {
