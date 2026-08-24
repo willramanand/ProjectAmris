@@ -31,12 +31,25 @@
 let floatingPromise: Promise<typeof import('@floating-ui/dom')> | null = null;
 
 /**
+ * Indirection over the raw `import()` so a browser cold-load spec can inject a
+ * one-shot REJECTING importer to prove the null-on-reject retry (CR-01) without
+ * a real chunk 404 — vitest browser-mode `vi.mock` cannot simulate a rejected
+ * dynamic import (its factory is evaluated once at setup and cannot reject
+ * per-call). The DEFAULT is the unchanged static bare package specifier, so
+ * externalization + supply chain (T-09-04) are unaffected: no computed or
+ * origin-qualified path is ever built. @internal — never re-exported from a
+ * barrel; tree-shaken from consumer bundles.
+ */
+let floatingImporter: () => Promise<typeof import('@floating-ui/dom')> = () =>
+  import('@floating-ui/dom');
+
+/**
  * Load `@floating-ui/dom` (`computePosition`/`autoUpdate`/`flip`/`shift`/`offset`
  * plus the `size`/`arrow` middleware factories), memoized. Awaited by
  * {@link FloatingPositionController} before the first `computePosition`.
  */
 export function loadFloating(): Promise<typeof import('@floating-ui/dom')> {
-  return (floatingPromise ??= import('@floating-ui/dom'));
+  return (floatingPromise ??= floatingImporter());
 }
 
 /**
@@ -50,6 +63,11 @@ export function prefetchFloating(): void {
 
 let virtualizerPromise: Promise<typeof import('@lit-labs/virtualizer/virtualize.js')> | null = null;
 
+/** Test-only rejecting-importer seam for the virtualizer loader (see
+ * {@link floatingImporter}). Defaults to the unchanged static bare specifier. */
+let virtualizerImporter: () => Promise<typeof import('@lit-labs/virtualizer/virtualize.js')> = () =>
+  import('@lit-labs/virtualizer/virtualize.js');
+
 /**
  * Load the `@lit-labs/virtualizer` `virtualize()` directive module, memoized.
  * `virtualize()` runs inside `render()` and cannot be `await`ed, so callers
@@ -57,7 +75,7 @@ let virtualizerPromise: Promise<typeof import('@lit-labs/virtualizer/virtualize.
  * resolves (D-05).
  */
 export function loadVirtualizer(): Promise<typeof import('@lit-labs/virtualizer/virtualize.js')> {
-  return (virtualizerPromise ??= import('@lit-labs/virtualizer/virtualize.js'));
+  return (virtualizerPromise ??= virtualizerImporter());
 }
 
 /**
@@ -82,4 +100,30 @@ export function prefetchVirtualizer(): void {
 export function __resetLazyLoadCachesForTest(): void {
   floatingPromise = null;
   virtualizerPromise = null;
+}
+
+/**
+ * Test-only: override the dynamic-import functions so a browser cold-load spec
+ * can force a rejected first `import()` (a transient chunk failure) and prove
+ * the null-on-reject retry (CR-01) recovers on the next call. Only the provided
+ * overrides are applied. References no package specifier itself, is not
+ * re-exported from any barrel, and is tree-shaken from consumer bundles.
+ * @internal
+ */
+export function __setLazyLoadImportersForTest(overrides: {
+  floating?: () => Promise<typeof import('@floating-ui/dom')>;
+  virtualizer?: () => Promise<typeof import('@lit-labs/virtualizer/virtualize.js')>;
+}): void {
+  if (overrides.floating) floatingImporter = overrides.floating;
+  if (overrides.virtualizer) virtualizerImporter = overrides.virtualizer;
+}
+
+/**
+ * Test-only: restore the default static bare-specifier importers after a spec
+ * that swapped in a rejecting importer via {@link __setLazyLoadImportersForTest}.
+ * @internal
+ */
+export function __resetLazyLoadImportersForTest(): void {
+  floatingImporter = () => import('@floating-ui/dom');
+  virtualizerImporter = () => import('@lit-labs/virtualizer/virtualize.js');
 }
