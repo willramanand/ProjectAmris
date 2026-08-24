@@ -49,7 +49,14 @@ let floatingImporter: () => Promise<typeof import('@floating-ui/dom')> = () =>
  * {@link FloatingPositionController} before the first `computePosition`.
  */
 export function loadFloating(): Promise<typeof import('@floating-ui/dom')> {
-  return (floatingPromise ??= floatingImporter());
+  return (floatingPromise ??= floatingImporter().catch((err) => {
+    // CR-01 (D-05): a rejected import() must NOT stay cached, or one transient
+    // chunk failure permanently bricks positioning page-wide. Null the slot so
+    // the next call re-imports and can succeed; rethrow so this caller still sees
+    // the failure.
+    floatingPromise = null;
+    throw err;
+  }));
 }
 
 /**
@@ -75,7 +82,13 @@ let virtualizerImporter: () => Promise<typeof import('@lit-labs/virtualizer/virt
  * resolves (D-05).
  */
 export function loadVirtualizer(): Promise<typeof import('@lit-labs/virtualizer/virtualize.js')> {
-  return (virtualizerPromise ??= virtualizerImporter());
+  return (virtualizerPromise ??= virtualizerImporter().catch((err) => {
+    // CR-01 (D-05): mirror loadFloating — null the slot on reject so the
+    // combobox/select `_ensureVirtualizer` retry guards actually recover instead
+    // of re-awaiting a permanently poisoned promise.
+    virtualizerPromise = null;
+    throw err;
+  }));
 }
 
 /**
