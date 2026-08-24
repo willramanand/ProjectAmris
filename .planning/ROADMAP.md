@@ -101,7 +101,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Overlay reposition churn is reduced behavior-preservingly and re-measured as improved. (RPERF-03)
   4. Accessible-name/role snapshots guard each tuned component, proving the tuning provably does not strip a11y DOM (`aria-*`, roles, focusability). (RPERF-04)
 
-**Plans**: 3/4 plans executed (waves 1-3)
+**Plans**: 4/4 plans executed (waves 1-3)
 
 **Wave 1** *(tracer — measurement spine proven end-to-end before expansion)*
 
@@ -114,7 +114,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 **Wave 3** *(verification capstone — depends on all Wave-2 tunings)*
 
-- [ ] 09-04-PLAN.md — regenerate committed perf baseline to tuned state + full-suite/size regression gate (RPERF-01/02/03/04, wave 3)
+- [x] 09-04-PLAN.md — regenerate committed perf baseline to tuned state + full-suite/size regression gate (RPERF-01/02/03/04, wave 3)
 
 ### Phase 10: Graceful Degradation & Compatibility Matrix
 
@@ -155,6 +155,6 @@ Phase 10 (graceful degradation) depends only on the Phase 7 harness/browser lane
 |-------|----------------|--------|-----------|
 | 7. Measurement, Baselines & Budgets | 7/7 | Complete    | 2026-08-22 |
 | 8. Bundle-Size Deferral | 7/7 | Complete    | 2026-08-22 |
-| 9. Runtime-Performance Tuning | 3/4 | In Progress|  |
+| 9. Runtime-Performance Tuning | 4/4 | In Progress|  |
 | 10. Graceful Degradation & Compatibility Matrix | 0/TBD | Not started | - |
 | 11. Gate Enforcement & Cost Publication | 0/TBD | Not started | - |
