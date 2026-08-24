@@ -98,6 +98,19 @@ export class FloatingPositionController implements ReactiveController {
   // of arming a dangling autoUpdate loop after the overlay already closed.
   private _startToken = 0;
 
+  // Cached static base middleware slice [offset, flip, shift] (RPERF-03, D-03).
+  // floating-ui middleware are stateless config objects reusable across
+  // computePosition calls (A1, browser-proven), so rebuilding `flip()` /
+  // `shift({padding:8})` / `offset(n)` on every autoUpdate tick is pure churn.
+  // The slice is rebuilt via _buildMiddleware ONLY when the resolved offset
+  // changes (or on the first tick) — once per config-change, not once per tick.
+  // Getter-backed options (placement/offset/host middleware) are still
+  // re-resolved every tick, so a live getter that returns a new value is
+  // reflected immediately (never frozen); only the base-slice object
+  // construction is memoized.
+  private _baseSlice: Middleware[] | null = null;
+  private _cachedOffset: number | null = null;
+
   constructor(host: ReactiveControllerHost & HTMLElement, opts: FloatingPositionOptions) {
     this.opts = opts;
     host.addController(this);
@@ -143,25 +156,63 @@ export class FloatingPositionController implements ReactiveController {
     this.stop();
   }
 
+  /**
+   * Assemble the static base middleware slice `[offset, flip, shift]` for a
+   * resolved offset value. `flip()` and `shift({padding:8})` carry no host
+   * inputs; `offset(n)` depends only on the resolved offset. The result is
+   * cached by {@link _updatePosition} and reused across autoUpdate ticks while
+   * the resolved offset is unchanged, so this runs once per config-change rather
+   * than once per tick (RPERF-03). The final middleware array order
+   * `[offset, flip, shift, ...hostMiddleware]` is preserved exactly by the
+   * caller, so `computePosition` input — and therefore output — is byte-identical.
+   */
+  private _buildMiddleware(
+    mod: typeof import('@floating-ui/dom'),
+    offsetValue: number,
+  ): Middleware[] {
+    return [mod.offset(offsetValue), mod.flip(), mod.shift({ padding: 8 })];
+  }
+
   private async _updatePosition(
     mod: typeof import('@floating-ui/dom'),
     reference: HTMLElement,
     floating: HTMLElement,
   ): Promise<void> {
+    // Getter-backed options are RE-RESOLVED every tick (never cached) so a live
+    // popover/tooltip/dropdown placement/offset is always current (D-03); fixed
+    // values resolve to themselves at negligible cost.
+    const placement = resolve(this.opts.placement) ?? 'bottom-start';
     const strategy = resolve(this.opts.strategy);
+    const offsetValue = resolve(this.opts.offset) ?? 4;
+
+    // Rebuild the cached [offset, flip, shift] base slice only when the resolved
+    // offset changes (or on the first tick). This is the per-tick churn removed
+    // by RPERF-03; the autoUpdate tick count (and thus computePosition) is
+    // unchanged by design (F-2). A getter that returns a NEW offset between ticks
+    // triggers a rebuild, so nothing is frozen stale.
+    if (this._baseSlice === null || offsetValue !== this._cachedOffset) {
+      this._baseSlice = this._buildMiddleware(mod, offsetValue);
+      this._cachedOffset = offsetValue;
+    }
+
+    // The host tail is rebuilt every tick — getter middleware (e.g. popover's
+    // `arrow`, which reads a live `@query` node) must never be cached or a
+    // toggled-off arrow would persist (surface-observable). Array order
+    // [offset, flip, shift, ...host] is preserved exactly.
     const mw = this.opts.middleware;
     const hostMiddleware = typeof mw === 'function' ? mw(mod) : (mw ?? []);
-    const { x, y, placement, middlewareData } = await mod.computePosition(reference, floating, {
-      placement: resolve(this.opts.placement) ?? 'bottom-start',
+
+    const {
+      x,
+      y,
+      placement: resolvedPlacement,
+      middlewareData,
+    } = await mod.computePosition(reference, floating, {
+      placement,
       ...(strategy ? { strategy } : {}),
-      middleware: [
-        mod.offset(resolve(this.opts.offset) ?? 4),
-        mod.flip(),
-        mod.shift({ padding: 8 }),
-        ...hostMiddleware,
-      ],
+      middleware: [...this._baseSlice, ...hostMiddleware],
     });
     Object.assign(floating.style, { left: `${x}px`, top: `${y}px` });
-    this.opts.onPositioned?.({ x, y, placement, middlewareData });
+    this.opts.onPositioned?.({ x, y, placement: resolvedPlacement, middlewareData });
   }
 }
