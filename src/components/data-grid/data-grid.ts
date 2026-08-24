@@ -157,6 +157,12 @@ export class AmDataGrid extends LitElement {
           if (!this.isConnected) return;
           this._virtualize = m.virtualize;
           this.requestUpdate();
+        }).catch(() => {
+          // WR-01: opportunistic warm-up only. A cold-chunk load failure must
+          // not surface as an unhandled rejection — swallow it and stay on the
+          // non-virtualized table path (still fully functional). lazy-load nulls
+          // its cache on reject (D-05), so a later real virtualized render can
+          // retry the import cleanly.
         });
       });
     });
@@ -391,14 +397,20 @@ export class AmDataGrid extends LitElement {
 
   /**
    * Identity-keyed memo for the sorted-rows compute (RPERF-01, D-02). Keyed on
-   * the SOURCE identities `(this.rows, this._sortKey, this._sortDir)` — the same
-   * reference dirty-check Lit's own `@property`/`@state` uses, so it mirrors the
-   * component's existing change semantics and cannot introduce a stale-render
-   * class Lit wouldn't already have. Revert = drop this field + inline
-   * `_computeSortedRows` back into the getter.
+   * EVERY source `_computeSortedRows` reads: `(this.rows, this.columns,
+   * this._sortKey, this._sortDir)` — the same reference dirty-check Lit's own
+   * `@property`/`@state` uses, so it mirrors the component's existing change
+   * semantics and cannot introduce a stale-render class Lit wouldn't already
+   * have. `columns` is load-bearing in the key because the comparator resolves
+   * off the sorted column's `type`/`compare`; a `columns` identity swap that
+   * changes the comparator (while rows/key/dir stay identical) MUST recompute,
+   * or the memo would serve a stale sort order Lit's own dirty-check would not
+   * (CR-01). Revert = drop this field + inline `_computeSortedRows` back into
+   * the getter.
    */
   private _sortCache: {
     rows: Record<string, unknown>[];
+    cols: DataGridColumn[];
     key: string;
     dir: SortDirection;
     result: Record<string, unknown>[];
@@ -412,13 +424,20 @@ export class AmDataGrid extends LitElement {
     if (
       cache &&
       cache.rows === this.rows &&
+      cache.cols === this.columns &&
       cache.key === this._sortKey &&
       cache.dir === this._sortDir
     ) {
       return cache.result;
     }
     const result = this._computeSortedRows();
-    this._sortCache = { rows: this.rows, key: this._sortKey, dir: this._sortDir, result };
+    this._sortCache = {
+      rows: this.rows,
+      cols: this.columns,
+      key: this._sortKey,
+      dir: this._sortDir,
+      result,
+    };
     return result;
   }
 

@@ -79,6 +79,29 @@ describe('am-data-grid', () => {
     expect(ages).toEqual([25, 30, 40]);
   });
 
+  it('CR-01: recomputes sort when a columns swap changes the comparator (no stale memo)', async () => {
+    const el = await makeGrid();
+    const headers = el.shadowRoot?.querySelectorAll('th[role="columnheader"]') as NodeListOf<HTMLElement>;
+
+    // Sort by name asc with the string comparator → Alice, Bob, Charlie.
+    await click(headers[0], el);
+    expect(bodyRows(el).map((r) => rowText(r)[0])).toEqual(['Alice', 'Bob', 'Charlie']);
+
+    // Swap `columns` (new identity) so 'name' now resolves the NUMERIC
+    // comparator, while rows, _sortKey ('name') and _sortDir ('asc') stay
+    // identical. Number('Charlie') etc. are NaN→0, so every name compares
+    // equal and the stable sort must return the original insertion order —
+    // NOT the cached alphabetical order. Before the CR-01 fix the memo keyed
+    // only on (rows,key,dir) and served the stale alphabetical array here.
+    el.columns = [
+      { key: 'name', label: 'Name', sortable: true, type: 'number' },
+      { key: 'age', label: 'Age', sortable: true, type: 'number' },
+    ];
+    await waitForUpdate(el);
+
+    expect(bodyRows(el).map((r) => rowText(r)[0])).toEqual(['Charlie', 'Alice', 'Bob']);
+  });
+
   it('emits am-sort with key and direction', async () => {
     const el = await makeGrid();
     const headers = el.shadowRoot?.querySelectorAll('th[role="columnheader"]') as NodeListOf<HTMLElement>;
