@@ -21,7 +21,7 @@ findings:
   warning: 3
   info: 2
   total: 6
-status: issues_found
+status: partially_resolved
 ---
 
 # Phase 9: Code Review Report
@@ -184,3 +184,17 @@ A `slotchange` on a combobox with no light-DOM `am-option` children still assign
 _Reviewed: 2026-08-24T03:39:08Z_
 _Reviewer: Claude (gsd-code-reviewer)_
 _Depth: standard_
+
+---
+
+## Resolution (execute-phase, commit ce87124)
+
+| ID | Severity | Status | Notes |
+|----|----------|--------|-------|
+| CR-01 | Critical | ✅ Fixed | `_sortCache` now keys on `(rows, columns, key, dir)`; a columns-swap that changes the comparator recomputes. jsdom regression test added (`data-grid.test.ts` "CR-01: recomputes sort when a columns swap changes the comparator"). |
+| WR-01 | Warning | ✅ Fixed | data-grid virtualizer-warm `loadVirtualizer().then()` now has `.catch()` — a cold-chunk failure stays on the table path instead of surfacing as an unhandled rejection. |
+| WR-02 | Warning | ⏭ Deferred | `harness.ts summarize()` pseudo-median is correct at `REPEATS=5`; test-infra only. Tracked as a follow-up. |
+| WR-03 | Warning | ⏭ Deferred | combobox `_handleOptionsSlotChange` `_slottedOptions` churn — no observed determinism failure (perf lane green); tracked as a follow-up. |
+| Info ×2 | Info | ⏭ Deferred | Minor; tracked. |
+
+Verification after fix: `tsc --noEmit` clean · data-grid perf `sortComputes`=1 (memo win preserved) · data-grid jsdom 13/13.
