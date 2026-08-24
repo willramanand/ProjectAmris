@@ -1,0 +1,40 @@
+{
+  "version": "1.0",
+  "timestamp": "2026-08-24T04:15:49.041Z",
+  "phase": "09",
+  "phase_name": "Runtime-Performance Tuning",
+  "phase_dir": ".planning/phases/09-runtime-performance-tuning",
+  "plan": 4,
+  "task": null,
+  "total_tasks": 4,
+  "status": "phase_complete",
+  "completed_tasks": [
+    {"id": "09-01", "name": "data-grid sort memo + countMethod measurement spine (tracer, TDD)", "status": "done", "commit": "f2a275a"},
+    {"id": "09-02", "name": "combobox two-level filter memo + a11y snapshot", "status": "done", "commit": "f958dbf"},
+    {"id": "09-03", "name": "overlay middleware cache + lazy-load CR-01 fix (D-05) + popover a11y", "status": "done", "commit": "2f6eae1"},
+    {"id": "09-04", "name": "perf baseline capstone (tuned + durable untuned) + regression gate", "status": "done", "commit": "94c4263"},
+    {"id": "review-fix", "name": "code review CR-01 (sort-cache columns key) + WR-01 (virtualizer-warm catch) + regression test", "status": "done", "commit": "ce87124"}
+  ],
+  "remaining_tasks": [
+    {"id": "phase-10", "name": "Plan + execute Phase 10: Graceful Degradation & Compatibility Matrix", "status": "not_started"},
+    {"id": "WR-02", "name": "harness.ts summarize() pseudo-median wrong for even-length samples (deferred, safe at REPEATS=5)", "status": "not_started"},
+    {"id": "WR-03", "name": "combobox _handleOptionsSlotChange rebuilds _slottedOptions each slotchange, churns _allOptions identity (deferred, no observed failure)", "status": "not_started"}
+  ],
+  "blockers": [],
+  "async_jobs": [],
+  "human_actions_pending": [
+    {"action": "Optional: run /gsd-secure-phase 09", "context": "secure-phase capability active but no 09-SECURITY.md; phase added no new trust surface, low priority", "blocking": false}
+  ],
+  "decisions": [
+    {"decision": "Fixed code-review CR-01 + WR-01 inline before completing phase; deferred WR-02/WR-03 + 2 Info", "rationale": "CR-01 was a Critical correctness regression (stale sort order on columns swap) in a frozen v1.0 library whose promise is correctness; user chose fix CR-01+WR-01", "phase": "09"},
+    {"decision": "Two committed baselines: api/perf.baseline.json (tuned) + api/perf.baseline.untuned.json (durable before)", "rationale": "count wins survive as a re-runnable machine diff, not only ephemeral per-plan SUMMARY prose (RESEARCH Methodology; Pitfall 1)", "phase": "09"}
+  ],
+  "uncommitted_files": [
+    {"path": "docs/contract.md", "note": "build-regenerated artifact; was already dirty before this session — NOT phase-9 work, left as-is"},
+    {"path": ".claude/settings.local.json", "note": "worktree.baseRef=head config (the #683 worktree fix) + permission allowlist; intentional local config"},
+    {"path": ".planning/phases/08-bundle-size-deferral/08-PATTERNS.md", "note": "untracked planning artifact, pre-existing"},
+    {"path": ".planning/phases/09-runtime-performance-tuning/09-PATTERNS.md", "note": "untracked planning artifact, pre-existing"}
+  ],
+  "next_action": "Phase 9 is complete and verified (12/12 must-haves). Start Phase 10 with: /gsd-plan-phase 10 (Graceful Degradation & Compatibility Matrix).",
+  "context_notes": "Clean between-phases pause. Phase 9 executed via wave-based parallel worktrees (W1=09-01 tracer, W2=09-02+09-03 parallel, W3=09-04 capstone), all merged to main, HEAD 767481d. Three render-path memos landed (sortComputes 3->1, filterCalls 12->10, middlewareBuilds 4->1), a11y DOM byte-identical, CEM v1.0 surface frozen. Retired the open Phase-8 lazy-load Critical (D-05). Auto-mode was OFF so the 09-01 TDD tracer checkpointed for human-verify mid-plan; resumed via SendMessage to keep the same worktree. Watch for: the isolation=worktree harness copies the dirty .claude/settings.local.json into each new worktree, which BLOCKS cleanup-wave (worktree_dirty) until you discard the stray file in the worktree first."
+}
