@@ -1,0 +1,52 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`am-data-grid a11y snapshot (real Chromium, report-only) > EMPTY grid (rows=[]) keeps a byte-identical aria shape 1`] = `
+- grid:
+  - rowgroup:
+    - row "ID Name":
+      - columnheader "ID":
+        - text: ID
+        - img
+      - columnheader "Name":
+        - text: Name
+        - img
+  - rowgroup
+`;
+
+exports[`am-data-grid a11y snapshot (real Chromium, report-only) > SINGLE-row grid keeps a byte-identical aria shape 1`] = `
+- grid:
+  - rowgroup:
+    - row "ID Name":
+      - columnheader "ID":
+        - text: ID
+        - img
+      - columnheader "Name":
+        - text: Name
+        - img
+  - rowgroup:
+    - row "r000 Name 1":
+      - gridcell "r000"
+      - gridcell "Name 1"
+`;
+
+exports[`am-data-grid a11y snapshot (real Chromium, report-only) > preserves the grid role/name tree + exact aria surface after a sort (table path) 1`] = `
+- grid:
+  - rowgroup:
+    - row "ID Name":
+      - columnheader "ID":
+        - text: ID
+        - img
+      - columnheader "Name":
+        - text: Name
+        - img
+  - rowgroup:
+    - row "r000 Name 3":
+      - gridcell "r000"
+      - gridcell "Name 3"
+    - row "r001 Name 2":
+      - gridcell "r001"
+      - gridcell "Name 2"
+    - row "r002 Name 1":
+      - gridcell "r002"
+      - gridcell "Name 1"
+`;

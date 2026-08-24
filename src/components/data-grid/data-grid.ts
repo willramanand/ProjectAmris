@@ -389,8 +389,47 @@ export class AmDataGrid extends LitElement {
     }
   }
 
+  /**
+   * Identity-keyed memo for the sorted-rows compute (RPERF-01, D-02). Keyed on
+   * the SOURCE identities `(this.rows, this._sortKey, this._sortDir)` — the same
+   * reference dirty-check Lit's own `@property`/`@state` uses, so it mirrors the
+   * component's existing change semantics and cannot introduce a stale-render
+   * class Lit wouldn't already have. Revert = drop this field + inline
+   * `_computeSortedRows` back into the getter.
+   */
+  private _sortCache: {
+    rows: Record<string, unknown>[];
+    key: string;
+    dir: SortDirection;
+    result: Record<string, unknown>[];
+  } | null = null;
+
   private get _sortedRows(): Record<string, unknown>[] {
+    // Unsorted fast-path: return this.rows by the SAME reference so downstream
+    // identity checks are unaffected (RPERF-01 must_have).
     if (!this._sortKey || this._sortDir === 'none') return this.rows;
+    const cache = this._sortCache;
+    if (
+      cache &&
+      cache.rows === this.rows &&
+      cache.key === this._sortKey &&
+      cache.dir === this._sortDir
+    ) {
+      return cache.result;
+    }
+    const result = this._computeSortedRows();
+    this._sortCache = { rows: this.rows, key: this._sortKey, dir: this._sortDir, result };
+    return result;
+  }
+
+  /**
+   * The sort compute, moved out of the `_sortedRows` getter into a nameable
+   * method so the perf harness can prototype-wrap it for a deterministic
+   * `sortComputes` count (RESEARCH F-1). Body is the former getter body
+   * verbatim — same column lookup + stable `[...].sort(cmp * dir)`, so the sort
+   * semantics stay byte-identical to the un-memoized getter.
+   */
+  private _computeSortedRows(): Record<string, unknown>[] {
     const col = this.columns.find(c => c.key === this._sortKey);
     if (!col) return this.rows;
     const dir = this._sortDir === 'asc' ? 1 : -1;
