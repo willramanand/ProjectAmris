@@ -129,7 +129,16 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. A CSS-feature audit (`:has()`, container queries, `adoptedStyleSheets`) identifies and guards silent visual failures on older engines. (COMPAT-06)
   5. The widened tested-engine matrix (WebKit + Firefox added to the load-bearing lane, CDP throttling stays Chromium-only) validates the degradation, and `BROWSER_SUPPORT.md` documents the true per-capability floor (= max(JS-API floor, CSS-feature floor)) and the degradation matrix. (COMPAT-04, COMPAT-05)
 
-**Plans**: TBD
+**Plans**: 7 plans
+
+Plans:
+- [ ] 10-01-PLAN.md — capabilities.ts + attachInternalsSafe() tracer on am-input (COMPAT-01, COMPAT-02, wave 1)
+- [ ] 10-02-PLAN.md — form-participation.ts + compat-forms opt-in subpath + Changeset, reversibility-gated (COMPAT-03, wave 1)
+- [ ] 10-03-PLAN.md — CSS @supports selector(:has(*)) guard audit, 6 files/10 rules (COMPAT-06, wave 1)
+- [ ] 10-04-PLAN.md — combined COMPAT-02/03 rollout batch A, 11 files (wave 2)
+- [ ] 10-05-PLAN.md — combined COMPAT-02/03 rollout batch B, 4 files (wave 2)
+- [ ] 10-06-PLAN.md — widened WebKit/Firefox browser matrix (COMPAT-04, wave 3)
+- [ ] 10-07-PLAN.md — BROWSER_SUPPORT.md true floor + degradation matrix (COMPAT-05, wave 4)
 
 ### Phase 11: Gate Enforcement & Cost Publication
 
@@ -156,5 +165,5 @@ Phase 10 (graceful degradation) depends only on the Phase 7 harness/browser lane
 | 7. Measurement, Baselines & Budgets | 7/7 | Complete    | 2026-08-22 |
 | 8. Bundle-Size Deferral | 7/7 | Complete    | 2026-08-22 |
 | 9. Runtime-Performance Tuning | 4/4 | Complete    | 2026-08-23 |
-| 10. Graceful Degradation & Compatibility Matrix | 0/TBD | Not started | - |
+| 10. Graceful Degradation & Compatibility Matrix | 0/7 | Not started | - |
 | 11. Gate Enforcement & Cost Publication | 0/TBD | Not started | - |
