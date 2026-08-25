@@ -464,10 +464,12 @@ Full design in Pattern 1. Summary:
 | A3 | The fallback can avoid importing Lit entirely (plain `document.createElement('input')`) | Q7 | If it uses `html`, ensure `lit` stays external; the no-bundled-Lit assert is report-only this phase regardless |
 | A4 | Subpath needs a Vite `lib` build entry to emit `dist/compat-forms.js` + `.d.ts` | Q1 caveat | If the build entry is missed, the subpath 404s at install — the smoke test catches it |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Exact Vitest per-instance spec-filtering key (A1)** — What we know: `instances` array supports per-browser config; `vitest.config.ts` targets the 4.1.x schema. What's unclear: whether per-instance `include` is the exact key in 4.1.9 or whether a separate project per engine is cleaner. Recommendation: prototype in Wave 0; both reach D-06.
+   RESOLVED: dispositioned inline in Plan 07 (widened matrix) Task 1 — use the per-instance `include` key, and if Vitest 4.1.9 rejects it, fall back to a separate top-level `browser-webkit` project scoped via its own `include`. Both reach the D-06 outcome; the executor picks empirically when it runs the suite.
 2. **Firefox ARIA-reflection ship version (A2)** — resolved empirically on the widened matrix (COMPAT-05). Recommendation: document the tested-true floor from the actual WebKit/Firefox runs, not the hypothesis table.
+   RESOLVED: empirical-by-design (COMPAT-05). Plan 07 (widened matrix) Task 1/2 observes Firefox's real ARIA-reflection result on the pinned Playwright binary (skipping only that one assertion, with a cited Bugzilla ref, if it genuinely fails); Plan 08 (BROWSER_SUPPORT.md) documents the observed floor rather than the hypothesis table.
 
 ## Environment Availability
 
