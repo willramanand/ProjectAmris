@@ -1,6 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import '../src/components/slider/slider';
+import '../src/components/switch/switch';
+import '../src/components/textarea/textarea';
+import '../src/components/time-picker/time-picker';
 import {
   __resetCapabilitiesForTest,
   hasFormAssociation,
@@ -50,6 +53,7 @@ type FallbackCase = {
 
 const FALLBACK_TAGS: FallbackCase[] = [
   {
+    // Numeric-value control: mirrors String(value), like its native setFormValue.
     tag: 'am-slider',
     fieldName: 'volume',
     apply: (el) => {
@@ -57,6 +61,36 @@ const FALLBACK_TAGS: FallbackCase[] = [
       el.value = 30;
     },
     expected: '30',
+  },
+  {
+    // Boolean checked-state control: contributes its `value` only when ON.
+    tag: 'am-switch',
+    fieldName: 'enabled',
+    apply: (el) => {
+      el.name = 'enabled';
+      el.checked = true;
+    },
+    expected: 'on',
+  },
+  {
+    // String-value control (also mirrors the native `required` constraint).
+    tag: 'am-textarea',
+    fieldName: 'bio',
+    apply: (el) => {
+      el.name = 'bio';
+      el.value = 'hello world';
+    },
+    expected: 'hello world',
+  },
+  {
+    // Serialized time-string value control.
+    tag: 'am-time-picker',
+    fieldName: 'start',
+    apply: (el) => {
+      el.name = 'start';
+      el.value = '14:30';
+    },
+    expected: '14:30',
   },
 ];
 
@@ -90,11 +124,12 @@ describe('below-floor form-participation fallback, batch B', () => {
       enableFormFallback();
 
       const form = document.createElement('form');
-      const el = document.createElement(tag) as FormEl;
-      form.appendChild(el);
       document.body.appendChild(form);
-
+      const el = document.createElement(tag) as FormEl;
+      // Set the value-bearing state BEFORE connecting, mirroring the common
+      // attribute-driven usage (so value-parsing controls parse on connect).
       apply(el);
+      form.appendChild(el);
       await el.updateComplete;
 
       // Exactly one hidden mirror (idempotent find-or-create across re-renders).
@@ -108,11 +143,10 @@ describe('below-floor form-participation fallback, batch B', () => {
       forceBelowFloor();
 
       const form = document.createElement('form');
-      const el = document.createElement(tag) as FormEl;
-      form.appendChild(el);
       document.body.appendChild(form);
-
+      const el = document.createElement(tag) as FormEl;
       apply(el);
+      form.appendChild(el);
       await el.updateComplete;
 
       // No fallback channel exists when the consumer has not opted in.
@@ -127,11 +161,10 @@ describe('below-floor form-participation fallback, batch B', () => {
       enableFormFallback();
 
       const form = document.createElement('form');
-      const el = document.createElement(tag) as FormEl;
-      form.appendChild(el);
       document.body.appendChild(form);
-
+      const el = document.createElement(tag) as FormEl;
       apply(el);
+      form.appendChild(el);
       await el.updateComplete;
 
       // internals is present, so the `!this.internals` branch is skipped: no

@@ -2,6 +2,13 @@ import { LitElement, css, html, nothing, type PropertyValues } from 'lit';
 import { customElement, property, query, state } from 'lit/decorators.js';
 import { resetStyles } from '../../styles/reset.css.js';
 import { ValidationController } from '../../internal/controllers/validation.js';
+import { attachInternalsSafe } from '../../internal/helpers/attach-internals-safe.js';
+import {
+  isFormFallbackEnabled,
+  syncFormFallback,
+  teardownFormFallback,
+  warnBelowFloorOnce,
+} from '../../internal/helpers/form-participation.js';
 import { uniqueId } from '../../utilities/unique-id.js';
 
 /** Native-style message shown when a required switch is left off (D-01). */
@@ -40,7 +47,12 @@ export class AmSwitch extends LitElement {
   @property({ attribute: 'aria-label' }) override ariaLabel: string | null = null;
 
   @query('.track') private _track!: HTMLElement;
-  private internals: ElementInternals;
+  /**
+   * Attached form internals, or `null` below the ElementInternals floor where
+   * {@link attachInternalsSafe} could not attach (COMPAT-02). All call sites
+   * null-safe this so the component still constructs and renders.
+   */
+  private internals: ElementInternals | null;
 
   /** Stable id shared by the error message node and the track's aria-describedby. */
   private readonly _errorId = uniqueId('am-switch-error');
@@ -67,7 +79,7 @@ export class AmSwitch extends LitElement {
 
   constructor() {
     super();
-    this.internals = this.attachInternals();
+    this.internals = attachInternalsSafe(this);
     // A failed constraint check on form submit fires `invalid` on this host;
     // suppress the browser's default bubble and surface our own message (D-04).
     this.addEventListener('invalid', this._onInvalid);
@@ -182,7 +194,27 @@ export class AmSwitch extends LitElement {
 
   protected updated(changed: PropertyValues) {
     if (changed.has('checked')) {
-      this.internals.setFormValue(this.checked ? this.value : null);
+      this.internals?.setFormValue(this.checked ? this.value : null);
+    }
+    // COMPAT-03: below the ElementInternals floor (internals is null), mirror the
+    // boolean checked-state onto a hidden Light-DOM input when the consumer has
+    // opted in — like a native checkbox, an OFF switch contributes nothing to
+    // FormData, so tear the mirror down when unchecked. Otherwise warn once.
+    // XOR-gated on `!this.internals`, so above the floor no fallback engages.
+    if (!this.internals) {
+      if (isFormFallbackEnabled()) {
+        if (this.checked) {
+          syncFormFallback(this, {
+            name: this.name,
+            value: this.value,
+            disabled: this.disabled,
+          });
+        } else {
+          teardownFormFallback(this);
+        }
+      } else {
+        warnBelowFloorOnce('am-switch');
+      }
     }
     // The required constraint is only knowable post-render (depends on
     // checked/required state), so this reflection runs here and may schedule
@@ -199,9 +231,9 @@ export class AmSwitch extends LitElement {
   private _syncValidation(): void {
     const valueMissing = this.required && !this.checked;
     if (valueMissing) {
-      this.internals.setValidity({ valueMissing: true }, REQUIRED_MESSAGE, this._track);
+      this.internals?.setValidity({ valueMissing: true }, REQUIRED_MESSAGE, this._track);
     } else {
-      this.internals.setValidity({});
+      this.internals?.setValidity({});
     }
 
     const show = this._validation.invalid;
@@ -274,6 +306,9 @@ export class AmSwitch extends LitElement {
   disconnectedCallback() {
     super.disconnectedCallback();
     this.removeEventListener('click', this._toggle);
+    // Remove any Light-DOM fallback mirror so a disconnect leaves no stale node
+    // (no-op above the floor, where the fallback never attached).
+    teardownFormFallback(this);
   }
 
   render() {

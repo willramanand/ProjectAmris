@@ -3,6 +3,13 @@ import { customElement, property, query, state } from 'lit/decorators.js';
 import { live } from 'lit/directives/live.js';
 import { resetStyles } from '../../styles/reset.css.js';
 import { ValidationController } from '../../internal/controllers/validation.js';
+import { attachInternalsSafe } from '../../internal/helpers/attach-internals-safe.js';
+import {
+  isFormFallbackEnabled,
+  syncFormFallback,
+  teardownFormFallback,
+  warnBelowFloorOnce,
+} from '../../internal/helpers/form-participation.js';
 import { uniqueId } from '../../utilities/unique-id.js';
 
 /**
@@ -49,7 +56,12 @@ export class AmTextarea extends LitElement {
   @property({ type: Number }) maxlength?: number;
 
   @query('textarea') private textareaEl!: HTMLTextAreaElement;
-  private internals: ElementInternals;
+  /**
+   * Attached form internals, or `null` below the ElementInternals floor where
+   * {@link attachInternalsSafe} could not attach (COMPAT-02). All call sites
+   * null-safe this so the component still constructs and renders.
+   */
+  private internals: ElementInternals | null;
 
   /** Stable id shared by the error message node and the textarea's aria-describedby. */
   private readonly _errorId = uniqueId('am-textarea-error');
@@ -76,7 +88,7 @@ export class AmTextarea extends LitElement {
 
   constructor() {
     super();
-    this.internals = this.attachInternals();
+    this.internals = attachInternalsSafe(this);
     // A failed constraint check on form submit fires `invalid` on this host;
     // suppress the browser's default bubble and surface our own message (D-04).
     this.addEventListener('invalid', this._onInvalid);
@@ -234,13 +246,37 @@ export class AmTextarea extends LitElement {
 
   protected updated(changed: PropertyValues) {
     if (changed.has('value')) {
-      this.internals.setFormValue(this.value);
+      this.internals?.setFormValue(this.value);
+    }
+    // COMPAT-03: below the ElementInternals floor (internals is null), mirror the
+    // value (and the native `required` constraint) onto a hidden Light-DOM input
+    // when the consumer has opted in; otherwise warn once. `minlength`/`maxlength`
+    // have no native hidden-input equivalent to project, so those constraints
+    // degrade below the floor (documented limit). XOR-gated on `!this.internals`.
+    if (!this.internals) {
+      if (isFormFallbackEnabled()) {
+        syncFormFallback(this, {
+          name: this.name,
+          value: this.value,
+          required: this.required,
+          disabled: this.disabled,
+        });
+      } else {
+        warnBelowFloorOnce('am-textarea');
+      }
     }
     // Native constraint validity is only knowable from the RENDERED inner
     // <textarea>, so this reflection runs post-render and may schedule one
     // further (bounded, idempotent) update — the standard cost of mirroring
     // native ElementInternals validity into reactive render state.
     this._syncValidation();
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    // Remove any Light-DOM fallback mirror so a disconnect leaves no stale node
+    // (no-op above the floor, where the fallback never attached).
+    teardownFormFallback(this);
   }
 
   /**
@@ -266,9 +302,9 @@ export class AmTextarea extends LitElement {
       };
       const anyInvalid = Object.values(flags).some(Boolean);
       if (anyInvalid) {
-        this.internals.setValidity(flags, control.validationMessage, control);
+        this.internals?.setValidity(flags, control.validationMessage, control);
       } else {
-        this.internals.setValidity({});
+        this.internals?.setValidity({});
       }
     }
 
