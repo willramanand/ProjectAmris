@@ -31,9 +31,15 @@ import { fileURLToPath } from 'node:url';
 const IS_WIN = process.platform === 'win32';
 const PKG = '@willramanand/amris';
 
-// The SHIP-03 resolution matrix: the full entry, a per-component deep entry, and
-// the token stylesheet must each resolve from an installed tarball via `exports`.
-const SUBPATHS = [PKG, `${PKG}/components/button`, `${PKG}/styles/tokens.css`];
+// The SHIP-03 resolution matrix: the full entry, a per-component deep entry, the
+// token stylesheet, and the opt-in COMPAT-03 fallback subpath must each resolve
+// from an installed tarball via `exports`.
+const SUBPATHS = [
+  PKG,
+  `${PKG}/components/button`,
+  `${PKG}/styles/tokens.css`,
+  `${PKG}/compat-forms`,
+];
 
 // Peer/externals a consumer bundle must NOT inline — Lit stays a peer, and the
 // bundler leg keeps @floating-ui external too. `@lit/*` catches @lit/context;

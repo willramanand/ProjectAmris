@@ -228,6 +228,10 @@ export default defineConfig(() => ({
       entry: {
         amris: resolve(__dirname, 'src/index.all.ts'),
         'amris-core': resolve(__dirname, 'src/index.ts'),
+        // Opt-in COMPAT-03 side-effect subpath (`@willramanand/amris/compat-forms`);
+        // a standalone top-level entry like `src/index.ts`, NOT a discovered
+        // component/flat entry — see the `./compat-forms` key in package.json exports.
+        'compat-forms': resolve(__dirname, 'src/compat-forms.ts'),
         // Deep public entries so `./tokens`, `./utilities/*`, `./styles/*` resolve
         // to real shipped JS (not just `.d.ts`) — see the `exports` map in package.json.
         'tokens/index': resolve(__dirname, 'src/tokens/index.ts'),
