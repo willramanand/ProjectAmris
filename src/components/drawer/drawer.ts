@@ -185,7 +185,12 @@ export class AmDrawer extends LitElement {
         border-top: var(--am-border-1) solid var(--am-border-subtle);
       }
 
-      .footer:not(:has(::slotted(*))) { display: none; }
+      /* Hide empty footer — COMPAT-06 @supports :has() guard. Functional default
+         is the .footer display:flex rule above (outside this block); do NOT add a
+         display:block default here — it would clobber the flex layout (landmine 3). */
+      @supports selector(:has(*)) {
+        .footer:not(:has(::slotted(*))) { display: none; }
+      }
 
       @media (prefers-reduced-motion: reduce) {
         .close-btn { transition: none; }
