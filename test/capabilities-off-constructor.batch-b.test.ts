@@ -1,6 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import '../src/components/slider/slider';
+import '../src/components/switch/switch';
+import '../src/components/textarea/textarea';
+import '../src/components/time-picker/time-picker';
 import {
   __resetCapabilitiesForTest,
   hasFormAssociation,
@@ -17,7 +20,7 @@ import { __resetFormParticipationForTest } from '../src/internal/helpers/form-pa
  * batch-a1 / batch-a2 files (Plans 04/05), the four-file union covers all 16
  * form-associated custom elements.
  */
-const FORM_TAGS = ['am-slider'] as const;
+const FORM_TAGS = ['am-slider', 'am-switch', 'am-textarea', 'am-time-picker'] as const;
 
 type UpdatingElement = HTMLElement & {
   disabled: boolean;

@@ -2,6 +2,13 @@ import { LitElement, css, html, nothing, type PropertyValues } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { resetStyles } from '../../styles/reset.css.js';
 import { ValidationController } from '../../internal/controllers/validation.js';
+import { attachInternalsSafe } from '../../internal/helpers/attach-internals-safe.js';
+import {
+  isFormFallbackEnabled,
+  syncFormFallback,
+  teardownFormFallback,
+  warnBelowFloorOnce,
+} from '../../internal/helpers/form-participation.js';
 import { uniqueId } from '../../utilities/unique-id.js';
 import {
   adjustHours,
@@ -74,7 +81,12 @@ export class AmTimePicker extends LitElement {
     return this._focused || this.value.length > 0;
   }
 
-  private _internals: ElementInternals;
+  /**
+   * Attached form internals, or `null` below the ElementInternals floor where
+   * {@link attachInternalsSafe} could not attach (COMPAT-02). All call sites
+   * null-safe this so the component still constructs and renders.
+   */
+  private _internals: ElementInternals | null;
   @state() private _inputBuffer = '';
   private _bufferTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -103,7 +115,7 @@ export class AmTimePicker extends LitElement {
 
   constructor() {
     super();
-    this._internals = this.attachInternals();
+    this._internals = attachInternalsSafe(this);
     // A failed constraint check on form submit fires `invalid` on this host;
     // suppress the browser's default bubble and surface our own message (D-04).
     this.addEventListener('invalid', this._onInvalid);
@@ -355,13 +367,31 @@ export class AmTimePicker extends LitElement {
   disconnectedCallback() {
     super.disconnectedCallback();
     if (this._bufferTimer) clearTimeout(this._bufferTimer);
+    // Remove any Light-DOM fallback mirror so a disconnect leaves no stale node
+    // (no-op above the floor, where the fallback never attached).
+    teardownFormFallback(this);
   }
 
   protected updated(changed: PropertyValues) {
     if (changed.has('value') && changed.get('value') !== undefined) {
       this._parseValue();
     }
-    this._internals.setFormValue(this._formatValue());
+    this._internals?.setFormValue(this._formatValue());
+    // COMPAT-03: below the ElementInternals floor (internals is null), mirror the
+    // serialized time-string value onto a hidden Light-DOM input when the
+    // consumer has opted in; otherwise warn once. XOR-gated on `!this._internals`,
+    // so above the floor no fallback engages and no double-submit is possible.
+    if (!this._internals) {
+      if (isFormFallbackEnabled()) {
+        syncFormFallback(this, {
+          name: this.name,
+          value: this._formatValue(),
+          disabled: this.disabled,
+        });
+      } else {
+        warnBelowFloorOnce('am-time-picker');
+      }
+    }
     // Native constraint validity is computed from the required/empty state (no
     // inner native input) and mirrored onto internals post-render; this
     // reflection may schedule one further bounded update.
@@ -377,9 +407,9 @@ export class AmTimePicker extends LitElement {
     const anchor = this.shadowRoot?.querySelector('.segment') as HTMLElement | null;
     if (anchor) {
       if (this.required && this.value === '') {
-        this._internals.setValidity({ valueMissing: true }, VALUE_MISSING_MESSAGE, anchor);
+        this._internals?.setValidity({ valueMissing: true }, VALUE_MISSING_MESSAGE, anchor);
       } else {
-        this._internals.setValidity({});
+        this._internals?.setValidity({});
       }
     }
 
