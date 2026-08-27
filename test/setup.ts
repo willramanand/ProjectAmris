@@ -135,6 +135,32 @@ Object.defineProperty(HTMLElement.prototype, 'attachInternals', {
   },
 });
 
+// Phase 10 (COMPAT-01/02): jsdom's GLOBAL `ElementInternals` is a partial stub —
+// `setFormValue` is absent from its prototype, unlike every real browser at or
+// above the Safari 16.4 floor, where `ElementInternals` ships form association
+// wholesale. `capabilities.ts`'s `hasFormAssociation()` probe reads
+// `'setFormValue' in globalThis.ElementInternals.prototype` to detect that floor,
+// so WITHOUT this shim the jsdom lane would read as BELOW the floor and
+// short-circuit `attachInternalsSafe()` to null — regressing every above-floor
+// form/validation spec (which reach form state through the MockElementInternals
+// the `attachInternals` override above already provides). Define a no-op
+// `setFormValue` on the jsdom global prototype so it honestly advertises the
+// form-association capability the mock actually implements. The capability-off
+// specs delete the whole `globalThis.ElementInternals` to force the below-floor
+// path deterministically.
+if (
+  typeof globalThis.ElementInternals !== 'undefined' &&
+  !('setFormValue' in globalThis.ElementInternals.prototype)
+) {
+  Object.defineProperty(globalThis.ElementInternals.prototype, 'setFormValue', {
+    configurable: true,
+    writable: true,
+    value(this: ElementInternals) {
+      /* no-op: jsdom form-association fidelity is covered by the browser lane */
+    },
+  });
+}
+
 if (!window.matchMedia) {
   Object.defineProperty(window, 'matchMedia', {
     configurable: true,
