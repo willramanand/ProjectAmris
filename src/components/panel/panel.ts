@@ -54,7 +54,12 @@ export class AmPanel extends LitElement {
         color: var(--am-text);
       }
 
-      .header:not(:has(::slotted(*))) { display: none; }
+      /* Hide empty slot — COMPAT-06 @supports :has() guard. Functional default
+         (display: block) outside the block so old engines get a usable layout. */
+      .header { display: block; }
+      @supports selector(:has(*)) {
+        .header:not(:has(::slotted(*))) { display: none; }
+      }
 
       .body {
         padding: var(--am-panel-padding, var(--am-space-4)) var(--am-panel-padding, var(--am-space-5));

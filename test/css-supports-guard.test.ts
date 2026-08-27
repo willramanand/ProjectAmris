@@ -35,8 +35,12 @@ interface GuardedFile {
 
 const GUARDED_FILES: GuardedFile[] = [
   { path: 'src/components/card/card.ts', selectors: ['.header', '.footer'] },
-  // Task 2 appends: panel.ts (.header), dialog.ts (.footer),
-  //   app-shell.ts (.header, .sidebar, .footer)
+  { path: 'src/components/panel/panel.ts', selectors: ['.header'] },
+  { path: 'src/components/dialog/dialog.ts', selectors: ['.footer'] },
+  {
+    path: 'src/components/app-shell/app-shell.ts',
+    selectors: ['.header', '.sidebar', '.footer'],
+  },
   // Task 3 appends: drawer.ts (.footer), side-nav.ts (.header, .footer)
 ];
 
