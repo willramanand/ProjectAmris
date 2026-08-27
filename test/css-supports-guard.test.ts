@@ -41,7 +41,8 @@ const GUARDED_FILES: GuardedFile[] = [
     path: 'src/components/app-shell/app-shell.ts',
     selectors: ['.header', '.sidebar', '.footer'],
   },
-  // Task 3 appends: drawer.ts (.footer), side-nav.ts (.header, .footer)
+  { path: 'src/components/drawer/drawer.ts', selectors: ['.footer'] },
+  { path: 'src/components/side-nav/side-nav.ts', selectors: ['.header', '.footer'] },
 ];
 
 const SUPPORTS_CONDITION = '@supports selector(:has(*))';

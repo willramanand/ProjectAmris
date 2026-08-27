@@ -30,6 +30,8 @@ import '../../src/components/card/card';
 import '../../src/components/panel/panel';
 import '../../src/components/dialog/dialog';
 import '../../src/components/app-shell/app-shell';
+import '../../src/components/drawer/drawer';
+import '../../src/components/side-nav/side-nav';
 
 /** getComputedStyle().display of a shadow-part region on a mounted host. */
 function regionDisplay(host: HTMLElement, selector: string): string {
@@ -107,6 +109,38 @@ describe('COMPAT-06 @supports :has() guards — above-floor unchanged (Chromium)
       await waitForUpdate(filled);
       expect(regionDisplay(filled, '.header')).toBe('block');
       expect(regionDisplay(filled, '.sidebar')).toBe('block');
+      expect(regionDisplay(filled, '.footer')).toBe('block');
+    });
+  });
+
+  describe('am-drawer', () => {
+    it('renders footer at its functional default (flex), empty and non-empty', async () => {
+      const empty = (await fixture<HTMLElement>(
+        '<am-drawer label="Menu" open>Body</am-drawer>',
+      )) as HTMLElement & { open: boolean };
+      await waitForUpdate(empty);
+      expect(regionDisplay(empty, '.footer')).toBe('flex');
+
+      const filled = (await fixture<HTMLElement>(
+        '<am-drawer label="Menu" open>Body<span slot="footer">OK</span></am-drawer>',
+      )) as HTMLElement & { open: boolean };
+      await waitForUpdate(filled);
+      expect(regionDisplay(filled, '.footer')).toBe('flex');
+    });
+  });
+
+  describe('am-side-nav', () => {
+    it('renders header/footer at their functional default (block)', async () => {
+      const empty = await fixture<HTMLElement>('<am-side-nav>Items</am-side-nav>');
+      await waitForUpdate(empty);
+      expect(regionDisplay(empty, '.header')).toBe('block');
+      expect(regionDisplay(empty, '.footer')).toBe('block');
+
+      const filled = await fixture<HTMLElement>(
+        '<am-side-nav><span slot="header">H</span>Items<span slot="footer">F</span></am-side-nav>',
+      );
+      await waitForUpdate(filled);
+      expect(regionDisplay(filled, '.header')).toBe('block');
       expect(regionDisplay(filled, '.footer')).toBe('block');
     });
   });

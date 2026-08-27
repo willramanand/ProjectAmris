@@ -130,7 +130,11 @@ export class AmSideNav extends LitElement {
         font-size: var(--am-text-sm);
       }
 
-      .header:not(:has(::slotted(*))) { display: none; }
+      /* COMPAT-06 @supports :has() guard — functional default (block) outside. */
+      .header { display: block; }
+      @supports selector(:has(*)) {
+        .header:not(:has(::slotted(*))) { display: none; }
+      }
 
       .items {
         flex: 1;
@@ -146,7 +150,11 @@ export class AmSideNav extends LitElement {
         border-top: var(--am-border-1) solid var(--am-border-subtle);
       }
 
-      .footer:not(:has(::slotted(*))) { display: none; }
+      /* COMPAT-06 @supports :has() guard — functional default (block) outside. */
+      .footer { display: block; }
+      @supports selector(:has(*)) {
+        .footer:not(:has(::slotted(*))) { display: none; }
+      }
     `,
   ];
 
