@@ -27,6 +27,9 @@ import { fixture, shadowQuery, waitForUpdate } from '../helpers';
  * the Chromium-only `browser` project (no config change needed here).
  */
 import '../../src/components/card/card';
+import '../../src/components/panel/panel';
+import '../../src/components/dialog/dialog';
+import '../../src/components/app-shell/app-shell';
 
 /** getComputedStyle().display of a shadow-part region on a mounted host. */
 function regionDisplay(host: HTMLElement, selector: string): string {
@@ -55,6 +58,56 @@ describe('COMPAT-06 @supports :has() guards — above-floor unchanged (Chromium)
 
       expect(regionDisplay(el, '.header')).toBe('block');
       expect(regionDisplay(el, '.footer')).toBe('block');
+    });
+  });
+
+  describe('am-panel', () => {
+    it('renders header at its functional default (block), empty and non-empty', async () => {
+      const empty = await fixture<HTMLElement>('<am-panel>Body</am-panel>');
+      await waitForUpdate(empty);
+      expect(regionDisplay(empty, '.header')).toBe('block');
+
+      const filled = await fixture<HTMLElement>(
+        '<am-panel><span slot="header">Title</span>Body</am-panel>',
+      );
+      await waitForUpdate(filled);
+      expect(regionDisplay(filled, '.header')).toBe('block');
+    });
+  });
+
+  describe('am-dialog', () => {
+    it('renders footer at its functional default (flex), empty and non-empty', async () => {
+      const empty = (await fixture<HTMLElement>(
+        '<am-dialog label="Confirm" open>Body</am-dialog>',
+      )) as HTMLElement & { open: boolean };
+      await waitForUpdate(empty);
+      // The dialog footer's functional default is `display: flex` (authored
+      // outside the @supports block); the guard must not clobber it.
+      expect(regionDisplay(empty, '.footer')).toBe('flex');
+
+      const filled = (await fixture<HTMLElement>(
+        '<am-dialog label="Confirm" open>Body<span slot="footer">OK</span></am-dialog>',
+      )) as HTMLElement & { open: boolean };
+      await waitForUpdate(filled);
+      expect(regionDisplay(filled, '.footer')).toBe('flex');
+    });
+  });
+
+  describe('am-app-shell', () => {
+    it('renders header/sidebar/footer at their functional default (block)', async () => {
+      const empty = await fixture<HTMLElement>('<am-app-shell>Main</am-app-shell>');
+      await waitForUpdate(empty);
+      expect(regionDisplay(empty, '.header')).toBe('block');
+      expect(regionDisplay(empty, '.sidebar')).toBe('block');
+      expect(regionDisplay(empty, '.footer')).toBe('block');
+
+      const filled = await fixture<HTMLElement>(
+        '<am-app-shell><span slot="header">H</span><span slot="sidebar">S</span>Main<span slot="footer">F</span></am-app-shell>',
+      );
+      await waitForUpdate(filled);
+      expect(regionDisplay(filled, '.header')).toBe('block');
+      expect(regionDisplay(filled, '.sidebar')).toBe('block');
+      expect(regionDisplay(filled, '.footer')).toBe('block');
     });
   });
 });

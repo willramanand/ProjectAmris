@@ -45,7 +45,11 @@ export class AmAppShell extends LitElement {
       z-index: 10;
     }
 
-    .header:not(:has(::slotted(*))) { display: none; }
+    /* COMPAT-06 @supports :has() guard — functional default (block) outside. */
+    .header { display: block; }
+    @supports selector(:has(*)) {
+      .header:not(:has(::slotted(*))) { display: none; }
+    }
 
     .body {
       display: flex;
@@ -58,7 +62,11 @@ export class AmAppShell extends LitElement {
       width: var(--am-app-shell-sidebar-width, auto);
     }
 
-    .sidebar:not(:has(::slotted(*))) { display: none; }
+    /* COMPAT-06 @supports :has() guard — functional default (block) outside. */
+    .sidebar { display: block; }
+    @supports selector(:has(*)) {
+      .sidebar:not(:has(::slotted(*))) { display: none; }
+    }
 
     .main {
       flex: 1;
@@ -70,7 +78,11 @@ export class AmAppShell extends LitElement {
       flex-shrink: 0;
     }
 
-    .footer:not(:has(::slotted(*))) { display: none; }
+    /* COMPAT-06 @supports :has() guard — functional default (block) outside. */
+    .footer { display: block; }
+    @supports selector(:has(*)) {
+      .footer:not(:has(::slotted(*))) { display: none; }
+    }
   `;
 
   render() {

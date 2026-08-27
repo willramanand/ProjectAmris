@@ -158,8 +158,14 @@ export class AmDialog extends LitElement {
         border-top: var(--am-border-1) solid var(--am-border-subtle);
       }
 
-      /* Hide empty footer */
-      .footer:not(:has(::slotted(*))) { display: none; }
+      /* Hide empty footer — COMPAT-06 @supports :has() guard. The functional
+         default is the .footer display:flex rule above (authored OUTSIDE this
+         block): below the :has() floor the footer stays flex rather than
+         collapsing. Do NOT add a display:block default here — it would clobber
+         the flex layout above the floor (landmine 3). */
+      @supports selector(:has(*)) {
+        .footer:not(:has(::slotted(*))) { display: none; }
+      }
 
       /* ---- Nudge animation on blocked backdrop click ---- */
 
