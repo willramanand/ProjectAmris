@@ -2,6 +2,13 @@ import { LitElement, css, html, nothing, type PropertyValues } from 'lit';
 import { customElement, property, queryAssignedElements, state } from 'lit/decorators.js';
 import { resetStyles } from '../../styles/reset.css.js';
 import { ValidationController } from '../../internal/controllers/validation.js';
+import { attachInternalsSafe } from '../../internal/helpers/attach-internals-safe.js';
+import {
+  isFormFallbackEnabled,
+  syncFormFallback,
+  teardownFormFallback,
+  warnBelowFloorOnce,
+} from '../../internal/helpers/form-participation.js';
 import { uniqueId } from '../../utilities/unique-id.js';
 
 /** Native-style message shown when a required radio group has no selection (D-01). */
@@ -37,11 +44,17 @@ export class AmRadio extends LitElement {
   @property() name = '';
   @property({ attribute: 'aria-label' }) override ariaLabel: string | null = null;
 
-  private internals: ElementInternals;
+  /**
+   * Attached form internals, or `null` below the ElementInternals floor where
+   * {@link attachInternalsSafe} could not attach (COMPAT-02). Null-safe at every
+   * call site; below the floor the opt-in hidden-input fallback (COMPAT-03)
+   * mirrors the checked value instead.
+   */
+  private internals: ElementInternals | null;
 
   constructor() {
     super();
-    this.internals = this.attachInternals();
+    this.internals = attachInternalsSafe(this);
   }
 
   static styles = [
@@ -134,7 +147,26 @@ export class AmRadio extends LitElement {
 
   protected updated(changed: PropertyValues) {
     if (changed.has('checked')) {
-      this.internals.setFormValue(this.checked ? this.value : null);
+      this.internals?.setFormValue(this.checked ? this.value : null);
+      // Below the ElementInternals floor (internals null): the XOR-gated opt-in
+      // hidden-input fallback mirrors the value ONLY while checked and tears the
+      // mirror down on deselect, so an unselected radio is ABSENT from FormData
+      // (native radio semantics — T-10-09b), never a present-but-empty control.
+      if (!this.internals) {
+        if (isFormFallbackEnabled()) {
+          if (this.checked) {
+            syncFormFallback(this, {
+              name: this.name,
+              value: this.value,
+              disabled: this.disabled,
+            });
+          } else {
+            teardownFormFallback(this);
+          }
+        } else {
+          warnBelowFloorOnce('am-radio');
+        }
+      }
     }
   }
 
@@ -161,6 +193,9 @@ export class AmRadio extends LitElement {
   disconnectedCallback() {
     super.disconnectedCallback();
     this.removeEventListener('click', this._toggle);
+    // Remove the below-floor hidden-input mirror (if one was created) so a
+    // disconnect leaves no stale light-DOM node (COMPAT-03 teardown).
+    teardownFormFallback(this);
   }
 
   render() {
@@ -235,7 +270,13 @@ export class AmRadioGroup extends LitElement {
   @queryAssignedElements({ selector: 'am-radio' })
   private _radios!: AmRadio[];
 
-  private internals: ElementInternals;
+  /**
+   * Attached form internals, or `null` below the ElementInternals floor where
+   * {@link attachInternalsSafe} could not attach (COMPAT-02). Null-safe at every
+   * call site; below the floor the opt-in hidden-input fallback (COMPAT-03)
+   * mirrors the group's value instead.
+   */
+  private internals: ElementInternals | null;
 
   /** Stable id shared by the error message node and the group's aria-describedby. */
   private readonly _errorId = uniqueId('am-radio-group-error');
@@ -263,7 +304,7 @@ export class AmRadioGroup extends LitElement {
 
   constructor() {
     super();
-    this.internals = this.attachInternals();
+    this.internals = attachInternalsSafe(this);
     // A failed constraint check on form submit fires `invalid` on this host;
     // suppress the browser's default bubble and surface our own message (D-04).
     this.addEventListener('invalid', this._onInvalid);
@@ -310,6 +351,9 @@ export class AmRadioGroup extends LitElement {
     this.removeEventListener('change', this._handleRadioChange as EventListener);
     this.removeEventListener('keydown', this._handleKeyDown);
     this.removeEventListener('focusout', this._handleFocusOut);
+    // Remove the below-floor hidden-input mirror (if one was created) so a
+    // disconnect leaves no stale light-DOM node (COMPAT-03 teardown).
+    teardownFormFallback(this);
   }
 
   protected firstUpdated() {
@@ -330,7 +374,27 @@ export class AmRadioGroup extends LitElement {
     }
 
     if (changed.has('value')) {
-      this.internals.setFormValue(this.value || null);
+      this.internals?.setFormValue(this.value || null);
+      // Below the ElementInternals floor (internals null): the XOR-gated opt-in
+      // hidden-input fallback mirrors the group's value (COMPAT-03), tearing the
+      // mirror down when empty so no present-but-empty control is submitted; else
+      // a one-time dev warning.
+      if (!this.internals) {
+        if (isFormFallbackEnabled()) {
+          if (this.value) {
+            syncFormFallback(this, {
+              name: this.name,
+              value: this.value,
+              required: this.required,
+              disabled: this.disabled,
+            });
+          } else {
+            teardownFormFallback(this);
+          }
+        } else {
+          warnBelowFloorOnce('am-radio-group');
+        }
+      }
       this._syncRadios();
     }
 
@@ -351,9 +415,9 @@ export class AmRadioGroup extends LitElement {
     if (valueMissing) {
       // Anchor arg omitted: the group host is not a shadow descendant, so a real
       // ElementInternals rejects it as an anchor; validity + message suffice.
-      this.internals.setValidity({ valueMissing: true }, GROUP_REQUIRED_MESSAGE);
+      this.internals?.setValidity({ valueMissing: true }, GROUP_REQUIRED_MESSAGE);
     } else {
-      this.internals.setValidity({});
+      this.internals?.setValidity({});
     }
 
     const show = this._validation.invalid;

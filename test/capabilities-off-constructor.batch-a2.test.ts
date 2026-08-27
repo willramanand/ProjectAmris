@@ -1,6 +1,10 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
 import '../src/components/number-field/number-field';
+import '../src/components/input-otp/input-otp';
+import '../src/components/radio/radio';
+import '../src/components/rich-select/rich-select';
+import '../src/components/select/select';
 import {
   __resetCapabilitiesForTest,
   hasFormAssociation,
@@ -14,7 +18,14 @@ import {
  * `.batch-a1`, and Plan 06's `.batch-b`. No two parallel wave-2 plans mutate the
  * same tag array, so the worktree merge-back is collision-free.
  */
-const FORM_TAGS = ['am-number-field'] as const;
+const FORM_TAGS = [
+  'am-number-field',
+  'am-input-otp',
+  'am-radio',
+  'am-radio-group',
+  'am-rich-select',
+  'am-select',
+] as const;
 
 type ConstructedElement = HTMLElement & {
   disabled: boolean;
