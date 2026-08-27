@@ -12,8 +12,13 @@ import type { ReactiveController, ReactiveControllerHost } from 'lit';
  * target and referrer share a root).
  */
 export type ValidationControllerOptions = {
-  /** Resolves the host's attached ElementInternals. */
-  internals: () => ElementInternals;
+  /**
+   * Resolves the host's attached ElementInternals, or `null` below the
+   * ElementInternals floor where {@link attachInternalsSafe} could not attach
+   * (COMPAT-02). The controller null-tolerates this — it resolves to no
+   * message / valid rather than throwing.
+   */
+  internals: () => ElementInternals | null;
   /** Resolves the inner focusable the validity anchors to (e.g. the `<input>`). */
   anchor: () => HTMLElement | null;
   /** Stable id shared by the message node and the focusable's aria-describedby. */
@@ -113,10 +118,12 @@ export class ValidationController implements ReactiveController {
 
   private _nativeMessage(): string {
     try {
-      return this._opts.internals().validationMessage ?? '';
+      // Primary null-tolerance is the optional chain: below the ElementInternals
+      // floor the accessor returns null (COMPAT-02), so there is no native
+      // message to resolve. The surrounding try/catch remains a belt-and-braces
+      // guard for any other unexpected throw (e.g. internals not yet attached).
+      return this._opts.internals()?.validationMessage ?? '';
     } catch {
-      // Internals not attached yet (e.g. jsdom without form support) — resolve
-      // to no message rather than throwing into the host's render.
       return '';
     }
   }
