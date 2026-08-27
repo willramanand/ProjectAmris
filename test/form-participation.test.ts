@@ -32,8 +32,14 @@ describe('syncFormFallback — idempotent find-or-create', () => {
     const input = host.querySelector('input') as HTMLInputElement;
     // The mirror is a LIGHT-DOM child of the host (not inside a shadow root).
     expect(input.parentNode).toBe(host);
-    expect(input.type).toBe('hidden');
+    // Deliberately NOT `type="hidden"`: a hidden-TYPE input is barred from
+    // constraint validation, so `required`/`pattern` could not block a native
+    // submit (D-03). It is a default (text) input made non-visual via the
+    // `hidden` attribute + `tabindex="-1"`, which stays a validation candidate
+    // AND still serializes into FormData.
+    expect(input.type).toBe('text');
     expect(input.hidden).toBe(true);
+    expect(input.tabIndex).toBe(-1);
     expect(input.getAttribute('aria-hidden')).toBe('true');
 
     // Second call: same node updated, no duplicate appended.

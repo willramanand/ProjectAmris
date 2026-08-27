@@ -5,6 +5,12 @@ import { resetStyles } from '../../styles/reset.css.js';
 import { requestAssociatedFormSubmit } from '../../utilities/form-actions.js';
 import { ValidationController } from '../../internal/controllers/validation.js';
 import { attachInternalsSafe } from '../../internal/helpers/attach-internals-safe.js';
+import {
+  isFormFallbackEnabled,
+  syncFormFallback,
+  teardownFormFallback,
+  warnBelowFloorOnce,
+} from '../../internal/helpers/form-participation.js';
 import { uniqueId } from '../../utilities/unique-id.js';
 
 export type InputSize = 'sm' | 'md' | 'lg';
@@ -290,11 +296,39 @@ export class AmInput extends LitElement {
     if (changed.has('value')) {
       this.internals?.setFormValue(this.value);
     }
+    // Below the ElementInternals form-association floor (`internals` is null),
+    // ElementInternals is unavailable, so the value can only reach an enclosing
+    // <form> via the opt-in Light-DOM hidden-input fallback (COMPAT-03). This
+    // branch runs on EVERY updated() pass (not gated to `changed.has('value')`)
+    // so the mirror stays in sync with name/required/pattern/disabled changes
+    // too. It is entered ONLY when `internals` is null — the exact same guard
+    // that gates setFormValue above — so the two channels are structurally
+    // exclusive (XOR: no double-submit) and above-floor behavior is unchanged.
+    if (!this.internals) {
+      if (isFormFallbackEnabled()) {
+        syncFormFallback(this, {
+          name: this.name,
+          value: this.value,
+          required: this.required,
+          pattern: this.pattern || undefined,
+          disabled: this.disabled,
+        });
+      } else {
+        warnBelowFloorOnce('am-input');
+      }
+    }
     // Native constraint validity is only knowable from the RENDERED inner
     // <input>, so this reflection runs post-render and may schedule one further
     // (bounded, idempotent) update — the standard cost of mirroring native
     // ElementInternals validity into reactive render state.
     this._syncValidation();
+  }
+
+  disconnectedCallback(): void {
+    super.disconnectedCallback();
+    // Remove any Light-DOM hidden-input mirror this host appended below the
+    // floor (a no-op if none was ever attached), leaving no stale node behind.
+    teardownFormFallback(this);
   }
 
   /**
