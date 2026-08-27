@@ -132,6 +132,12 @@ None - no external service configuration required.
 - The below-floor XOR invariant and native `required`/`pattern` blocking are intentionally NOT proven in this plan (jsdom cannot; the caller-side gate does not yet exist) — they are must_have truths for Plans 04/05/06's browser lane.
 - One pending Changeset (`.changeset/compat-forms-fallback.md`) awaits the milestone `changeset version` at release time.
 
+## Self-Check: PASSED
+
+- Created files verified on disk: `src/internal/helpers/form-participation.ts`, `src/compat-forms.ts`, `test/form-participation.test.ts`, `test/compat-forms.test.ts`, `.changeset/compat-forms-fallback.md`, `10-02-SUMMARY.md`.
+- Commits verified in git log: `13166e6` (Task 1), `47d1c0e` (Task 3), `acd7d63` (SUMMARY).
+- Verifications green: `npx vitest run --project jsdom test/form-participation.test.ts test/compat-forms.test.ts` (6/6), `npm run build` (emits `dist/compat-forms.js` + `.d.ts`), `npx tsc --noEmit` (clean), `git diff --exit-code docs/contract.md` (no drift).
+
 ---
 *Phase: 10-graceful-degradation-compatibility-matrix*
 *Completed: 2026-08-27*
