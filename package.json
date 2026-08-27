@@ -25,6 +25,10 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/amris-core.js"
     },
+    "./compat-forms": {
+      "types": "./dist/compat-forms.d.ts",
+      "import": "./dist/compat-forms.js"
+    },
     "./components/*": {
       "types": "./dist/components/*/index.d.ts",
       "import": "./dist/components/*/index.js"
@@ -52,6 +56,7 @@
   "sideEffects": [
     "./dist/amris.js",
     "./dist/amris-core.js",
+    "./dist/compat-forms.js",
     "./dist/components/**/*.js",
     "./dist/chunks/**/*.js",
     "./dist/styles/*.js"
