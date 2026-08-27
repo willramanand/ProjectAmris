@@ -4,6 +4,7 @@ import { live } from 'lit/directives/live.js';
 import { resetStyles } from '../../styles/reset.css.js';
 import { requestAssociatedFormSubmit } from '../../utilities/form-actions.js';
 import { ValidationController } from '../../internal/controllers/validation.js';
+import { attachInternalsSafe } from '../../internal/helpers/attach-internals-safe.js';
 import { uniqueId } from '../../utilities/unique-id.js';
 
 export type InputSize = 'sm' | 'md' | 'lg';
@@ -56,7 +57,12 @@ export class AmInput extends LitElement {
   @property() pattern = '';
 
   @query('input') private inputEl!: HTMLInputElement;
-  private internals: ElementInternals;
+  /**
+   * Attached form internals, or `null` below the ElementInternals floor where
+   * {@link attachInternalsSafe} could not attach (COMPAT-02). All call sites
+   * null-safe this so the component still constructs and renders.
+   */
+  private internals: ElementInternals | null;
 
   /** Stable id shared by the error message node and the input's aria-describedby. */
   private readonly _errorId = uniqueId('am-input-error');
@@ -83,7 +89,7 @@ export class AmInput extends LitElement {
 
   constructor() {
     super();
-    this.internals = this.attachInternals();
+    this.internals = attachInternalsSafe(this);
     // A failed constraint check on form submit fires `invalid` on this host;
     // suppress the browser's default bubble and surface our own message (D-04).
     this.addEventListener('invalid', this._onInvalid);
@@ -282,7 +288,7 @@ export class AmInput extends LitElement {
 
   protected updated(changed: PropertyValues) {
     if (changed.has('value')) {
-      this.internals.setFormValue(this.value);
+      this.internals?.setFormValue(this.value);
     }
     // Native constraint validity is only knowable from the RENDERED inner
     // <input>, so this reflection runs post-render and may schedule one further
@@ -314,9 +320,9 @@ export class AmInput extends LitElement {
       };
       const anyInvalid = Object.values(flags).some(Boolean);
       if (anyInvalid) {
-        this.internals.setValidity(flags, input.validationMessage, input);
+        this.internals?.setValidity(flags, input.validationMessage, input);
       } else {
-        this.internals.setValidity({});
+        this.internals?.setValidity({});
       }
     }
 
