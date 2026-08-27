@@ -145,7 +145,11 @@ None - no external service configuration required.
 - jsdom proves the XOR gate, FormData parity, and one-time warn per control. Real-browser FormData parity / no-double-submit across WebKit/FF/Chromium remains the browser-lane concern flagged by Plan 02 (unchanged by this plan).
 - No blockers. The three wave-2 rollout plans own distinct test files, so this worktree merges back collision-free.
 
-## Self-Check: PENDING (populated below)
+## Self-Check: PASSED
+
+- Files verified on disk: slider.ts, switch.ts, textarea.ts, time-picker.ts, capabilities-off-constructor.batch-b.test.ts, form-fallback-integration.batch-b.test.ts, 10-06-SUMMARY.md — all FOUND.
+- Commits verified in git log: `a7ff01e` (Task 1 feat), `6acd8cf` (Task 2 feat), `f3a98c6` (SUMMARY docs) — all present.
+- Verifications green: `npx vitest run --project jsdom test/capabilities-off-constructor.batch-b.test.ts test/form-fallback-integration.batch-b.test.ts src/components/slider src/components/switch src/components/textarea src/components/time-picker` → 16/16 passed; existing component specs (slider/switch/textarea/time-picker) → 38/38 passed; `npx tsc --noEmit` → clean.
 
 ---
 *Phase: 10-graceful-degradation-compatibility-matrix*
