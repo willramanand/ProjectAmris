@@ -69,12 +69,24 @@ export class AmCard extends LitElement {
         border-top: var(--am-border-1) solid var(--am-border-subtle);
       }
 
-      /* Hide empty slots */
-      .header:not(:has(::slotted(*))) {
-        display: none;
+      /* Hide empty slots — COMPAT-06 (@supports :has() guard).
+         Functional default OUTSIDE the block: on engines without :has()
+         support the empty slot simply reserves space (display: block) rather
+         than silently mis-rendering. The collapse enhancement lives INSIDE the
+         guard so above-floor rendering is byte-identical to before. */
+      .header {
+        display: block;
       }
-      .footer:not(:has(::slotted(*))) {
-        display: none;
+      .footer {
+        display: block;
+      }
+      @supports selector(:has(*)) {
+        .header:not(:has(::slotted(*))) {
+          display: none;
+        }
+        .footer:not(:has(::slotted(*))) {
+          display: none;
+        }
       }
     `,
   ];
