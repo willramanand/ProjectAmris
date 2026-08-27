@@ -2,6 +2,13 @@ import { LitElement, css, html, nothing, type PropertyValues } from 'lit';
 import { customElement, property, queryAll, state } from 'lit/decorators.js';
 import { resetStyles } from '../../styles/reset.css.js';
 import { ValidationController } from '../../internal/controllers/validation.js';
+import { attachInternalsSafe } from '../../internal/helpers/attach-internals-safe.js';
+import {
+  isFormFallbackEnabled,
+  syncFormFallback,
+  teardownFormFallback,
+  warnBelowFloorOnce,
+} from '../../internal/helpers/form-participation.js';
 import { uniqueId } from '../../utilities/unique-id.js';
 
 /**
@@ -40,7 +47,13 @@ export class AmInputOtp extends LitElement {
 
   @queryAll('input') private _inputs!: NodeListOf<HTMLInputElement>;
 
-  private _internals: ElementInternals;
+  /**
+   * Attached form internals, or `null` below the ElementInternals floor where
+   * {@link attachInternalsSafe} could not attach (COMPAT-02). All call sites
+   * null-safe this so the component still constructs and renders; below the
+   * floor the opt-in hidden-input fallback (COMPAT-03) mirrors the value instead.
+   */
+  private _internals: ElementInternals | null;
 
   /** Stable id shared by the error message node and the group's aria-describedby. */
   private readonly _errorId = uniqueId('am-input-otp-error');
@@ -70,11 +83,19 @@ export class AmInputOtp extends LitElement {
 
   constructor() {
     super();
-    this._internals = this.attachInternals();
+    this._internals = attachInternalsSafe(this);
     this._values = Array(this.length).fill('');
     // A failed constraint check on form submit fires `invalid` on this host;
     // suppress the browser's default bubble and surface our own message (D-04).
     this.addEventListener('invalid', this._onInvalid);
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    // Remove the below-floor hidden-input mirror (if one was created) so a
+    // disconnect leaves no stale light-DOM node (COMPAT-03 teardown; no-op above
+    // the floor where no mirror exists).
+    teardownFormFallback(this);
   }
 
   static styles = [
@@ -141,7 +162,20 @@ export class AmInputOtp extends LitElement {
   protected updated(changed: PropertyValues) {
     if (changed.has('_values')) {
       const value = this._values.join('');
-      this._internals.setFormValue(value);
+      this._internals?.setFormValue(value);
+      // Below the ElementInternals floor (internals null): the XOR-gated opt-in
+      // hidden-input fallback mirrors the aggregate OTP value (COMPAT-03), else a
+      // one-time dev warning.
+      if (!this._internals) {
+        isFormFallbackEnabled()
+          ? syncFormFallback(this, {
+              name: this.name,
+              value,
+              required: this.required,
+              disabled: this.disabled,
+            })
+          : warnBelowFloorOnce('am-input-otp');
+      }
     }
     // Validity depends only on the aggregate value + `required`, both of
     // which are already reactive properties — safe to resolve every update.
@@ -160,13 +194,13 @@ export class AmInputOtp extends LitElement {
     const anchor = this._inputs?.[0] ?? null;
     const isMissing = this.required && this.value.length < this.length;
     if (isMissing) {
-      this._internals.setValidity(
+      this._internals?.setValidity(
         { valueMissing: true },
         `Please enter all ${this.length} characters.`,
         anchor ?? undefined,
       );
     } else {
-      this._internals.setValidity({});
+      this._internals?.setValidity({});
     }
 
     const show = this._validation.invalid;

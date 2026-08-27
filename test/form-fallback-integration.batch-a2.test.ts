@@ -1,6 +1,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import '../src/components/number-field/number-field';
+import '../src/components/input-otp/input-otp';
+import '../src/components/radio/radio';
+import '../src/components/rich-select/rich-select';
+import '../src/components/select/select';
 import {
   __resetCapabilitiesForTest,
   hasFormAssociation,
@@ -44,6 +48,39 @@ const FALLBACK_TAGS: FallbackCase[] = [
       (el as unknown as { value: number }).value = 42;
     },
     expected: '42',
+  },
+  {
+    tag: 'am-input-otp',
+    name: 'code',
+    // value is a read-only getter over the `_values` @state — drive that instead.
+    setValue: (el) => {
+      (el as unknown as { _values: string[] })._values = ['1', '2', '3', '4', '5', '6'];
+    },
+    expected: '123456',
+  },
+  {
+    tag: 'am-radio-group',
+    name: 'plan',
+    setValue: (el) => {
+      (el as unknown as { value: string }).value = 'pro';
+    },
+    expected: 'pro',
+  },
+  {
+    tag: 'am-rich-select',
+    name: 'assignee',
+    setValue: (el) => {
+      (el as unknown as { value: string }).value = 'alice';
+    },
+    expected: 'alice',
+  },
+  {
+    tag: 'am-select',
+    name: 'fruit',
+    setValue: (el) => {
+      (el as unknown as { value: string }).value = 'apple';
+    },
+    expected: 'apple',
   },
 ];
 
@@ -143,4 +180,79 @@ describe('form-participation fallback integration — batch A2', () => {
       expect(el.querySelector('input[data-am-fallback]')).toBeNull();
     });
   }
+});
+
+/**
+ * am-radio has checked-based (not value-set) semantics, so it does not fit the
+ * generic `setValue` loop above. Its distinctive contract is T-10-09b: below the
+ * floor an unselected radio must be ABSENT from FormData (native radio
+ * semantics), implemented via teardown-on-deselect rather than a present-but-empty
+ * mirror. Above the floor the fallback never attaches (XOR).
+ */
+describe('form-participation fallback integration — am-radio (checked-based)', () => {
+  const savedElementInternals = globalThis.ElementInternals;
+
+  afterEach(() => {
+    Object.defineProperty(globalThis, 'ElementInternals', {
+      configurable: true,
+      writable: true,
+      value: savedElementInternals,
+    });
+    __resetCapabilitiesForTest();
+    __resetFormParticipationForTest();
+    document.body.innerHTML = '';
+    vi.restoreAllMocks();
+  });
+
+  type RadioEl = HTMLElement & {
+    name: string;
+    value: string;
+    checked: boolean;
+    updateComplete: Promise<unknown>;
+  };
+
+  it('below floor + fallback enabled: present-when-checked, absent-when-deselected', async () => {
+    forceBelowFloor();
+    __resetFormParticipationForTest();
+    enableFormFallback();
+    expect(hasFormAssociation()).toBe(false);
+
+    const form = document.createElement('form');
+    document.body.appendChild(form);
+
+    const el = document.createElement('am-radio') as RadioEl;
+    el.name = 'plan';
+    el.value = 'pro';
+    form.appendChild(el);
+    await el.updateComplete;
+
+    // Checked → mirror present, value serialized.
+    el.checked = true;
+    await el.updateComplete;
+    expect(el.querySelector('input[data-am-fallback]')).not.toBeNull();
+    expect(new FormData(form).get('plan')).toBe('pro');
+
+    // Deselected → mirror torn down, ABSENT from FormData (native radio semantics).
+    el.checked = false;
+    await el.updateComplete;
+    expect(el.querySelector('input[data-am-fallback]')).toBeNull();
+    expect(new FormData(form).get('plan')).toBeNull();
+  });
+
+  it('above the floor never attaches the hidden-input fallback (XOR)', async () => {
+    __resetCapabilitiesForTest();
+    __resetFormParticipationForTest();
+    enableFormFallback();
+    expect(hasFormAssociation()).toBe(true);
+
+    const el = document.createElement('am-radio') as RadioEl;
+    el.name = 'plan';
+    el.value = 'pro';
+    document.body.appendChild(el);
+    await el.updateComplete;
+    el.checked = true;
+    await el.updateComplete;
+
+    expect(el.querySelector('input[data-am-fallback]')).toBeNull();
+  });
 });
