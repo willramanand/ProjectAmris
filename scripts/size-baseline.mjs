@@ -4,9 +4,11 @@
 // / isMain guard.
 //
 // Key inversion vs cem-diff (CONTEXT D-08): cem-diff is an ENFORCING release gate
-// (non-zero exit on drift). This baseline is REPORT-ONLY this phase — it prints the
-// diff and exits 0 even when drift exists. The enforcing flip lands in Phase 11.
-// Exit 2 is reserved for a usage error only.
+// (non-zero exit on drift). This baseline's `--check`/`--write` modes are REPORT-ONLY
+// — they print the diff and exit 0 even when drift exists. Phase 11 (GATE-01) adds a
+// third `--enforce` mode that exits 1 on a per-entry brotli REGRESSION (a positive
+// delta beyond tolerance), leaving `--check` byte-identical. Exit 2 stays reserved for
+// a usage error only (an unknown mode) — never a size regression.
 //
 // Unit: BROTLI bytes. .size-limit.json carries no `gzip:true`, so size-limit v13
 // reports on-the-wire brotli by default (Pitfall 2). `@floating-ui/dom` is NOT in any
@@ -14,11 +16,12 @@
 // the Phase-8 deferral win becomes measurable; `lit` stays ignored (peer dep, never shipped).
 //
 // Modes:
-//   node scripts/size-baseline.mjs --write   measure and (over)write api/size.baseline.json
-//   node scripts/size-baseline.mjs --check    measure, diff vs the committed baseline, exit 0
-//   node scripts/size-baseline.mjs            defaults to --check
-// First-generation / empty-baseline edge: when api/size.baseline.json is absent, both
-// modes write it and report "new baseline" rather than erroring (MEAS-05 empty edge).
+//   node scripts/size-baseline.mjs --write     measure and (over)write api/size.baseline.json
+//   node scripts/size-baseline.mjs --check      measure, diff vs the committed baseline, exit 0
+//   node scripts/size-baseline.mjs --enforce    measure, diff, exit 1 on a brotli REGRESSION (GATE-01)
+//   node scripts/size-baseline.mjs              defaults to --check
+// First-generation / empty-baseline edge: when api/size.baseline.json is absent, every
+// mode writes it and reports "new baseline" rather than erroring (MEAS-05 empty edge).
 
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { brotliCompressSync } from 'node:zlib';
@@ -108,6 +111,39 @@ export const diff = (baseline, current) => {
   return { rows, hasDrift };
 };
 
+// --- Enforcement (GATE-01) ----------------------------------------------------
+// Per-row regression tolerance FLOOR in brotli bytes. The effective per-row
+// margin is the larger of this floor and 0.5% of that row's baseline value
+// (computed in enforceSizeExitCode). Rationale (Pitfall 1): a size-limit PATCH
+// bump on the Node-22-pinned lane can nudge a byte count a hair; a small margin
+// keeps a zero-code PR from red-building while any real regression (well beyond
+// the margin) still trips. A Node-MAJOR bump requires an explicit `--write`
+// baseline re-commit. Set to 0 at the call site for exact-match enforcement.
+export const SIZE_TOLERANCE = 16;
+
+// Effective per-row margin: max(floor, 0.5% of the row's baseline). A row with
+// no baseline (added entry, base null) contributes only the floor — but such a
+// row also has delta null and is never a regression on its own delta anyway.
+const perRowMargin = (row, floor) =>
+  Math.max(floor, row.base != null ? Math.round(0.005 * row.base) : 0);
+
+// Enforcing exit-code decision (GATE-01), mirroring cem-diff.mjs
+// `releaseGateExitCode`: a PURE function of a `diff()`-shaped result so the
+// exit decision is unit-testable without spawning a process. Regression-CEILING
+// semantics (RESEARCH Pattern 2): return 1 when ANY row has a real positive
+// delta beyond its per-row margin (a size regression), else 0. A shrink
+// (negative delta), an unchanged row (zero delta), and an added/removed row
+// (delta null — no baseline to compare) all pass. Never fails OPEN.
+export const enforceSizeExitCode = (result, { tolerance = SIZE_TOLERANCE } = {}) => {
+  const rows = result?.rows ?? [];
+  const regressed = rows.some((r) => r.delta != null && r.delta > perRowMargin(r, tolerance));
+  return regressed ? 1 : 0;
+};
+
+// The offending rows for stderr reporting: positive-delta rows beyond margin.
+const regressingRows = (result, tolerance) =>
+  (result?.rows ?? []).filter((r) => r.delta != null && r.delta > perRowMargin(r, tolerance));
+
 // Render a structured diff as a human-readable, report-only summary.
 export const formatReport = (result) => {
   const lines = [];
@@ -133,15 +169,17 @@ export const formatReport = (result) => {
 
 const writeBaseline = (data) => writeFileSync(BASELINE_PATH, JSON.stringify(data, null, 2) + '\n');
 
-const USAGE = 'usage: node scripts/size-baseline.mjs [--write|--check]';
+const USAGE = 'usage: node scripts/size-baseline.mjs [--write|--check|--enforce]';
 
-// CLI entry. Report-only: exits 0 in every mode; exit 2 only on a usage error.
+// CLI entry. `--write` / `--check` stay report-only (exit 0 even on drift);
+// `--enforce` (GATE-01) exits 1 on a per-row brotli regression. Exit 2 is
+// reserved for a usage error only (an unknown mode) — never a size regression.
 const isMain = process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1];
 if (isMain) {
   const mode = process.argv[2] ?? '--check';
-  if (mode !== '--write' && mode !== '--check') {
+  if (mode !== '--write' && mode !== '--check' && mode !== '--enforce') {
     console.error(USAGE);
-    process.exit(2); // usage error -> the only non-zero exit
+    process.exit(2); // usage error -> the only exit-2 path
   }
 
   const current = measure();
@@ -154,13 +192,35 @@ if (isMain) {
     process.exit(0);
   }
 
-  // --check
+  // First-generation / empty-baseline edge (MEAS-05): when the baseline is
+  // absent, write it and exit 0 in EVERY mode (including --enforce) — there is
+  // nothing to regress against on the first run.
   if (!existsSync(BASELINE_PATH)) {
     writeBaseline(current);
     console.log(`New baseline — ${BASELINE_PATH} was absent, wrote first-generation baseline.`);
     process.exit(0);
   }
+
   const result = diff(load(BASELINE_PATH), current);
   console.log(formatReport(result));
-  process.exit(0); // REPORT-ONLY (D-08): 0 even on drift.
+
+  if (mode === '--enforce') {
+    // ENFORCING (GATE-01): reads the committed baseline only, never writes it.
+    const code = enforceSizeExitCode(result, { tolerance: SIZE_TOLERANCE });
+    if (code !== 0) {
+      console.error(
+        `\nSize regression gate FAILED (GATE-01): a per-entry brotli size grew beyond the ` +
+          `tolerance (max(${SIZE_TOLERANCE} B, 0.5% of baseline)). Offending rows:`,
+      );
+      for (const r of regressingRows(result, SIZE_TOLERANCE))
+        console.error(`  ${r.name}: +${r.delta} B (${r.base} B -> ${r.current} B)`);
+      console.error(
+        `\nShrink or hold these entries, or re-commit the baseline with ` +
+          `\`node scripts/size-baseline.mjs --write\` if the growth is intentional.`,
+      );
+    }
+    process.exit(code); // 1 on regression, 0 on same-or-shrunk.
+  }
+
+  process.exit(0); // --check: REPORT-ONLY (D-08): 0 even on drift.
 }

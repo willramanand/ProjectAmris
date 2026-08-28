@@ -1,17 +1,17 @@
 {
   "unit": "brotli-bytes",
   "entries": {
-    "core bundle": 21076,
-    "full bundle": 61881,
-    "button (light deep import)": 1879,
-    "data-grid (heavy deep import)": 11151,
-    "popover (overlay deep import)": 9735,
-    "first-load composite (core+button+input+dialog)": 22971,
+    "core bundle": 21665,
+    "full bundle": 62752,
+    "button (light deep import)": 2111,
+    "data-grid (heavy deep import)": 11246,
+    "popover (overlay deep import)": 9810,
+    "first-load composite (core+button+input+dialog)": 23792,
     "tokens.css": 2649
   },
   "marginal": {
-    "button (light deep import)": -19197,
-    "data-grid (heavy deep import)": -9925,
-    "popover (overlay deep import)": -11341
+    "button (light deep import)": -19554,
+    "data-grid (heavy deep import)": -10419,
+    "popover (overlay deep import)": -11855
   }
 }
