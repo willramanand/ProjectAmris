@@ -156,10 +156,17 @@ export const enforceDetail = (result) => {
 
 const fmtMs = (v) => (v == null ? '—' : `${Number(v).toFixed(1)}ms`);
 
-// Render a structured diff as a human-readable, report-only summary.
-export const formatReport = (result) => {
+// Render a structured diff as a human-readable summary. The footer is mode-aware
+// (WR-03): under `--enforce` the "count drift never fails the build" line is
+// misleading (the script is about to exit 1 and fail the job), so it is inverted
+// to state the enforcing behavior. Wall-clock stays report-only in every mode.
+export const formatReport = (result, { enforce = false } = {}) => {
   const lines = [];
-  lines.push('Runtime-perf baseline diff (counts gated, wall-clock report-only — MEAS-02/03)');
+  lines.push(
+    enforce
+      ? 'Runtime-perf baseline diff (counts ENFORCING GATE-02, wall-clock report-only — MEAS-02/03)'
+      : 'Runtime-perf baseline diff (counts gated, wall-clock report-only — MEAS-02/03)',
+  );
   lines.push('==============================================================================');
 
   if (!result.hasDrift) {
@@ -194,7 +201,11 @@ export const formatReport = (result) => {
   }
 
   lines.push('');
-  lines.push('Report-only this phase (D-08): count drift never fails the build; wall-clock never gates.');
+  lines.push(
+    enforce
+      ? 'ENFORCING (GATE-02): any count drift fails the build; wall-clock never gates.'
+      : 'Report-only this phase (D-08): count drift never fails the build; wall-clock never gates.',
+  );
   return lines.join('\n');
 };
 
@@ -268,7 +279,7 @@ if (isMain) {
   }
 
   const result = diff(load(baselinePath), load(currentPath));
-  console.log(formatReport(result));
+  console.log(formatReport(result, { enforce }));
 
   if (!enforce) {
     process.exit(0); // REPORT-ONLY (D-08): 0 even on count drift.

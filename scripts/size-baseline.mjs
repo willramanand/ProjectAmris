@@ -162,10 +162,17 @@ const regressingRows = (result, tolerance) =>
     (r) => !r.derived && r.delta != null && r.delta > perRowMargin(r, tolerance),
   );
 
-// Render a structured diff as a human-readable, report-only summary.
-export const formatReport = (result) => {
+// Render a structured diff as a human-readable summary. The footer is mode-aware
+// (WR-03): under `--enforce` the "drift never fails the build" line is misleading
+// (the script is about to exit 1 and fail the job), so it is inverted to state
+// the enforcing behavior.
+export const formatReport = (result, { enforce = false } = {}) => {
   const lines = [];
-  lines.push('Bundle-size baseline diff (brotli, report-only — MEAS-01/MEAS-04)');
+  lines.push(
+    enforce
+      ? 'Bundle-size baseline diff (brotli, ENFORCING GATE-01 — MEAS-01/MEAS-04)'
+      : 'Bundle-size baseline diff (brotli, report-only — MEAS-01/MEAS-04)',
+  );
   lines.push('================================================================');
   if (!result.hasDrift) {
     lines.push('No drift — committed baseline matches the current build (byte-identical brotli).');
@@ -181,7 +188,11 @@ export const formatReport = (result) => {
     }
   }
   lines.push('');
-  lines.push('Report-only this phase (D-08): drift never fails the build.');
+  lines.push(
+    enforce
+      ? 'ENFORCING (GATE-01): an absolute per-entry brotli regression beyond tolerance fails the build.'
+      : 'Report-only this phase (D-08): drift never fails the build.',
+  );
   return lines.join('\n');
 };
 
@@ -234,7 +245,7 @@ if (isMain) {
   }
 
   const result = diff(load(BASELINE_PATH), current);
-  console.log(formatReport(result));
+  console.log(formatReport(result, { enforce: mode === '--enforce' }));
 
   if (mode === '--enforce') {
     // ENFORCING (GATE-01): reads the committed baseline only, never writes it.
