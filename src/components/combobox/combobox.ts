@@ -13,6 +13,13 @@ import { FloatingPositionController } from '../../internal/controllers/floating-
 import { ListboxNavController } from '../../internal/controllers/listbox-nav.js';
 import { filterOptions } from '../../internal/controllers/option-filter.js';
 import { ValidationController } from '../../internal/controllers/validation.js';
+import { attachInternalsSafe } from '../../internal/helpers/attach-internals-safe.js';
+import {
+  isFormFallbackEnabled,
+  syncFormFallback,
+  teardownFormFallback,
+  warnBelowFloorOnce,
+} from '../../internal/helpers/form-participation.js';
 import { uniqueId } from '../../utilities/unique-id.js';
 import {
   VIRTUALIZE_ROW_THRESHOLD,
@@ -123,7 +130,12 @@ export class AmCombobox extends LitElement {
   @query('.select-listbox') private _selectListboxEl!: HTMLElement;
   @query('.dropdown-search') private _dropdownSearchEl!: HTMLInputElement;
 
-  private internals: ElementInternals;
+  /**
+   * Attached form internals, or `null` below the ElementInternals floor where
+   * {@link attachInternalsSafe} could not attach (COMPAT-02). All call sites
+   * null-safe this so the combobox still constructs, connects, and renders.
+   */
+  private internals: ElementInternals | null;
 
   /** Stable id shared by the error message node and the focusable's aria-describedby. */
   private readonly _errorId = uniqueId('am-combobox-error');
@@ -223,7 +235,7 @@ export class AmCombobox extends LitElement {
 
   constructor() {
     super();
-    this.internals = this.attachInternals();
+    this.internals = attachInternalsSafe(this);
     // The `invalid`-listener attach is NON-critical for first paint (it only
     // matters once a form submit runs a constraint check), so it is deferred off
     // the constructor onto a post-paint rAF in connectedCallback (SIZE-05 / D-08).
@@ -608,11 +620,32 @@ export class AmCombobox extends LitElement {
     // The floating autoUpdate teardown is mirrored in the controller's
     // hostDisconnected (invoked during super.disconnectedCallback above).
     document.removeEventListener('click', this._handleDocumentClick);
+    // Remove any Light-DOM hidden-input mirror appended below the floor (a no-op
+    // if none was ever attached), leaving no stale node behind.
+    teardownFormFallback(this);
   }
 
   protected updated(changed: PropertyValues) {
     if (changed.has('value')) {
-      this.internals.setFormValue(this.value);
+      this.internals?.setFormValue(this.value);
+    }
+    // Below the ElementInternals floor (`internals` is null), the value can only
+    // reach an enclosing <form> via the opt-in Light-DOM hidden-input fallback
+    // (COMPAT-03). Runs every updated() pass (not gated to `changed.has('value')`)
+    // so name/required/disabled changes sync too, entered ONLY when `internals`
+    // is null — the same guard that gates setFormValue above (XOR: no
+    // double-submit).
+    if (!this.internals) {
+      if (isFormFallbackEnabled()) {
+        syncFormFallback(this, {
+          name: this.name,
+          value: this.value,
+          required: this.required,
+          disabled: this.disabled,
+        });
+      } else {
+        warnBelowFloorOnce('am-combobox');
+      }
     }
     // In remote mode, open the dropdown when new options arrive while focused
     if (this.remote && changed.has('options') && this.options.length > 0 && this._focused) {
@@ -647,9 +680,9 @@ export class AmCombobox extends LitElement {
     const anchor = this._anchorEl;
     if (anchor) {
       if (this.required && this.value === '') {
-        this.internals.setValidity({ valueMissing: true }, VALUE_MISSING_MESSAGE, anchor);
+        this.internals?.setValidity({ valueMissing: true }, VALUE_MISSING_MESSAGE, anchor);
       } else {
-        this.internals.setValidity({});
+        this.internals?.setValidity({});
       }
     }
 

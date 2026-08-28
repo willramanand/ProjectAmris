@@ -3,6 +3,13 @@ import { customElement, property, query, state } from 'lit/decorators.js';
 import { resetStyles } from '../../styles/reset.css.js';
 import { FloatingPositionController } from '../../internal/controllers/floating-position.js';
 import { ValidationController } from '../../internal/controllers/validation.js';
+import { attachInternalsSafe } from '../../internal/helpers/attach-internals-safe.js';
+import {
+  isFormFallbackEnabled,
+  syncFormFallback,
+  teardownFormFallback,
+  warnBelowFloorOnce,
+} from '../../internal/helpers/form-participation.js';
 import { uniqueId } from '../../utilities/unique-id.js';
 import { clampDay, daysInMonth, formatDate, parseDate } from '../../internal/helpers/date-utils.js';
 import '../calendar/calendar.js';
@@ -66,7 +73,12 @@ export class AmDatePicker extends LitElement {
   @query('.wrapper') private _wrapper!: HTMLElement;
   @query('.dropdown') private _dropdown!: HTMLElement;
 
-  private _internals: ElementInternals;
+  /**
+   * Attached form internals, or `null` below the ElementInternals floor where
+   * {@link attachInternalsSafe} could not attach (COMPAT-02). All call sites
+   * null-safe this so the date-picker still constructs, connects, and renders.
+   */
+  private _internals: ElementInternals | null;
   private _bufferTimer: ReturnType<typeof setTimeout> | null = null;
 
   /** Stable id shared by the error message node and each segment's aria-describedby. */
@@ -108,7 +120,7 @@ export class AmDatePicker extends LitElement {
 
   constructor() {
     super();
-    this._internals = this.attachInternals();
+    this._internals = attachInternalsSafe(this);
     // A failed constraint check on form submit fires `invalid` on this host;
     // suppress the browser's default bubble and surface our own message (D-04).
     this.addEventListener('invalid', this._onInvalid);
@@ -324,13 +336,33 @@ export class AmDatePicker extends LitElement {
     // The floating autoUpdate teardown is mirrored in the controller's
     // hostDisconnected (invoked during super.disconnectedCallback above).
     if (this._bufferTimer) clearTimeout(this._bufferTimer);
+    // Remove any Light-DOM hidden-input mirror appended below the floor (a no-op
+    // if none was ever attached), leaving no stale node behind.
+    teardownFormFallback(this);
   }
 
   protected updated(changed: PropertyValues) {
     if (changed.has('value') && changed.get('value') !== undefined) {
       this._parseValue();
     }
-    this._internals.setFormValue(this._hasValue ? this._formatValue() : '');
+    this._internals?.setFormValue(this._hasValue ? this._formatValue() : '');
+    // Below the ElementInternals floor (`_internals` is null), the value can only
+    // reach an enclosing <form> via the opt-in Light-DOM hidden-input fallback
+    // (COMPAT-03). Entered ONLY when `_internals` is null — the same guard that
+    // gates setFormValue above (XOR: no double-submit). Mirrors the same
+    // serialized value setFormValue reports.
+    if (!this._internals) {
+      if (isFormFallbackEnabled()) {
+        syncFormFallback(this, {
+          name: this.name,
+          value: this._hasValue ? this._formatValue() : '',
+          required: this.required,
+          disabled: this.disabled,
+        });
+      } else {
+        warnBelowFloorOnce('am-date-picker');
+      }
+    }
     if (changed.has('_open')) {
       if (this._open) {
         document.addEventListener('click', this._handleOutsideClick);
@@ -355,9 +387,9 @@ export class AmDatePicker extends LitElement {
     const anchor = this.shadowRoot?.querySelector('.segment') as HTMLElement | null;
     if (anchor) {
       if (this.required && !this._hasValue) {
-        this._internals.setValidity({ valueMissing: true }, VALUE_MISSING_MESSAGE, anchor);
+        this._internals?.setValidity({ valueMissing: true }, VALUE_MISSING_MESSAGE, anchor);
       } else {
-        this._internals.setValidity({});
+        this._internals?.setValidity({});
       }
     }
 

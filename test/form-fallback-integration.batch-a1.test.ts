@@ -1,6 +1,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import '../src/components/input/input';
+import '../src/components/checkbox/checkbox';
+import '../src/components/combobox/combobox';
+import '../src/components/color-picker/color-picker';
+import '../src/components/date-picker/date-picker';
 import {
   __resetCapabilitiesForTest,
   hasFormAssociation,
@@ -47,6 +51,40 @@ const FALLBACK_TAGS: FallbackCase[] = [
     applyValue: (el) => {
       (el as UpdatingElement & { value: string }).value = 'user@example.com';
       return 'user@example.com';
+    },
+  },
+  {
+    tag: 'am-checkbox',
+    name: 'agree',
+    // A CHECKED checkbox mirrors its `value` (default 'on'); unchecked tears the
+    // mirror down (absent from FormData), so the parity case checks it on.
+    applyValue: (el) => {
+      (el as UpdatingElement & { checked: boolean }).checked = true;
+      return 'on';
+    },
+  },
+  {
+    tag: 'am-combobox',
+    name: 'fruit',
+    applyValue: (el) => {
+      (el as UpdatingElement & { value: string }).value = 'apple';
+      return 'apple';
+    },
+  },
+  {
+    tag: 'am-color-picker',
+    name: 'color',
+    applyValue: (el) => {
+      (el as UpdatingElement & { value: string }).value = '#ff0000';
+      return '#ff0000';
+    },
+  },
+  {
+    tag: 'am-date-picker',
+    name: 'due',
+    applyValue: (el) => {
+      (el as UpdatingElement & { value: string }).value = '2025-06-15';
+      return '2025-06-15';
     },
   },
 ];
