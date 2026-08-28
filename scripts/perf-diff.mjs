@@ -254,6 +254,19 @@ if (isMain) {
     process.exit(0);
   }
 
+  // The current report (api/perf.json) is produced by the perf harness. If it
+  // is absent, `load(currentPath)` would throw an uncaught ENOENT and crash
+  // with a stack trace (WR-02). A missing current report is a setup/usage error
+  // — not drift and not a pass — so exit 2 (the reserved usage-error code),
+  // symmetric with the `--write` current-missing guard above. Exiting 0 here
+  // would fail the gate OPEN under --enforce.
+  if (!existsSync(currentPath)) {
+    console.error(
+      `perf-diff: current report not found: ${currentPath}. Run \`npm run test:perf\` first.`,
+    );
+    process.exit(2);
+  }
+
   const result = diff(load(baselinePath), load(currentPath));
   console.log(formatReport(result));
 
