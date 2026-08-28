@@ -21,6 +21,33 @@ import type { BrowserCommand } from 'vitest/node';
  * overwriting the whole file. The perf project runs files serially
  * (fileParallelism: false) so this read-modify-write is race-free.
  */
+/**
+ * D-06 widened-matrix spec set (COMPAT-04). WebKit and Firefox run ONLY this
+ * 7-spec subset — the 4 pre-existing load-bearing specs (form-association,
+ * overlay-focus, dialog-top-layer, floating-position) plus the 3 new Phase-10
+ * degradation specs (capabilities, form-fallback, supports-guards). Chromium
+ * keeps running the FULL `test/browser/**` lane: its instance carries no
+ * per-instance `include`, so it inherits the project-level glob.
+ *
+ * Per-instance `include` IS a supported key on @vitest/browser 4.1.9's
+ * `BrowserInstanceOption` (it extends `Omit<ProjectConfig, …>`, and `include` is
+ * NOT among the omitted properties) — RESEARCH assumption A1 confirmed
+ * empirically against node_modules/vitest this session, so the primary
+ * per-instance shape is used (no fallback per-engine project needed).
+ *
+ * The Chromium-only `perf` project and ALL CDP throttling stay untouched — this
+ * list never widens the perf matrix (D-06 scope boundary).
+ */
+const D06_WIDENED_SPECS = [
+  'test/browser/form-association.test.ts',
+  'test/browser/overlay-focus.test.ts',
+  'test/browser/dialog-top-layer.test.ts',
+  'test/browser/floating-position.test.ts',
+  'test/browser/capabilities.test.ts',
+  'test/browser/form-fallback.test.ts',
+  'test/browser/supports-guards.test.ts',
+];
+
 const writeMetrics: BrowserCommand<[string, unknown]> = async (_ctx, path, data) => {
   mkdirSync(dirname(path), { recursive: true });
   let existing: Record<string, unknown> = {};
@@ -66,7 +93,17 @@ export default defineConfig({
             enabled: true,
             provider: playwright(),
             headless: true,
-            instances: [{ browser: 'chromium' }],
+            // chromium: full `test/browser/**` lane (no per-instance include).
+            // webkit + firefox: each scoped to the 7-spec D-06 subset (COMPAT-04)
+            // — real WebKit/Firefox engine coverage of the load-bearing
+            // form/focus/dialog paths + the new Phase-10 degradation specs,
+            // without widening the full lane × N. This completes the D-06
+            // widened tested-engine matrix (chromium + webkit + firefox).
+            instances: [
+              { browser: 'chromium' },
+              { browser: 'webkit', include: D06_WIDENED_SPECS },
+              { browser: 'firefox', include: D06_WIDENED_SPECS },
+            ],
           },
         },
       },
