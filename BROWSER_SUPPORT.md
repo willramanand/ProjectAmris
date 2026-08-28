@@ -61,8 +61,8 @@ These features look better when supported but degrade gracefully on the floor br
 
 ## What does **not** work below the floor
 
-- Form controls submit no value to their parent `<form>`.
-- Empty card / dialog / drawer / panel / side-nav / app-shell slots reserve space instead of collapsing.
+- Form controls submit no value to their parent `<form>` **unless** the consumer opts into `@willramanand/amris/compat-forms` (see [Graceful Degradation](#graceful-degradation-v11)). With the opt-in enabled below the floor, the control's `value` **plus** native `required` / `pattern` constraint validation is restored; the library's custom validation-message UI stays unavailable either way (it is ElementInternals-dependent).
+- Empty card / dialog / drawer / panel / side-nav / app-shell slots reserve space instead of collapsing — now an **intentional, `@supports selector(:has(*))`-guarded** functional-default fallback (COMPAT-06), not an unguarded selector silently failing. The end-state layout is the same, but it is now by design rather than an accident.
 - Focus-ring tints and hover overlays render with no color (the `color-mix()` declaration is dropped).
 - Modal dialogs that depend on `<dialog>` won't open.
 
@@ -76,10 +76,9 @@ The library does not currently ship cross-browser smoke tests. If you need confi
 
 ## Future work
 
-Lowering the floor below Safari 16.4 / Firefox 121 would require:
+Lowering the floor below Safari 16.4 / Firefox 121 further would still require:
 
-- A custom-hidden-input strategy for form-associated components (drops `ElementInternals` requirement).
 - JS-driven empty-slot detection (drops `:has()`).
 - Pre-mixed color tokens in place of `color-mix()`.
 
-This work is not currently scoped.
+The opt-in `@willramanand/amris/compat-forms` fallback (COMPAT-03) already restores form participation below the ElementInternals floor, so a custom-hidden-input strategy for form-associated components is **no longer future work** — it shipped in v1.1. A *hard* `ElementInternals` polyfill — the only way to lower the floor for forms *without* the opt-in — is **permanently out of scope**: `ElementInternals` is not polyfillable, and per REQUIREMENTS.md's Out of Scope table the library degrades instead of polyfilling. The two remaining items above are not currently scoped.
