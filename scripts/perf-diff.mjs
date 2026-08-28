@@ -3,9 +3,10 @@
 // load() / normalize (keyed by a stable id, sorted) / diff / formatReport / isMain guard.
 //
 // Key inversion vs cem-diff (CONTEXT D-08): cem-diff is an ENFORCING release gate
-// (non-zero exit on drift). This perf diff is REPORT-ONLY this phase — it prints the
-// diff and exits 0 even when count drift exists. The enforcing flip lands in Phase 11.
-// Exit 2 is reserved for a usage error only.
+// (non-zero exit on drift). This perf diff defaults to REPORT-ONLY — it prints the
+// diff and exits 0 even when count drift exists. Phase 11 (GATE-02) adds an opt-in
+// `--enforce` mode that exits 1 on COUNT drift only; wall-clock stays structurally
+// report-only in every mode. Exit 2 is reserved for a usage error only.
 //
 // WHAT GATES vs WHAT IS REPORT-ONLY (D-06/D-07, Pitfall 15):
 //   counts     — the deterministic, engine-independent GATED numbers (Lit update/updated/
@@ -22,8 +23,11 @@
 // (baseline counts == current counts) reports no drift and exits 0 (idempotent).
 //
 // Modes:
-//   node scripts/perf-diff.mjs <baseline.json> <current.json>
-//       diff the committed baseline vs a fresh per-run report, report-only exit 0.
+//   node scripts/perf-diff.mjs <baseline.json> <current.json> [--enforce]
+//       diff the committed baseline vs a fresh per-run report. Without --enforce:
+//       report-only exit 0. With --enforce (GATE-02): exit 1 on any COUNT drift
+//       (scenario/metric add/remove or a count delta), exit 0 otherwise; wall-clock
+//       never contributes. --enforce READS both files only, never writes the baseline.
 //       When <baseline.json> is absent, print "new baseline" and exit 0 (empty edge,
 //       MEAS-05) — the committed baseline is written explicitly via --write, so a run
 //       never silently mints a baseline from an unpinned profile.
@@ -125,6 +129,31 @@ export const diff = (baseline, current) => {
   return { addedScenarios, removedScenarios, changed, wallClock, hasDrift };
 };
 
+// Enforcing exit-code decision (GATE-02), mirroring cem-diff.mjs releaseGateExitCode
+// and size-baseline.mjs enforceSizeExitCode: a pure, unit-testable function with no
+// process spawn. Returns 1 when the COUNT-only `result.hasDrift` is true, else 0.
+// Because `hasDrift` is computed above from count deltas + scenario add/remove ONLY
+// (never wall-clock, D-06), wall-clock is structurally incapable of reaching a
+// non-zero exit — the volatile metric can never gate CI.
+export const enforcePerfExitCode = (result) => (result?.hasDrift ? 1 : 0);
+
+// Collect drifted "scenario:metric" names and whether any drifted row is a count
+// REDUCTION (negative delta = an improvement that should be re-baselined). Used by
+// the --enforce CLI to name offenders on stderr and prompt a --write re-baseline.
+export const enforceDetail = (result) => {
+  const offenders = [];
+  let hasReduction = false;
+  for (const s of result.addedScenarios) offenders.push(`+scenario ${s}`);
+  for (const s of result.removedScenarios) offenders.push(`-scenario ${s}`);
+  for (const [scenario, rows] of Object.entries(result.changed)) {
+    for (const r of rows) {
+      offenders.push(`${scenario}:${r.metric}`);
+      if (r.delta != null && r.delta < 0) hasReduction = true;
+    }
+  }
+  return { offenders, hasReduction };
+};
+
 const fmtMs = (v) => (v == null ? '—' : `${Number(v).toFixed(1)}ms`);
 
 // Render a structured diff as a human-readable, report-only summary.
@@ -173,10 +202,11 @@ const writeBaseline = (path, data) =>
   writeFileSync(path, JSON.stringify(data, null, 2) + '\n');
 
 const USAGE =
-  'usage: node scripts/perf-diff.mjs <baseline.json> <current.json>\n' +
+  'usage: node scripts/perf-diff.mjs <baseline.json> <current.json> [--enforce]\n' +
   '       node scripts/perf-diff.mjs --write [current.json] [baseline.json]';
 
-// CLI entry. Report-only: exits 0 in diff/write modes; exit 2 only on a usage error.
+// CLI entry. Report-only diff exits 0; `--enforce` exits 1 on COUNT drift (GATE-02);
+// --write exits 0; exit 2 only on a usage error.
 const isMain = process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1];
 if (isMain) {
   const args = process.argv.slice(2);
@@ -202,7 +232,12 @@ if (isMain) {
     process.exit(0);
   }
 
-  const [baselinePath, currentPath] = args;
+  // GATE-02: `--enforce` flips the diff from report-only to enforcing on COUNTS.
+  // Filter the flag out of the positional pair before validating (the positional
+  // guard rejects args starting with `--`). Enforce mode READS both files only —
+  // it never writes the committed baseline (single-writer, T-07-07 above).
+  const enforce = args.includes('--enforce');
+  const [baselinePath, currentPath] = args.filter((a) => a !== '--enforce');
   if (!baselinePath || !currentPath || baselinePath.startsWith('--')) {
     console.error(USAGE);
     process.exit(2); // usage error -> the only non-zero exit
@@ -210,7 +245,8 @@ if (isMain) {
 
   if (!existsSync(baselinePath)) {
     // First-generation / empty edge (MEAS-05): no committed baseline yet. Report
-    // and exit 0 — the committed baseline is minted explicitly via --write.
+    // and exit 0 — the committed baseline is minted explicitly via --write. This
+    // holds under --enforce too: an absent baseline is never minted here.
     console.log(
       `New baseline — ${baselinePath} is absent. Run \`node scripts/perf-diff.mjs --write ${currentPath} ${baselinePath}\` ` +
         `to commit the first-generation perf baseline.`,
@@ -220,5 +256,25 @@ if (isMain) {
 
   const result = diff(load(baselinePath), load(currentPath));
   console.log(formatReport(result));
-  process.exit(0); // REPORT-ONLY (D-08): 0 even on count drift.
+
+  if (!enforce) {
+    process.exit(0); // REPORT-ONLY (D-08): 0 even on count drift.
+  }
+
+  // ENFORCING (GATE-02): non-zero on COUNT drift; wall-clock structurally excluded.
+  const code = enforcePerfExitCode(result);
+  if (code !== 0) {
+    const { offenders, hasReduction } = enforceDetail(result);
+    console.error(
+      `\nPerf count gate FAILED (GATE-02): runtime counts drifted from the committed ` +
+        `baseline (${baselinePath}). Offending count(s): ${offenders.join(', ')}.`,
+    );
+    if (hasReduction) {
+      console.error(
+        `One or more counts DROPPED (an improvement). Re-baseline via ` +
+          `\`node scripts/perf-diff.mjs --write ${currentPath} ${baselinePath}\` to bank the win.`,
+      );
+    }
+  }
+  process.exit(code); // wall-clock can never reach this path (count-only hasDrift).
 }
