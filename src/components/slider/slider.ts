@@ -2,6 +2,13 @@ import { LitElement, css, html, nothing, type PropertyValues } from 'lit';
 import { customElement, property, query, state } from 'lit/decorators.js';
 import { resetStyles } from '../../styles/reset.css.js';
 import { ValidationController } from '../../internal/controllers/validation.js';
+import { attachInternalsSafe } from '../../internal/helpers/attach-internals-safe.js';
+import {
+  isFormFallbackEnabled,
+  syncFormFallback,
+  teardownFormFallback,
+  warnBelowFloorOnce,
+} from '../../internal/helpers/form-participation.js';
 import { uniqueId } from '../../utilities/unique-id.js';
 
 /**
@@ -34,7 +41,12 @@ export class AmSlider extends LitElement {
   @property() label = '';
 
   @query('input[type="range"]') private _input!: HTMLInputElement;
-  private internals: ElementInternals;
+  /**
+   * Attached form internals, or `null` below the ElementInternals floor where
+   * {@link attachInternalsSafe} could not attach (COMPAT-02). All call sites
+   * null-safe this so the component still constructs and renders.
+   */
+  private internals: ElementInternals | null;
 
   /** Stable id shared by the error message node and the input's aria-describedby. */
   private readonly _errorId = uniqueId('am-slider-error');
@@ -61,7 +73,7 @@ export class AmSlider extends LitElement {
 
   constructor() {
     super();
-    this.internals = this.attachInternals();
+    this.internals = attachInternalsSafe(this);
     // A failed constraint check on form submit fires `invalid` on this host;
     // suppress the browser's default bubble and surface our own message (D-04).
     this.addEventListener('invalid', this._onInvalid);
@@ -206,11 +218,35 @@ export class AmSlider extends LitElement {
     if (changed.has('value') || changed.has('min') || changed.has('max')) {
       const percent = ((this.value - this.min) / (this.max - this.min)) * 100;
       this.style.setProperty('--fill-percent', `${percent}%`);
-      this.internals.setFormValue(String(this.value));
+      this.internals?.setFormValue(String(this.value));
+    }
+    // COMPAT-03: below the ElementInternals floor (internals is null), the
+    // control cannot report to the enclosing <form> via setFormValue. When the
+    // consumer has opted into the fallback, mirror the numeric value (as a
+    // string, matching the native setFormValue serialization) onto a hidden
+    // Light-DOM input; otherwise warn once. XOR-gated on `!this.internals`, so
+    // above the floor neither branch runs and no double-submit is possible.
+    if (!this.internals) {
+      if (isFormFallbackEnabled()) {
+        syncFormFallback(this, {
+          name: this.name,
+          value: String(this.value),
+          disabled: this.disabled,
+        });
+      } else {
+        warnBelowFloorOnce('am-slider');
+      }
     }
     // Native constraint validity is only knowable from the RENDERED range input,
     // so this reflection runs post-render (bounded, idempotent extra update).
     this._syncValidation();
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    // Remove any Light-DOM fallback mirror so a disconnect leaves no stale node
+    // (no-op above the floor, where the fallback never attached).
+    teardownFormFallback(this);
   }
 
   /**
@@ -231,9 +267,9 @@ export class AmSlider extends LitElement {
       };
       const anyInvalid = Object.values(flags).some(Boolean);
       if (anyInvalid) {
-        this.internals.setValidity(flags, input.validationMessage, input);
+        this.internals?.setValidity(flags, input.validationMessage, input);
       } else {
-        this.internals.setValidity({});
+        this.internals?.setValidity({});
       }
     }
 
