@@ -98,3 +98,73 @@ describe('diff: exported shape the enforce path consumes', () => {
     expect(enforceSizeExitCode(result, { tolerance: 0 })).toBe(1);
   });
 });
+
+describe('enforceSizeExitCode: derived marginal rows are report-only (CR-01)', () => {
+  // Regression for CR-01: a pure core-bundle SHRINK (a genuine win) unchanged
+  // component entries. Because marginal[name] = entry - core, every marginal
+  // row RISES by the amount core dropped, showing a positive delta. If the gate
+  // enforced on marginal rows it would return 1 on an improvement. The fix tags
+  // marginal rows `derived: true` and the enforce decision filters them out.
+  it('does NOT fail the gate when the core bundle shrinks and marginals inflate', () => {
+    // core drops 665 B; component deep-import entries flat. measure() recomputes
+    // marginal = entry - core, so each marginal rises by exactly 665.
+    const base = {
+      unit: 'brotli-bytes',
+      entries: {
+        'core bundle': 10000,
+        'button (light deep import)': 12000,
+        'data-grid (heavy deep import)': 40000,
+      },
+      marginal: {
+        'button (light deep import)': 2000, // 12000 - 10000
+        'data-grid (heavy deep import)': 30000, // 40000 - 10000
+      },
+    };
+    const current = {
+      unit: 'brotli-bytes',
+      entries: {
+        'core bundle': 9335, // -665 (the win)
+        'button (light deep import)': 12000, // flat
+        'data-grid (heavy deep import)': 40000, // flat
+      },
+      marginal: {
+        'button (light deep import)': 2665, // 12000 - 9335 (+665, inflated)
+        'data-grid (heavy deep import)': 30665, // 40000 - 9335 (+665, inflated)
+      },
+    };
+    const result = diff(base, current);
+
+    // Prove the trap exists: the marginal rows carry a positive delta and are
+    // tagged derived. Without the derived filter this diff would return exit 1.
+    const marginalRow = result.rows.find(
+      (r) => r.name === 'marginal: button (light deep import)',
+    );
+    expect(marginalRow?.delta).toBe(665);
+    expect(marginalRow?.derived).toBe(true);
+    // Absolute entry rows are NOT derived.
+    const coreRow = result.rows.find((r) => r.name === 'core bundle');
+    expect(coreRow?.delta).toBe(-665);
+    expect(coreRow?.derived).toBe(false);
+
+    // The gate must PASS a genuine core improvement (tolerance 0, no margin).
+    expect(enforceSizeExitCode(result, { tolerance: 0 })).toBe(0);
+  });
+
+  it('still fails when an absolute entry regresses even though a marginal row also inflates', () => {
+    // Core shrinks (inflating marginals) but a component entry genuinely grows —
+    // the absolute entry row must still trip the gate.
+    const base = {
+      unit: 'brotli-bytes',
+      entries: { 'core bundle': 10000, 'data-grid (heavy deep import)': 40000 },
+      marginal: { 'data-grid (heavy deep import)': 30000 },
+    };
+    const current = {
+      unit: 'brotli-bytes',
+      entries: { 'core bundle': 9335, 'data-grid (heavy deep import)': 40500 },
+      marginal: { 'data-grid (heavy deep import)': 31165 },
+    };
+    const result = diff(base, current);
+    // The absolute data-grid entry grew +500 — a real regression.
+    expect(enforceSizeExitCode(result, { tolerance: 0 })).toBe(1);
+  });
+});

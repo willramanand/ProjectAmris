@@ -97,6 +97,13 @@ const diffMap = (baseMap = {}, curMap = {}, prefix = '') => {
       current: cur ?? null,
       delta: base != null && cur != null ? cur - base : null,
       status,
+      // `derived` marks a RELATIVE, computed row (marginal = entry - core) as
+      // opposed to an absolute payload size. Enforcement must ignore derived
+      // rows: a pure core-bundle shrink inflates every marginal delta (marginal
+      // rises by the amount core dropped), which would otherwise trip the gate
+      // on a genuine improvement (CR-01). Absolute `entries` rows (prefix '')
+      // are the only enforceable payload sizes.
+      derived: prefix !== '',
     };
   });
 };
@@ -135,14 +142,25 @@ const perRowMargin = (row, floor) =>
 // (negative delta), an unchanged row (zero delta), and an added/removed row
 // (delta null — no baseline to compare) all pass. Never fails OPEN.
 export const enforceSizeExitCode = (result, { tolerance = SIZE_TOLERANCE } = {}) => {
-  const rows = result?.rows ?? [];
+  // Enforce ONLY over absolute `entries` rows; derived `marginal` rows are
+  // report-only (CR-01). A core-bundle shrink is a real payload win but raises
+  // every marginal-over-core delta by the amount core dropped, so gating on
+  // marginal rows fails the build on an improvement. A genuine core GROWTH is
+  // still caught by the absolute `core bundle` entry row, so excluding marginal
+  // rows loses no protection — it only removes false positives on the shrink
+  // side (mirrors wall-clock being structurally excluded in perf-diff).
+  const rows = (result?.rows ?? []).filter((r) => !r.derived);
   const regressed = rows.some((r) => r.delta != null && r.delta > perRowMargin(r, tolerance));
   return regressed ? 1 : 0;
 };
 
 // The offending rows for stderr reporting: positive-delta rows beyond margin.
+// Excludes derived (marginal) rows so the reported offenders match the rows the
+// gate actually enforces on (CR-01).
 const regressingRows = (result, tolerance) =>
-  (result?.rows ?? []).filter((r) => r.delta != null && r.delta > perRowMargin(r, tolerance));
+  (result?.rows ?? []).filter(
+    (r) => !r.derived && r.delta != null && r.delta > perRowMargin(r, tolerance),
+  );
 
 // Render a structured diff as a human-readable, report-only summary.
 export const formatReport = (result) => {
