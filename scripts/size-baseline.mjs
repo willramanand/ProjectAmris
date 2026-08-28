@@ -210,10 +210,24 @@ if (isMain) {
     process.exit(0);
   }
 
-  // First-generation / empty-baseline edge (MEAS-05): when the baseline is
-  // absent, write it and exit 0 in EVERY mode (including --enforce) — there is
-  // nothing to regress against on the first run.
+  // First-generation / empty-baseline edge (MEAS-05).
   if (!existsSync(BASELINE_PATH)) {
+    // --enforce READS the committed baseline only — it must NEVER write it
+    // (WR-01). Writing here was both fail-open (deleting the baseline silently
+    // greened the gate) and a contract violation ("--enforce never writes the
+    // baseline", ci.yml). Mirror perf-diff's safer handling: report guidance
+    // and exit 0 WITHOUT minting a file. The committed baseline is created
+    // explicitly via `--write`, so an absent baseline is never auto-minted in
+    // enforce mode.
+    if (mode === '--enforce') {
+      console.log(
+        `New baseline — ${BASELINE_PATH} is absent. Run ` +
+          `\`node scripts/size-baseline.mjs --write\` to commit the first-generation ` +
+          `baseline (enforce never writes it).`,
+      );
+      process.exit(0);
+    }
+    // --check: report-only first-run edge keeps writing the initial baseline.
     writeBaseline(current);
     console.log(`New baseline — ${BASELINE_PATH} was absent, wrote first-generation baseline.`);
     process.exit(0);
