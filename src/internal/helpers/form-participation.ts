@@ -6,10 +6,22 @@
  * Chrome < 77) a form-associated custom element cannot report its value to the
  * enclosing `<form>` via `setFormValue`. This module restores form submission by
  * mirroring the control's value (and native `required`/`pattern` constraints)
- * onto a `<input type="hidden">` appended as a LIGHT-DOM child of the host — a
+ * onto a visually-hidden `<input>` appended as a LIGHT-DOM child of the host — a
  * light-DOM descendant of the host is a descendant of the `<form>`, so the native
  * form serializes it (proven necessary by the `am-search-field` shadow-input
  * non-association finding, test/browser/form-association.test.ts:275-288).
+ *
+ * ## Why NOT `type="hidden"` (D-03 native validation)
+ *
+ * The mirror is a DEFAULT (text) input made non-visual via the `hidden` content
+ * attribute + `tabindex="-1"`, NOT `type="hidden"`. A hidden-TYPE input is barred
+ * from constraint validation (`willValidate === false`), so projecting
+ * `required`/`pattern` onto it would NOT block an invalid native submit —
+ * defeating D-03's "value + native validation" contract. A `hidden`-attribute
+ * text input stays a constraint-validation candidate (`required`/`pattern` DO
+ * block the native submit) AND is still serialized into `FormData`, while never
+ * rendering visibly nor entering the normal tab order. (Empirically verified in
+ * the browser lane, test/browser/form-fallback.test.ts.)
  *
  * ## Off-CEM-surface discipline (mirrors lazy-load.ts)
  *
@@ -103,8 +115,13 @@ export function syncFormFallback(host: HTMLElement, opts: FormFallbackOptions): 
   let input = _mirrors.get(host);
   if (!input || input.parentNode !== host) {
     input = document.createElement('input');
-    input.type = 'hidden';
+    // Deliberately NOT `type="hidden"`: a hidden-TYPE input is barred from
+    // constraint validation, so `required`/`pattern` could not block an invalid
+    // native submit (D-03). A default (text) input made non-visual via the
+    // `hidden` attribute + `tabindex="-1"` stays a validation candidate AND is
+    // still serialized into FormData, while never rendering nor taking tab focus.
     input.hidden = true;
+    input.tabIndex = -1;
     input.setAttribute('aria-hidden', 'true');
     input.setAttribute(FALLBACK_MARKER, '');
     host.appendChild(input);

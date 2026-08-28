@@ -3,6 +3,13 @@ import { customElement, property, query, state } from 'lit/decorators.js';
 import { styleMap } from 'lit/directives/style-map.js';
 import { resetStyles } from '../../styles/reset.css.js';
 import { ValidationController } from '../../internal/controllers/validation.js';
+import { attachInternalsSafe } from '../../internal/helpers/attach-internals-safe.js';
+import {
+  isFormFallbackEnabled,
+  syncFormFallback,
+  teardownFormFallback,
+  warnBelowFloorOnce,
+} from '../../internal/helpers/form-participation.js';
 import { loadFloating, prefetchFloating } from '../../internal/helpers/lazy-load.js';
 import { uniqueId } from '../../utilities/unique-id.js';
 
@@ -70,7 +77,12 @@ export class AmColorPicker extends LitElement {
   @query('.trigger') private _trigger!: HTMLElement;
   @query('.panel') private _panel!: HTMLElement;
 
-  private _internals: ElementInternals;
+  /**
+   * Attached form internals, or `null` below the ElementInternals floor where
+   * {@link attachInternalsSafe} could not attach (COMPAT-02). All call sites
+   * null-safe this so the picker still constructs, connects, and renders.
+   */
+  private _internals: ElementInternals | null;
   private _draggingArea = false;
   private _draggingHue = false;
   private _draggingAlpha = false;
@@ -89,7 +101,7 @@ export class AmColorPicker extends LitElement {
 
   constructor() {
     super();
-    this._internals = this.attachInternals();
+    this._internals = attachInternalsSafe(this);
     // A failed constraint check on form submit fires `invalid` on this host;
     // suppress the browser's default bubble and surface our own message (D-04).
     this.addEventListener('invalid', this._onInvalid);
@@ -312,13 +324,32 @@ export class AmColorPicker extends LitElement {
     document.removeEventListener('click', this._handleOutsideClick);
     document.removeEventListener('pointermove', this._handlePointerMove);
     document.removeEventListener('pointerup', this._handlePointerUp);
+    // Remove any Light-DOM hidden-input mirror appended below the floor (a no-op
+    // if none was ever attached), leaving no stale node behind.
+    teardownFormFallback(this);
   }
 
   protected updated(changed: PropertyValues) {
     if (changed.has('value') && changed.get('value') !== undefined) {
       this._parseHex(this.value);
     }
-    this._internals.setFormValue(this.value);
+    this._internals?.setFormValue(this.value);
+    // Below the ElementInternals floor (`_internals` is null), the value can only
+    // reach an enclosing <form> via the opt-in Light-DOM hidden-input fallback
+    // (COMPAT-03). Entered ONLY when `_internals` is null — the same guard that
+    // gates setFormValue above (XOR: no double-submit).
+    if (!this._internals) {
+      if (isFormFallbackEnabled()) {
+        syncFormFallback(this, {
+          name: this.name,
+          value: this.value,
+          required: this.required,
+          disabled: this.disabled,
+        });
+      } else {
+        warnBelowFloorOnce('am-color-picker');
+      }
+    }
     if (this._open) this._updatePosition();
     // The required constraint depends on the value, only settled post-render;
     // reflect here (bounded, idempotent extra update).
@@ -334,9 +365,9 @@ export class AmColorPicker extends LitElement {
   private _syncValidation(): void {
     const valueMissing = this.required && !this.value;
     if (valueMissing) {
-      this._internals.setValidity({ valueMissing: true }, REQUIRED_MESSAGE, this._trigger);
+      this._internals?.setValidity({ valueMissing: true }, REQUIRED_MESSAGE, this._trigger);
     } else {
-      this._internals.setValidity({});
+      this._internals?.setValidity({});
     }
 
     const show = this._validation.invalid;

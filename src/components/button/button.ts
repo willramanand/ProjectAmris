@@ -3,6 +3,8 @@ import { customElement, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { resetStyles, focusRingStyles } from '../../styles/reset.css.js';
 import { requestAssociatedFormSubmit, resetAssociatedForm } from '../../utilities/form-actions.js';
+import { attachInternalsSafe } from '../../internal/helpers/attach-internals-safe.js';
+import { warnBelowFloorOnce } from '../../internal/helpers/form-participation.js';
 
 export type ButtonVariant =
   | 'primary'
@@ -41,16 +43,21 @@ export class AmButton extends LitElement {
   @property({ attribute: 'aria-label' })
   label: string | null = null;
 
-  private _internals: ElementInternals;
+  /**
+   * Attached form internals, or `null` below the ElementInternals floor where
+   * {@link attachInternalsSafe} could not attach (COMPAT-02). All call sites
+   * null-safe this so the button still constructs, connects, and renders.
+   */
+  private _internals: ElementInternals | null;
 
   constructor() {
     super();
-    this._internals = this.attachInternals();
+    this._internals = attachInternalsSafe(this);
   }
 
   /** The form this button is associated with, if any. */
   get form(): HTMLFormElement | null {
-    return this._internals.form;
+    return this._internals?.form ?? null;
   }
 
   static styles = [
@@ -254,6 +261,14 @@ export class AmButton extends LitElement {
         'aria-disabled',
         String(this.disabled || this.loading)
       );
+    }
+    // Below the ElementInternals floor (`_internals` is null) a submit/reset
+    // button cannot drive its associated form via ElementInternals, and a button
+    // has no value to mirror into a hidden-input fallback — so there is no
+    // fallback branch here, only the one-time DX warning (D-04) pointing at the
+    // opt-in. Deduped globally by warnBelowFloorOnce.
+    if (!this._internals) {
+      warnBelowFloorOnce('am-button');
     }
   }
 
