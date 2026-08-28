@@ -1,0 +1,1 @@
+No external API integration: this phase is CI-gate enforcement (report-only -> enforcing flip of two local Node scripts) plus a zero-dependency docs generator that reads committed baseline JSON. It touches `scripts/*.mjs`, `.github/workflows/ci.yml`, `docs/`, and `test/` only — no external API, SDK, or service is called.
