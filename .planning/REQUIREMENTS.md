@@ -34,12 +34,12 @@ Requirements for the v1.1 hardening milestone. Each maps to a roadmap phase. Gro
 
 ### Compatibility & Graceful Degradation
 
-- [ ] **COMPAT-01**: A memoized `src/internal/helpers/capabilities.ts` module probes each sub-capability **independently** — ElementInternals form-association vs ARIA reflection, `adoptedStyleSheets`, `:has()` — with jsdom capability-off tests.
-- [ ] **COMPAT-02**: Form controls feature-detect ElementInternals so the constructor no longer throws below Safari 16.4 — the element still upgrades, renders, and emits events (Tier-1 guard, surface-preserving).
-- [ ] **COMPAT-03**: A hidden-input Light-DOM form-participation fallback (via `src/internal/helpers/form-participation.ts`) restores form submission below the ElementInternals floor, gated strictly on absent `setFormValue` (one channel XOR the other — no double-submit). **[CS]** — ships with a Changeset. *(conditional — selected)*
-- [ ] **COMPAT-04**: The tested-engine matrix is widened — WebKit + Firefox instances added to the load-bearing Vitest Browser Mode lane (correctness/feature-detection; CDP throttling stays Chromium-only).
-- [ ] **COMPAT-05**: The true per-capability browser floor and degradation matrix are documented (`BROWSER_SUPPORT.md`), where floor = max(JS-API floor, CSS-feature floor).
-- [ ] **COMPAT-06**: A CSS-feature audit (`:has()`, container queries, `adoptedStyleSheets`) identifies and guards silent visual failures on older engines.
+- [x] **COMPAT-01**: A memoized `src/internal/helpers/capabilities.ts` module probes each sub-capability **independently** — ElementInternals form-association vs ARIA reflection, `adoptedStyleSheets`, `:has()` — with jsdom capability-off tests.
+- [x] **COMPAT-02**: Form controls feature-detect ElementInternals so the constructor no longer throws below Safari 16.4 — the element still upgrades, renders, and emits events (Tier-1 guard, surface-preserving).
+- [x] **COMPAT-03**: A hidden-input Light-DOM form-participation fallback (via `src/internal/helpers/form-participation.ts`) restores form submission below the ElementInternals floor, gated strictly on absent `setFormValue` (one channel XOR the other — no double-submit). **[CS]** — ships with a Changeset. *(conditional — selected)*
+- [x] **COMPAT-04**: The tested-engine matrix is widened — WebKit + Firefox instances added to the load-bearing Vitest Browser Mode lane (correctness/feature-detection; CDP throttling stays Chromium-only).
+- [x] **COMPAT-05**: The true per-capability browser floor and degradation matrix are documented (`BROWSER_SUPPORT.md`), where floor = max(JS-API floor, CSS-feature floor).
+- [x] **COMPAT-06**: A CSS-feature audit (`:has()`, container queries, `adoptedStyleSheets`) identifies and guards silent visual failures on older engines.
 
 ### CI Gate Enforcement
 
@@ -108,12 +108,12 @@ Which phases cover which requirements. Populated during roadmap creation.
 | RPERF-02 | Phase 9 | Complete |
 | RPERF-03 | Phase 9 | Complete |
 | RPERF-04 | Phase 9 | Complete |
-| COMPAT-01 | Phase 10 | Pending |
-| COMPAT-02 | Phase 10 | Pending |
-| COMPAT-03 | Phase 10 | Pending |
-| COMPAT-04 | Phase 10 | Pending |
-| COMPAT-05 | Phase 10 | Pending |
-| COMPAT-06 | Phase 10 | Pending |
+| COMPAT-01 | Phase 10 | Complete |
+| COMPAT-02 | Phase 10 | Complete |
+| COMPAT-03 | Phase 10 | Complete |
+| COMPAT-04 | Phase 10 | Complete |
+| COMPAT-05 | Phase 10 | Complete |
+| COMPAT-06 | Phase 10 | Complete |
 | GATE-01 | Phase 11 | Pending |
 | GATE-02 | Phase 11 | Pending |
 | GATE-03 | Phase 11 | Pending |
