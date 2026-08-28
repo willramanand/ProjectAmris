@@ -67,13 +67,16 @@ Consumers can drop `@willramanand/amris` into any app and trust the components t
 
 - ✓ Reproducible throttled measurement harness + committed baselines: brotli per-entry size baseline (`size-baseline.mjs` + `api/size.baseline.json`), Chromium runtime-perf harness under CDP 6×-CPU + Slow-3G throttle emitting count + wall-clock metrics (`api/perf.baseline.json`), low-end target profile (`low-end-cellular`) pinned from measured data (not guessed), `.size-limit.json` re-scoped to count `@floating-ui/dom` with an independent no-bundled-Lit assertion, and a dev-only bundle-attribution report confirming `highlight.js` ships in no chunk — report-only CI wiring for both size + perf (MEAS-01..05) — Phase 7
 
+<!-- Validated in Phase 10: Graceful Degradation & Compatibility Matrix (2026-08-27) -->
+
+- ✓ Below the Safari 16.4 floor, form-associated elements degrade instead of silently failing: four independently-memoized capability probes (`capabilities.ts`), a guarded `attachInternalsSafe()` seam (16 attach sites across 15 components; zero raw `attachInternals()` remain), an XOR-gated hidden-input Light-DOM fallback published as the opt-in `@willramanand/amris/compat-forms` subpath (the one Changeset exception; frozen v1.0 CEM otherwise unchanged), all 10 `:has()` rules `@supports`-guarded, a widened WebKit/Firefox/Chromium test lane (228 browser tests × 3 engines), and a documented true per-capability floor in `BROWSER_SUPPORT.md` (ARIA reflection is its own row — Firefox 153 ships it un-flagged) — COMPAT-01..06 — Phase 10
+
 ### Active
 
 <!-- v1.1 scope: perf, size, and browser reach for low-end enterprise. Hypotheses until shipped and validated. -->
 
 - [ ] Bundle size: reduce core/full/per-component payloads — tree-shaking wins, internal deferral/lazy-load of the real shipped heavy deps (`@floating-ui/dom`, `@lit-labs/virtualizer`; `highlight.js` is Storybook-only, not shipped), leaner CSS/token delivery
 - [ ] Runtime perf: cut main-thread work, re-renders, and memory on throttled CPUs — heaviest components first (data-grid, overlays)
-- [ ] Compatibility: graceful degradation below Safari 16.4 via feature detection (no hard ElementInternals polyfill); reach as far back as cheap allows; document the true limit; widen the tested-engine matrix (WebKit/Firefox/Chromium)
 - [ ] Gates: CI-enforced perf + bundle-size budgets that block regressions (report-only → enforcing), same discipline as the v1.0 coverage gates
 
 ### Out of Scope
@@ -119,7 +122,7 @@ Consumers can drop `@willramanand/amris` into any app and trust the components t
 | Adopt a new non-exported `src/internal/` boundary for feature machinery | Keeps virtualization/validation/shortcut controllers off the frozen CEM/public surface so 1.0 stays small and diffable | ✓ Good |
 | v1.1 is optimization/compat only — no new public API | v1.0 surface is frozen; hardening must stay behavior- and surface-preserving | — Pending |
 | Measure before optimizing — build a perf + size baseline harness first | Avoids blind cuts; the low-end target profile is chosen from real data | ✓ Good — Phase 7: harness + committed baselines shipped, `low-end-cellular` profile pinned from data |
-| Degrade gracefully below Safari 16.4, no hard ElementInternals polyfill | Reach older browsers as cheaply as feature-detection allows, without heavy shims | — Pending |
+| Degrade gracefully below Safari 16.4, no hard ElementInternals polyfill | Reach older browsers as cheaply as feature-detection allows, without heavy shims | ✓ Good — Phase 10: capability probes + guarded attach + opt-in `compat-forms` fallback + `@supports` CSS guards; true floor documented, widened WebKit/Firefox/Chromium lane |
 | Enforce CI perf + bundle-size budgets (report-only → enforcing) | Lock in gains and block regressions, mirroring the v1.0 coverage gates | — Pending |
 | Stay client-only ESM — no SSR in v1.1 | Optimize within the current model; SSR is a larger lift, deferred | — Pending |
 
@@ -141,4 +144,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-08-22 after Phase 7 (Measurement, Baselines & Budgets)*
+*Last updated: 2026-08-27 after Phase 10 (Graceful Degradation & Compatibility Matrix)*
