@@ -154,7 +154,7 @@ Plans:
   3. The gate flip is staged off the release critical path during soak, so flaky timing never red-builds a publish. (GATE-03)
   4. Per-component cost cards (measured brotli size + runtime cost per component) are published in docs so enterprise consumers can budget. (DOCS-04)
 
-**Plans**: 2/3 plans executed (waves 1-3)
+**Plans**: 3/3 plans executed (waves 1-3)
 
 Plans:
 **Wave 1**
@@ -167,7 +167,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 11-03-PLAN.md — build-cost-cards.mjs + docs/cost-cards.md + drift-gate (DOCS-04, wave 3)
+- [x] 11-03-PLAN.md — build-cost-cards.mjs + docs/cost-cards.md + drift-gate (DOCS-04, wave 3)
 
 ## Progress
 
@@ -181,4 +181,4 @@ Phase 10 (graceful degradation) depends only on the Phase 7 harness/browser lane
 | 8. Bundle-Size Deferral | 7/7 | Complete    | 2026-08-22 |
 | 9. Runtime-Performance Tuning | 4/4 | Complete    | 2026-08-23 |
 | 10. Graceful Degradation & Compatibility Matrix | 8/8 | Complete    | 2026-08-27 |
-| 11. Gate Enforcement & Cost Publication | 2/3 | In Progress|  |
+| 11. Gate Enforcement & Cost Publication | 3/3 | In Progress|  |
