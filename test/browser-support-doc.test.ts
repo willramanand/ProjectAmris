@@ -39,3 +39,40 @@ describe('BROWSER_SUPPORT.md — Graceful Degradation matrix (COMPAT-05)', () =>
     expect(DOC).toMatch(/form-association/i);
   });
 });
+
+/**
+ * Returns the body of a `##`-level section (from its heading up to the next `## `),
+ * so assertions can scope to a single section rather than the whole document.
+ */
+function section(heading: string): string {
+  const start = DOC.indexOf(heading);
+  expect(start, `section "${heading}" not found`).toBeGreaterThan(-1);
+  const rest = DOC.slice(start + heading.length);
+  const next = rest.indexOf('\n## ');
+  return next === -1 ? rest : rest.slice(0, next);
+}
+
+describe('BROWSER_SUPPORT.md — no stale pre-Phase-10 claims (COMPAT-05)', () => {
+  it('qualifies the below-floor forms claim with the compat-forms opt-in', () => {
+    // Assert the NEW qualifying content is present in the same section as the
+    // forms discussion (not a fragile negative on the old blanket sentence).
+    const notWork = section('## What does **not** work below the floor');
+    expect(notWork).toContain('@willramanand/amris/compat-forms');
+  });
+
+  it('frames the empty-slot reservation as an intentional guarded fallback', () => {
+    const notWork = section('## What does **not** work below the floor');
+    expect(notWork).toMatch(/@supports selector\(:has\(\*\)\)/);
+  });
+
+  it('no longer lists the custom-hidden-input strategy as unimplemented future work', () => {
+    // COMPAT-03 shipped it; the "Future work" bullet must be gone.
+    const future = section('## Future work');
+    expect(future).not.toMatch(/^\s*-\s+A custom-hidden-input strategy/im);
+  });
+
+  it('states the hard ElementInternals polyfill is permanently out of scope', () => {
+    const future = section('## Future work');
+    expect(future).toMatch(/permanently out of scope/i);
+  });
+});
