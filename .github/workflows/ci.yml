@@ -44,8 +44,8 @@ jobs:
 
       - run: npm ci
 
-      - name: Install Chromium
-        run: npx playwright install chromium
+      - name: Install Chromium + WebKit
+        run: npx playwright install chromium webkit
 
       - name: Browser lane (real ElementInternals + in-browser axe)
         run: npm run test:browser
