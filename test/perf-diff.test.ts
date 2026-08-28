@@ -1,4 +1,9 @@
-import { describe, expect, it } from 'vitest';
+import { spawnSync } from 'node:child_process';
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 // GATE-02 runtime-perf count-enforce exit-code contract (11-02 Task 1). Pins the
 // pure exit-code decision of `scripts/perf-diff.mjs --enforce` WITHOUT spawning a
@@ -109,5 +114,54 @@ describe('diff + enforcePerfExitCode: count-only enforcement (GATE-02)', () => {
     const row = result.changed.combobox.find((r) => r.metric === 'filterCalls');
     expect(row?.delta).toBe(3);
     expect(Number.isInteger(row?.delta)).toBe(true);
+  });
+});
+
+// WR-02: the CLI must not crash on a missing current report. This is a CLI-level
+// contract (the guard lives in the isMain block), so it is exercised by spawning
+// the script rather than calling a pure helper. A missing current report is a
+// setup/usage error -> exit 2 (never a stack-trace crash, never a fail-open 0).
+describe('perf-diff CLI: missing current report is a usage error, not a crash (WR-02)', () => {
+  // Vitest runs with cwd at the repo root, so resolve the script from there
+  // (import.meta.url is not a file:// URL under the jsdom environment).
+  const SCRIPT = join(process.cwd(), 'scripts', 'perf-diff.mjs');
+  let dir: string;
+  let baselinePath: string;
+
+  beforeAll(() => {
+    dir = mkdtempSync(join(tmpdir(), 'perf-diff-'));
+    baselinePath = join(dir, 'baseline.json');
+    // A valid, present baseline so we get past the missing-baseline edge and
+    // reach the current-report guard under test.
+    writeFileSync(
+      baselinePath,
+      JSON.stringify({ overlay: scenario({ computePosition: 4 }) }),
+    );
+  });
+
+  afterAll(() => {
+    rmSync(dir, { recursive: true, force: true });
+  });
+
+  it('exits 2 with a guidance message (not a stack trace) when the current report is absent', () => {
+    const missingCurrent = join(dir, 'does-not-exist.json');
+    const run = spawnSync(process.execPath, [SCRIPT, baselinePath, missingCurrent], {
+      encoding: 'utf8',
+    });
+    expect(run.status).toBe(2);
+    expect(run.stderr).toContain('current report not found');
+    // No uncaught ENOENT stack trace leaked to stderr.
+    expect(run.stderr).not.toMatch(/ENOENT|at load|Error:/);
+  });
+
+  it('also exits 2 (not a fail-open 0) when the current report is absent under --enforce', () => {
+    const missingCurrent = join(dir, 'does-not-exist.json');
+    const run = spawnSync(
+      process.execPath,
+      [SCRIPT, baselinePath, missingCurrent, '--enforce'],
+      { encoding: 'utf8' },
+    );
+    expect(run.status).toBe(2);
+    expect(run.stderr).toContain('current report not found');
   });
 });
