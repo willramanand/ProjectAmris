@@ -80,20 +80,31 @@ jobs:
       - name: Surface diff (release gate)
         run: npm run diff:surface
 
-  # Report-only runtime-perf lane (MEAS-02/03). Kept a SIBLING job — not folded
-  # into `browser` — to isolate the CDP write+exec privilege and the Chromium-only
-  # throttling constraint from the correctness lane (Open Question 3).
+  # Enforcing (soaking) runtime-perf lane (GATE-02/GATE-03). Kept a SIBLING job —
+  # not folded into `browser` — to isolate the CDP write+exec privilege and the
+  # Chromium-only throttling constraint from the correctness lane (Open Question 3).
   #
   # Node 20 (NOT 22): the perf lane needs only Playwright/Chromium and must stay on
   # a pinned Node so throttled baselines don't drift when the runner Node moves
   # (Pitfall 5). Only the `size` job below runs Node 22 (size-limit@13 needs >=22.18).
   #
-  # Report-only (D-08): perf-diff.mjs exits 0 by design this phase — numbers post on
-  # every PR, nothing red-builds. The enforcing flip is Phase 11. Report-only is
-  # achieved purely by the script's exit 0 — no error-suppressing step flag and no
-  # `|| true` are used (those would fake report-only and mask a real failure later).
+  # GATE-02: perf-diff.mjs now runs with --enforce — it exits 1 on any COUNT drift
+  # from the committed api/perf.baseline.json (wall-clock is structurally excluded and
+  # can never gate). The enforcing exit reaches the job via the script's own exit code:
+  # NO error-suppressing step flag and no `|| true` on the harness step.
   perf:
     runs-on: ubuntu-latest
+    # SOAK-ONLY (GATE-03): the enforcing perf count gate below is soak-staged. A
+    # job-level continue-on-error lets a count regression annotate this job red
+    # WITHOUT flipping the CI workflow-run conclusion to failure, so release.yml's
+    # `workflow_run.conclusion == 'success'` publish gate stays reachable while the
+    # cross-CI-run count stability of the timing-derived tick counts
+    # (computePosition/repositions) is characterized (RESEARCH Open Question 1).
+    # REMOVE this line to make the perf count gate hard-blocking once the soak shows
+    # zero cross-run variance — counts-second, AFTER the deterministic `size` gate
+    # un-soaks first. Do NOT leave this wrapper on permanently — a forever
+    # continue-on-error is a fake report-only that masks a real regression.
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
 
@@ -107,10 +118,15 @@ jobs:
       - name: Install Chromium
         run: npx playwright install chromium
 
-      - name: Perf harness (Chromium, throttled) — report-only
+      # NOTE: the test:perf specs may hard-assert exact counts (e.g. overlay
+      # computePosition===4, repositions===2) and can fail the vitest step BEFORE
+      # perf-diff --enforce runs. During the soak that is fine — the whole job is
+      # continue-on-error — but the single budget authority is `perf-diff --enforce`
+      # (Pitfall 3): it is the one place that compares against the committed baseline.
+      - name: Perf harness (Chromium, throttled) — count gate (enforcing, soaking)
         run: |
           npm run test:perf
-          node scripts/perf-diff.mjs api/perf.baseline.json api/perf.json
+          node scripts/perf-diff.mjs api/perf.baseline.json api/perf.json --enforce
 
   size:
     runs-on: ubuntu-latest
