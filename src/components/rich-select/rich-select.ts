@@ -4,6 +4,13 @@ import { repeat } from 'lit/directives/repeat.js';
 import { resetStyles } from '../../styles/reset.css.js';
 import { FloatingPositionController } from '../../internal/controllers/floating-position.js';
 import { ValidationController } from '../../internal/controllers/validation.js';
+import { attachInternalsSafe } from '../../internal/helpers/attach-internals-safe.js';
+import {
+  isFormFallbackEnabled,
+  syncFormFallback,
+  teardownFormFallback,
+  warnBelowFloorOnce,
+} from '../../internal/helpers/form-participation.js';
 import { prefetchFloating } from '../../internal/helpers/lazy-load.js';
 import { uniqueId } from '../../utilities/unique-id.js';
 
@@ -81,7 +88,13 @@ export class AmRichSelect extends LitElement {
   @query('.listbox') private _listbox!: HTMLElement;
   @query('.search-input') private _searchInput!: HTMLInputElement;
 
-  private _internals: ElementInternals;
+  /**
+   * Attached form internals, or `null` below the ElementInternals floor where
+   * {@link attachInternalsSafe} could not attach (COMPAT-02). Null-safe at every
+   * call site; below the floor the opt-in hidden-input fallback (COMPAT-03)
+   * mirrors the selected value instead.
+   */
+  private _internals: ElementInternals | null;
 
   /**
    * Floating positioning delegated to the shared controller (D-06). Options
@@ -138,7 +151,7 @@ export class AmRichSelect extends LitElement {
 
   constructor() {
     super();
-    this._internals = this.attachInternals();
+    this._internals = attachInternalsSafe(this);
     // A failed constraint check on form submit fires `invalid` on this host;
     // suppress the browser's default bubble and surface our own message (D-04).
     this.addEventListener('invalid', this._onInvalid);
@@ -336,11 +349,27 @@ export class AmRichSelect extends LitElement {
     document.removeEventListener('click', this._handleOutsideClick);
     // The floating autoUpdate teardown is mirrored in the controller's
     // hostDisconnected (invoked during super.disconnectedCallback above).
+    // Remove the below-floor hidden-input mirror (if one was created) so a
+    // disconnect leaves no stale light-DOM node (COMPAT-03 teardown).
+    teardownFormFallback(this);
   }
 
   protected updated(changed: PropertyValues) {
     if (changed.has('value')) {
-      this._internals.setFormValue(this.value);
+      this._internals?.setFormValue(this.value);
+      // Below the ElementInternals floor (internals null): the XOR-gated opt-in
+      // hidden-input fallback mirrors the selected value (COMPAT-03), else a
+      // one-time dev warning.
+      if (!this._internals) {
+        isFormFallbackEnabled()
+          ? syncFormFallback(this, {
+              name: this.name,
+              value: this.value,
+              required: this.required,
+              disabled: this.disabled,
+            })
+          : warnBelowFloorOnce('am-rich-select');
+      }
     }
     if (changed.has('_open')) {
       if (this._open) {
@@ -366,9 +395,9 @@ export class AmRichSelect extends LitElement {
     const anchor = this._trigger;
     if (anchor) {
       if (this.required && this.value === '') {
-        this._internals.setValidity({ valueMissing: true }, VALUE_MISSING_MESSAGE, anchor);
+        this._internals?.setValidity({ valueMissing: true }, VALUE_MISSING_MESSAGE, anchor);
       } else {
-        this._internals.setValidity({});
+        this._internals?.setValidity({});
       }
     }
 

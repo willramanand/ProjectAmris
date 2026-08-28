@@ -3,6 +3,13 @@ import { customElement, property, query, state } from 'lit/decorators.js';
 import { resetStyles } from '../../styles/reset.css.js';
 import { requestAssociatedFormSubmit } from '../../utilities/form-actions.js';
 import { ValidationController } from '../../internal/controllers/validation.js';
+import { attachInternalsSafe } from '../../internal/helpers/attach-internals-safe.js';
+import {
+  isFormFallbackEnabled,
+  syncFormFallback,
+  teardownFormFallback,
+  warnBelowFloorOnce,
+} from '../../internal/helpers/form-participation.js';
 import { uniqueId } from '../../utilities/unique-id.js';
 
 export type NumberFieldSize = 'sm' | 'md' | 'lg';
@@ -41,7 +48,13 @@ export class AmNumberField extends LitElement {
   @property({ type: Boolean, reflect: true }) required = false;
 
   @query('input') private _inputEl!: HTMLInputElement;
-  private _internals: ElementInternals;
+  /**
+   * Attached form internals, or `null` below the ElementInternals floor where
+   * {@link attachInternalsSafe} could not attach (COMPAT-02). All call sites
+   * null-safe this so the component still constructs and renders; below the
+   * floor the opt-in hidden-input fallback (COMPAT-03) mirrors the value instead.
+   */
+  private _internals: ElementInternals | null;
 
   /** Stable id shared by the error message node and the input's aria-describedby. */
   private readonly _errorId = uniqueId('am-number-field-error');
@@ -68,10 +81,18 @@ export class AmNumberField extends LitElement {
 
   constructor() {
     super();
-    this._internals = this.attachInternals();
+    this._internals = attachInternalsSafe(this);
     // A failed constraint check on form submit fires `invalid` on this host;
     // suppress the browser's default bubble and surface our own message (D-04).
     this.addEventListener('invalid', this._onInvalid);
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    // Remove the below-floor hidden-input mirror (if one was created) so a
+    // disconnect leaves no stale light-DOM node (COMPAT-03 teardown; no-op above
+    // the floor where no mirror exists).
+    teardownFormFallback(this);
   }
 
   static styles = [
@@ -168,7 +189,21 @@ export class AmNumberField extends LitElement {
 
   protected updated(changed: PropertyValues) {
     if (changed.has('value')) {
-      this._internals.setFormValue(this.value != null ? String(this.value) : null);
+      this._internals?.setFormValue(this.value != null ? String(this.value) : null);
+      // Below the ElementInternals floor (internals null): the XOR-gated
+      // opt-in hidden-input fallback mirrors the value (COMPAT-03), else a
+      // one-time dev warning. `min`/`max`/`step` have no hidden-input constraint
+      // equivalent, so only `required` is projected (RESEARCH.md Q4).
+      if (!this._internals) {
+        isFormFallbackEnabled()
+          ? syncFormFallback(this, {
+              name: this.name,
+              value: this.value != null ? String(this.value) : '',
+              required: this.required,
+              disabled: this.disabled,
+            })
+          : warnBelowFloorOnce('am-number-field');
+      }
     }
     // Native constraint validity is only knowable from the RENDERED inner
     // <input>, so this reflection runs post-render and may schedule one further
@@ -200,9 +235,9 @@ export class AmNumberField extends LitElement {
       };
       const anyInvalid = Object.values(flags).some(Boolean);
       if (anyInvalid) {
-        this._internals.setValidity(flags, control.validationMessage, control);
+        this._internals?.setValidity(flags, control.validationMessage, control);
       } else {
-        this._internals.setValidity({});
+        this._internals?.setValidity({});
       }
     }
 
