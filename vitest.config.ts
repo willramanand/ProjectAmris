@@ -94,12 +94,15 @@ export default defineConfig({
             provider: playwright(),
             headless: true,
             // chromium: full `test/browser/**` lane (no per-instance include).
-            // webkit: scoped to the 7-spec D-06 subset (COMPAT-04) — real WebKit
-            // engine coverage of the load-bearing form/focus/dialog paths + the
-            // new Phase-10 degradation specs, without widening the full lane × N.
+            // webkit + firefox: each scoped to the 7-spec D-06 subset (COMPAT-04)
+            // — real WebKit/Firefox engine coverage of the load-bearing
+            // form/focus/dialog paths + the new Phase-10 degradation specs,
+            // without widening the full lane × N. This completes the D-06
+            // widened tested-engine matrix (chromium + webkit + firefox).
             instances: [
               { browser: 'chromium' },
               { browser: 'webkit', include: D06_WIDENED_SPECS },
+              { browser: 'firefox', include: D06_WIDENED_SPECS },
             ],
           },
         },
