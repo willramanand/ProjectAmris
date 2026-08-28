@@ -73,6 +73,17 @@ jobs:
           npm run build:contract-doc
           git diff --exit-code docs/contract.md
 
+      # Regenerate the cost cards from the committed measured baselines and fail
+      # if the committed copy is stale — docs/cost-cards.md can never drift from
+      # the enforced api/*.baseline.json numbers (DOCS-04, threat T-11-08). Reads
+      # baselines only (never re-measures). Deterministic like the contract-doc
+      # gate — a regenerated doc either matches the committed copy or it does not —
+      # so it BLOCKS from the start (no soak wrapper).
+      - name: Cost-cards drift check
+        run: |
+          node scripts/build-cost-cards.mjs
+          git diff --exit-code docs/cost-cards.md
+
       # Enforcing surface-diff release gate (SHIP-01). The script exits non-zero
       # when the public surface drifts from the baseline and no pending Changeset
       # accompanies it. No continue-on-error and no `|| true` — a non-zero exit
