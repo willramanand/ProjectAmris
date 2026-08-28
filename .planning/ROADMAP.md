@@ -157,9 +157,16 @@ Plans:
 **Plans**: 3 plans (waves 1-3)
 
 Plans:
+**Wave 1**
 
 - [ ] 11-01-PLAN.md — TRACER: size-baseline.mjs `--enforce` + soak-staged CI size gate (GATE-01, GATE-03, wave 1)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 11-02-PLAN.md — perf-diff.mjs `--enforce` count gate (wall-clock excluded) + soak-staged CI perf gate (GATE-02, GATE-03, wave 2)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 11-03-PLAN.md — build-cost-cards.mjs + docs/cost-cards.md + drift-gate (DOCS-04, wave 3)
 
 ## Progress
