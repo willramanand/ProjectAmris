@@ -167,14 +167,25 @@ export default defineConfig({
         lines: 84,
         statements: 83,
         // Per-directory tiers (D-02) — each bucketed at its own newly measured floor.
-        // combobox / date-picker ratchet UP (virtualization + added tests raised them).
-        'src/components/combobox/**': { branches: 65, functions: 70 }, // measured br 66.03 / fn 70.91
-        'src/components/date-picker/**': { branches: 60, functions: 64 }, // measured br 60.77 / fn 65.12
-        // select DE-ratchets from the D-03 ceiling: the 04-09 virtualization added
-        // branches/lines to select.ts, dropping measured branch 81.65 -> 66.67 and
-        // lines/statements below the prior 85 ceiling. Floors re-baselined to the new
-        // measured floor (justified: new virtualization code landed).
-        'src/components/select/**': { branches: 66, functions: 85, lines: 83, statements: 82 }, // measured br 66.67 / fn 86.21 / ln 83.40 / st 82.51
+        // RATCHET UP (debug ci-coverage-gate-fail): later phases had added interaction/
+        // logic functions the jsdom lane never drove (combobox search-in-trigger
+        // handlers + public focus(); date-picker keyboard segment digit-input;
+        // select virtualized PageUp/PageDown + public focus()) plus the deferred
+        // virtualizer .then swap, dragging measured fn coverage below the frozen
+        // floors. New jsdom specs now exercise all of them
+        // (test/components/combobox-search-in-trigger.test.ts, date-picker-digit-input.test.ts,
+        // select-page-nav.test.ts) — the virtualizer swap + per-row renderItem/keyFunction
+        // are driven deterministically via the lazy-load __setLazyLoadImportersForTest
+        // seam. Floors re-baselined UP to just under the newly measured coverage.
+        // NO floor was lowered: the only still-uncovered slice is the genuinely
+        // browser-only deferred floating-ui `size` middleware apply + reference/
+        // floating getters (need real layout / getBoundingClientRect) and the real
+        // windowed scroll path — both exercised by the test/browser/** lane, never
+        // jsdom. Buffers leave CI headroom (CI measures ~1pt under local on select
+        // ln/st, so select ln/st floors sit ~2.5pt+ under local measured).
+        'src/components/combobox/**': { branches: 78, functions: 82 }, // measured br 83.13 / fn 85.07
+        'src/components/date-picker/**': { branches: 75, functions: 83 }, // measured br 80.74 / fn 86.04
+        'src/components/select/**': { branches: 72, functions: 85, lines: 86, statements: 85 }, // measured br 76.62 / fn 87.30 / ln 89.56 / st 87.96
         // dialog is unchanged by this phase and sits well above the ceiling; keep its high floor.
         'src/components/dialog/**': { branches: 94, functions: 88, lines: 95, statements: 95 }, // measured br 95.83 / fn 90.91 / ln 97.73 / st 98.08
       },
