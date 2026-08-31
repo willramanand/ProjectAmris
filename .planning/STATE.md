@@ -83,6 +83,12 @@ None yet.
 - **Phase 10** flagged for `--research-phase`: true per-capability browser floor (FACE vs ARIA reflection vs `:has()`/`adoptedStyleSheets`) resolved empirically on the widened matrix; Tier-2 hidden-input (COMPAT-03) Changeset decision pending enterprise-demand call.
 - ✓ Resolved (Phase 7): throttle profile pinned to `low-end-cellular` (6×-CPU + Slow-3G); per-entry brotli baseline committed in `api/size.baseline.json`.
 
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 260831-rnn | CI browser lane Playwright host-deps (`--with-deps`) | 2026-08-31 | 04e22f5 | [260831-rnn-fix-ci-browser-job-playwright-host-deps-](./quick/260831-rnn-fix-ci-browser-job-playwright-host-deps-/) |
+
 ## Deferred Items
 
 Items acknowledged and carried forward, most recent first:
