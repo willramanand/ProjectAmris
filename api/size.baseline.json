@@ -1,7 +1,7 @@
 {
   "unit": "brotli-bytes",
   "entries": {
-    "core bundle": 21665,
+    "core bundle": 15000,
     "full bundle": 62752,
     "button (light deep import)": 2111,
     "data-grid (heavy deep import)": 11246,
