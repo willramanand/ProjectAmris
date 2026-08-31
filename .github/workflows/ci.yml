@@ -45,7 +45,7 @@ jobs:
       - run: npm ci
 
       - name: Install Chromium + WebKit + Firefox
-        run: npx playwright install chromium webkit firefox
+        run: npx playwright install --with-deps chromium webkit firefox
 
       - name: Browser lane (real ElementInternals + in-browser axe)
         run: npm run test:browser
