@@ -71,13 +71,17 @@ Consumers can drop `@willramanand/amris` into any app and trust the components t
 
 - ✓ Below the Safari 16.4 floor, form-associated elements degrade instead of silently failing: four independently-memoized capability probes (`capabilities.ts`), a guarded `attachInternalsSafe()` seam (16 attach sites across 15 components; zero raw `attachInternals()` remain), an XOR-gated hidden-input Light-DOM fallback published as the opt-in `@willramanand/amris/compat-forms` subpath (the one Changeset exception; frozen v1.0 CEM otherwise unchanged), all 10 `:has()` rules `@supports`-guarded, a widened WebKit/Firefox/Chromium test lane (228 browser tests × 3 engines), and a documented true per-capability floor in `BROWSER_SUPPORT.md` (ARIA reflection is its own row — Firefox 153 ships it un-flagged) — COMPAT-01..06 — Phase 10
 
+<!-- Validated across v1.1 Phases 8–11 (milestone shipped 2026-08-31) -->
+
+- ✓ Bundle size reduced — internal deferral/lazy-load of the real shipped heavy deps (`@floating-ui/dom`, `@lit-labs/virtualizer`) plus tree-shaking/CSS-delivery wins, banked against the committed brotli baseline — Phase 8
+- ✓ Runtime perf tuned — less main-thread work / fewer re-renders on throttled CPUs, heaviest components first (data-grid, overlays), banked against the committed count baseline — Phase 9
+- ✓ CI-enforced perf + bundle-size gates — per-entry brotli size budget flipped report-only → ENFORCING (size first), runtime COUNT budgets enforcing with wall-clock report-only, the flip soak-staged off the release critical path (GATE-03 A1 confirmed live: a soaking gate's red job keeps `workflow_run.conclusion == success`), and per-component cost cards published — Phase 11
+
 ### Active
 
-<!-- v1.1 scope: perf, size, and browser reach for low-end enterprise. Hypotheses until shipped and validated. -->
+<!-- v1.1 milestone complete — all Active hypotheses shipped and validated (see Validated: Phases 8, 9, 11). -->
 
-- [ ] Bundle size: reduce core/full/per-component payloads — tree-shaking wins, internal deferral/lazy-load of the real shipped heavy deps (`@floating-ui/dom`, `@lit-labs/virtualizer`; `highlight.js` is Storybook-only, not shipped), leaner CSS/token delivery
-- [ ] Runtime perf: cut main-thread work, re-renders, and memory on throttled CPUs — heaviest components first (data-grid, overlays)
-- [ ] Gates: CI-enforced perf + bundle-size budgets that block regressions (report-only → enforcing), same discipline as the v1.0 coverage gates
+_None — v1.1 scope fully delivered._
 
 ### Out of Scope
 
@@ -144,4 +148,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-08-27 after Phase 10 (Graceful Degradation & Compatibility Matrix)*
+*Last updated: 2026-08-31 after Phase 11 (Gate Enforcement & Cost Publication) — v1.1 milestone complete*

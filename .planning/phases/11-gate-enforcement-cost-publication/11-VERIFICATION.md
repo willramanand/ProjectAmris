@@ -1,11 +1,12 @@
 ---
 phase: 11-gate-enforcement-cost-publication
 verified: 2026-08-28T00:10:00Z
-status: human_needed
+status: passed
 score: 4/4 must-haves verified
 behavior_unverified: 0
 overrides_applied: 0
 human_verification:
+
   - test: "Push a throwaway PR that forces a size regression (temporarily lower one entry in api/size.baseline.json) OR a count regression, and observe the CI run: the size/perf job annotates RED but the overall workflow-run conclusion stays `success`, and release.yml/publish.yml (workflow_run gate) remains reachable."
     expected: "The soaking size/perf job shows a red X, but the CI workflow-run conclusion is `success` (green), so a publish is never blocked. This confirms GATE-03 Assumption A1 on the live GitHub Actions platform."
     why_human: "A job-level `continue-on-error: true` failure keeping `workflow_run.conclusion == 'success'` is documented GitHub Actions platform behavior that can only be confirmed by observing a real CI run — it is not inspectable from the codebase. Both 11-01 and 11-02 explicitly flag this as the one empirical confirmation the soak window exists to provide before the gates are un-soaked to hard-blocking."
