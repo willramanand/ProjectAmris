@@ -15,6 +15,7 @@ Out-of-scope discoveries logged during execution. Not fixed here.
   committed `docs/contract.md` is regenerated and committed. Reverted the working-tree
   change here to keep the plan's commit scope clean. Recommend a follow-up (or plan
   06-02/06-03) to regenerate and commit `docs/contract.md`.
+  status: acknowledged
 
 ## 06-02
 
@@ -43,3 +44,4 @@ Out-of-scope discoveries logged during execution. Not fixed here.
   Applied the minimal, size-neutral fix (discover `src/utilities/*` and
   `src/styles/*` as lib entries + explicit `tokens/index`). Documented in the
   SUMMARY as a deviation; not deferred (fixed here) — noted for scope visibility.
+  status: acknowledged

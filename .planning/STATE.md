@@ -1,13 +1,12 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.1
-current_phase: 11
-status: completed
+status: Awaiting next milestone
 stopped_at: Phase 11 complete — all phases complete
-last_updated: "2026-09-01T00:20:34.009Z"
+last_updated: "2026-09-01T00:32:47.952Z"
 last_activity: 2026-08-31
-last_activity_desc: Phase 11 complete
-state_head: 8c3b319648b2ca955bc3299b02596a7b42ec6272
+last_activity_desc: Milestone v1.1 completed and archived
+state_head: 54a194ca3b3eda033b116b78d0205f81a8fb227e
 progress:
   total_phases: 5
   completed_phases: 5
@@ -15,6 +14,7 @@ progress:
   completed_plans: 29
   percent: 100
 milestone_name: Performance & Compatibility Hardening
+current_phase: 11
 ---
 
 # Project State
@@ -28,12 +28,10 @@ See: .planning/PROJECT.md (updated 2026-08-31)
 
 ## Current Position
 
-Phase: 11
-Plan: Not started
-Status: All phases complete
-Last activity: 2026-08-31 — Phase 11 complete
-
-Progress: [██████████] 100% (all 5 v1.1 phases complete: 7–11; v1.0 shipped)
+Phase: Milestone v1.1 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-08-31 — Milestone v1.1 completed and archived
 
 ## Performance Metrics
 
@@ -86,7 +84,6 @@ None yet.
 
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
-| 260831-rnn | CI browser lane Playwright host-deps (`--with-deps`) | 2026-08-31 | 04e22f5 | [260831-rnn-fix-ci-browser-job-playwright-host-deps-](./quick/260831-rnn-fix-ci-browser-job-playwright-host-deps-/) |
 
 ## Deferred Items
 
@@ -98,9 +95,20 @@ Items acknowledged and carried forward, most recent first:
 | A11y/i18n | RTL-V2-01 — full RTL audit across overlays | Deferred | v1.0 close | v2 |
 | Features | FEAT-V2-01/02 — shortcut persistence, editable grid | Deferred | v1.0 close | v2 |
 | Performance | PERF-V2-01 — `manualChunks` dedupe if purity insufficient | Deferred | v1.1 scope | v2 |
+| debug_sessions | knowledge-base (debug KB file — not an open session; audit false-positive) | Acknowledged | v1.1 close | v1.1 |
+| uat_gaps | Phase 01 / 01-UAT.md (archived v1.0) — 1 pending scenario | Acknowledged | v1.1 close | v1.1 |
+| deferred_items | Phase 08 / deferred-items.md — env-only perf spike test (`_spike.lit-markers`, worktree node_modules path) | Acknowledged | v1.1 close | v1.1 |
+| deferred_items | Phase 08 / deferred-items.md — jsdom virtualizer `scrollIntoView` (no longer reproduces after deferral) | Acknowledged | v1.1 close | v1.1 |
+| deferred_items | Phase 02 / deferred-items.md (archived v1.0) — 02-06 tsc TS6133 (Resolved in bbe853e) | Acknowledged | v1.1 close | v1.1 |
+| deferred_items | Phase 06 / deferred-items.md (archived v1.0) — 06-01 stale contract.md (pre-existing) | Acknowledged | v1.1 close | v1.1 |
+| deferred_items | Phase 06 / deferred-items.md (archived v1.0) — 06-02 size RED on base (pre-existing, reconciled in Phase 7 baseline) | Acknowledged | v1.1 close | v1.1 |
 
 ## Session Continuity
 
 Last session: 2026-08-25T23:32:51.451Z
 Stopped at: Phase 11 complete — all phases complete
 Resume file: .planning/phases/10-graceful-degradation-compatibility-matrix/10-01-PLAN.md
+
+## Operator Next Steps
+
+- Start the next milestone with /gsd-new-milestone

@@ -124,11 +124,11 @@ _None — v1.1 scope fully delivered._
 | Feature-freeze the component set at ~67 | Prevent sprawl; 1.0 hardens existing surface | ✓ Good |
 | Carve out a minimal real-browser test lane (Vitest Browser Mode + Playwright/Chromium) for 4 load-bearing areas | jsdom mocks ElementInternals/focus/dialog/positioning; a form-heavy 1.0 cannot be credibly frozen on mocks. Narrows the earlier "no non-jsdom infra" boundary | ✓ Good |
 | Adopt a new non-exported `src/internal/` boundary for feature machinery | Keeps virtualization/validation/shortcut controllers off the frozen CEM/public surface so 1.0 stays small and diffable | ✓ Good |
-| v1.1 is optimization/compat only — no new public API | v1.0 surface is frozen; hardening must stay behavior- and surface-preserving | — Pending |
+| v1.1 is optimization/compat only — no new public API | v1.0 surface is frozen; hardening must stay behavior- and surface-preserving | ✓ Good — v1.1 shipped surface-preserving; only exception the opt-in `/compat-forms` subpath (Changeset-gated) |
 | Measure before optimizing — build a perf + size baseline harness first | Avoids blind cuts; the low-end target profile is chosen from real data | ✓ Good — Phase 7: harness + committed baselines shipped, `low-end-cellular` profile pinned from data |
 | Degrade gracefully below Safari 16.4, no hard ElementInternals polyfill | Reach older browsers as cheaply as feature-detection allows, without heavy shims | ✓ Good — Phase 10: capability probes + guarded attach + opt-in `compat-forms` fallback + `@supports` CSS guards; true floor documented, widened WebKit/Firefox/Chromium lane |
-| Enforce CI perf + bundle-size budgets (report-only → enforcing) | Lock in gains and block regressions, mirroring the v1.0 coverage gates | — Pending |
-| Stay client-only ESM — no SSR in v1.1 | Optimize within the current model; SSR is a larger lift, deferred | — Pending |
+| Enforce CI perf + bundle-size budgets (report-only → enforcing) | Lock in gains and block regressions, mirroring the v1.0 coverage gates | ✓ Good — Phase 11: size + runtime-count gates enforcing (soak-staged), GATE-03 A1 confirmed live, cost cards published; un-soak is the one deferred one-way follow-up |
+| Stay client-only ESM — no SSR in v1.1 | Optimize within the current model; SSR is a larger lift, deferred | ✓ Good — held; v1.1 optimized within the client-only ESM model, SSR remains out of scope |
 
 ## Evolution
 

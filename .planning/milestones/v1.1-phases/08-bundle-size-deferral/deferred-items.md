@@ -8,6 +8,7 @@
 - **Root cause:** The test `readFileSync`s Lit's OWN source from a hardcoded relative `node_modules/@lit/...` path. In a parallel-executor git worktree the local `node_modules` is empty (packages resolve from the parent repo `C:/repos/ProjectAmris/node_modules`), so the raw path does not exist here. The parent repo DOES have the file. Unrelated to the floating-ui deferral — the test touches no file changed by 08-01.
 - **Scope:** Out of scope (pre-existing + environmental + a `_spike.` throwaway). Do NOT fix in 08-01.
 - **Suggested follow-up (not this phase):** make the spike resolve the Lit source via `require.resolve('@lit/reactive-element/reactive-element.js')` instead of a cwd-relative `node_modules/...` path so it is worktree-robust; or exclude `_spike.*` from the CI jsdom lane.
+  status: acknowledged
 
 ## Pre-existing jsdom virtualizer `scrollIntoView` error (NOT a regression, out of scope)
 
@@ -18,3 +19,4 @@
 - **Scope:** Out of scope (pre-existing + environmental). Do NOT fix in 08-05.
 - **Update (08-05 Task 2):** Incidentally no longer reproduces. After deferring the virtualizer (dynamic `import()`) and routing `scrollVirtualizerToIndex` through a host-symbol + `element()` capability guard, the jsdom keyboard-nav call lands during the cold `repeat()` window (virtualizer not yet attached) and cleanly no-ops, so the throwing `element(idx).scrollIntoView()` path is not hit. `select.test.ts` now reports 37/37 with zero unhandled errors. Left documented for history; no fix required.
 - **Suggested follow-up (not this phase):** if it resurfaces, guard `scrollVirtualizerToIndex` against jsdom (e.g. skip when `element(idx)` has no offset parent / no layout), or move the affected select keyboard-nav assertions to the browser lane.
+  status: acknowledged

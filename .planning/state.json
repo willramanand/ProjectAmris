@@ -1,0 +1,38 @@
+{
+  "contract": "1.0.0",
+  "flavor": "core",
+  "milestone": "v1.1",
+  "phases": [
+    {
+      "number": "7",
+      "name": "Measurement, Baselines & Budgets",
+      "status": "complete"
+    },
+    {
+      "number": "8",
+      "name": "Bundle-Size Deferral",
+      "status": "complete"
+    },
+    {
+      "number": "9",
+      "name": "Runtime-Performance Tuning",
+      "status": "complete"
+    },
+    {
+      "number": "10",
+      "name": "Graceful Degradation & Compatibility Matrix",
+      "status": "complete"
+    },
+    {
+      "number": "11",
+      "name": "Gate Enforcement & Cost Publication",
+      "status": "complete"
+    }
+  ],
+  "next": {
+    "command": "/gsd:progress",
+    "label": "Show progress",
+    "reason": "Unsure of state — showing progress"
+  },
+  "updated_at": "2026-09-01T00:32:47.982Z"
+}
