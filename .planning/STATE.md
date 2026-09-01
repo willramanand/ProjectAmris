@@ -24,7 +24,7 @@ current_phase: 11
 See: .planning/PROJECT.md (updated 2026-08-31)
 
 **Core value:** Amris loads and runs well on low-end enterprise devices and slow networks and reaches as far down the browser stack as cheaply possible — without changing the frozen v1.0 public surface, locked in by CI perf/size gates.
-**Current focus:** v1.1 milestone complete — ready to close (`/gsd-complete-milestone v1.1`)
+**Current focus:** v1.1 shipped + archived — planning next milestone (`/gsd-new-milestone`)
 
 ## Current Position
 
@@ -57,14 +57,7 @@ Last activity: 2026-08-31 — Milestone v1.1 completed and archived
 
 ### Decisions
 
-Full log in PROJECT.md Key Decisions table and the archived v1.0 roadmap. Decisions now active for v1.1:
-
-- v1.1 is optimization/compat only — no new public API; hardening stays behavior- and surface-preserving against the frozen v1.0 CEM (COMPAT-03 hidden-input fallback is the one Changeset exception).
-- Measure before optimizing — the perf + size baseline harness (Phase 7) is the universal prerequisite; the low-end target profile is chosen from real data.
-- Degrade gracefully below Safari 16.4 via independent capability probing — no hard ElementInternals polyfill.
-- Enforce CI perf + bundle-size budgets last (report-only → enforcing), mirroring the v1.0 coverage gates; size gates flip before count-metric gates; wall-clock stays report-only.
-- Stay client-only ESM — no SSR in v1.1.
-- Roadmap ordering: measure → cut (bundle deferral before runtime tuning) → reach (degradation before widened-engine matrix) → lock in (gates last). COMPAT-01 capabilities folded into the front of Phase 10.
+Full log in PROJECT.md Key Decisions table (all v1.1 decisions now validated) and the archived v1.0/v1.1 roadmaps. v1.1 shipped surface-preserving (one Changeset exception: opt-in `/compat-forms`), measure-first, degrade-gracefully-no-polyfill, and locked in with soak-staged enforcing size/count CI gates. Next-milestone decisions: TBD via `/gsd-new-milestone`.
 
 ### Pending Todos
 
@@ -76,9 +69,9 @@ None yet.
 
 [Issues that affect future work]
 
-- **Phase 11** (was Phase 7 concern): perf-gate noise characterization — whether shared CI run-to-run variance lets the count gate enforce, or needs a dedicated/manual-dispatch low-noise runner. Phase 7 kept counts gated but wall-clock report-only; the enforcing flip is staged off the release critical path (GATE-03).
-- **Phase 10** flagged for `--research-phase`: true per-capability browser floor (FACE vs ARIA reflection vs `:has()`/`adoptedStyleSheets`) resolved empirically on the widened matrix; Tier-2 hidden-input (COMPAT-03) Changeset decision pending enterprise-demand call.
-- ✓ Resolved (Phase 7): throttle profile pinned to `low-end-cellular` (6×-CPU + Slow-3G); per-entry brotli baseline committed in `api/size.baseline.json`.
+- **Deferred one-way follow-up (post-v1.1):** un-soak the CI `size`/`perf` gates — remove `continue-on-error` so a regression hard-blocks. Do only after the soak window shows low false-positives; size (deterministic) un-soaks first, then perf counts. GATE-03 A1 confirmed the soak keeps publishes reachable in the meantime.
+- **Process:** keep main CI continuously green — v1.1 close was blocked by a pre-existing coverage-gate + Playwright host-deps rot on main that hid for the whole milestone (both fixed in PR #2). Consider a push-to-main CI / coverage-drift check next milestone.
+- ✓ Resolved (Phase 11): GATE-03 live A1 confirmed; enforcing size/count gates soak-staged; cost cards published.
 
 ### Quick Tasks Completed
 
